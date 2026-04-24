@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Models\Usuario;
 
 return [
 
@@ -68,7 +68,7 @@ return [
         // 🔹 Provider principal de usuarios
         'users' => [
             'driver' => 'eloquent', // usa Eloquent ORM
-            'model' => env('AUTH_MODEL', User::class), // modelo User
+            'model' => env('AUTH_MODEL', App\Models\Usuario::class), // modelo Usuario
         ],
 
         // 🔸 Alternativa (comentada): usar base de datos directa
