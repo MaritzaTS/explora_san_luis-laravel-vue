@@ -14,8 +14,31 @@ class TipoEntidad extends Model
     // 🔹 Campos asignables masivamente
     protected $fillable = [
         'nombre',
+        'slug',
         'url_imagen',
     ];
+
+    /**
+     * Para que las URLs busquen por slug en lugar de id.
+     * Permite hacer Route::get('/tipos/{tipoEntidad:slug}', ...)
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    /**
+     * Auto-genera el slug cuando se crea o actualiza el nombre
+     * y no se pasó un slug manual.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (TipoEntidad $tipo) {
+            if (empty($tipo->slug) && !empty($tipo->nombre)) {
+                $tipo->slug = Str::slug($tipo->nombre);
+            }
+        });
+    }
 
     // ====================================================
     // 🔹 RELACIONES

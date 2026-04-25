@@ -16,7 +16,25 @@ class TipoEspecifico extends Model
     protected $fillable = [
         'tipo_entidad_id',
         'nombre',
+        'slug',
     ];
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    /**
+     * Auto-genera el slug cuando se crea o actualiza el nombre
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (TipoEspecifico $subtipo) {
+            if (empty($subtipo->slug) && !empty($subtipo->nombre)) {
+                $subtipo->slug = Str::slug($subtipo->nombre);
+            }
+        });
+    }
 
     // ====================================================
     // 🔹 RELACIONES

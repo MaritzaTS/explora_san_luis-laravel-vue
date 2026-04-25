@@ -20,6 +20,8 @@ return new class extends Migration
             // Máximo 100 caracteres y no puede repetirse
             $table->string('nombre', 100)->unique();
 
+            $table->string('slug', 120)->unique();
+
             // 🔹 URL de una imagen asociada al tipo de entidad
             // Puede ser NULL si no se tiene imagen
             $table->string('url_imagen', 255)->nullable();
