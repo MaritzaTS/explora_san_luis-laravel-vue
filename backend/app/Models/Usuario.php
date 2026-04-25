@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RolEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -119,8 +120,7 @@ class Usuario extends Authenticatable implements JWTSubject
      */
     public function esAdmin(): bool
     {
-        // 🔹 Asume que el rol con ID 1 es admin
-        return $this->rol_id === 1;
+        return $this->rol_id === RolEnum::ADMIN->value;
     }
 
     /**

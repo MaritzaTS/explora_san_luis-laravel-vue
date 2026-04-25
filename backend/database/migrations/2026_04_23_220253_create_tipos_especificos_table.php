@@ -26,6 +26,8 @@ return new class extends Migration
             // 🔹 Nombre del subtipo (ej: restaurante, café, etc.)
             $table->string('nombre', 100);
 
+            $table->string('slug', 120);
+
             // 🔹 Campos automáticos:
             // - created_at
             // - updated_at
@@ -34,7 +36,7 @@ return new class extends Migration
             // 🔹 Restricción única compuesta:
             // Evita duplicados del mismo nombre dentro de un mismo tipo
             // Ej: no puede haber dos "restaurante" en "gastronomía"
-            $table->unique(['tipo_entidad_id', 'nombre']);
+            $table->unique(['tipo_entidad_id', 'slug']);
         });
     }
 
