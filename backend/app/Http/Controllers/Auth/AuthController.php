@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\DTOs\Auth\RegisterDTO;
+use App\DTOs\Auth\VerificarCodigoDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\VerificarCodigoRequest;
 use App\Http\Resources\UsuarioResource;
 use App\Services\Auth\AuthService;
 use App\Traits\ApiResponse;
@@ -40,6 +42,24 @@ class AuthController extends Controller
         return $this->created(
             new UsuarioResource($usuario),
             'Usuario registrado exitosamente. Revisa tu correo para verificar tu cuenta.'
+        );
+    }
+
+    /**
+     * POST /api/auth/verificar-codigo
+     */
+    public function verificarCodigo(VerificarCodigoRequest $request): JsonResponse
+    {
+        $dto = VerificarCodigoDTO::fromRequest($request);
+
+        $resultado = $this->authService->verificarCodigo($dto);
+
+        return $this->success(
+            [
+                'usuario' => new UsuarioResource($resultado['usuario']),
+                'token'   => $resultado['token'],
+            ],
+            'Cuenta verificada exitosamente.'
         );
     }
 }

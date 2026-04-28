@@ -3,6 +3,8 @@
 namespace App\Services\Auth;
 
 use App\DTOs\Auth\RegisterDTO;
+use App\DTOs\Auth\VerificarCodigoDTO;
+use App\Enums\RolEnum;
 use App\Events\Auth\UsuarioRegistrado;
 use App\Exceptions\AuthException;
 use App\Models\Usuario;
@@ -15,6 +17,7 @@ class AuthService
     // 🔹 Inyección de dependencias (Repository)
     public function __construct(
         private readonly UsuarioRepositoryInterface $usuarioRepository,
+        private readonly JwtService $jwtService,
     ) {}
 
     /**
@@ -78,6 +81,63 @@ class AuthService
         // 5. RETORNAR USUARIO
         // ====================================================
         return $usuario;
+    }
+
+    /**
+     * Verifica el código de 6 dígitos y activa la cuenta.
+     *
+     * Flujo:
+     * 1. Buscar usuario por email
+     * 2. Validar que no esté ya verificado
+     * 3. Validar intentos (máximo 3)
+     * 4. Validar expiración (30 minutos)
+     * 5. Validar que el código coincida
+     * 6. Marcar como verificado
+     * 7. Generar token JWT
+     */
+    public function verificarCodigo(VerificarCodigoDTO $dto): array
+    {
+        // 1. Buscar usuario
+        $usuario = $this->usuarioRepository->findByEmail($dto->email);
+
+        if (!$usuario) {
+            throw AuthException::credencialesInvalidas();
+        }
+
+        // 2. Ya verificado
+        if ($usuario->verificado) {
+            throw AuthException::emailYaRegistrado($dto->email);
+        }
+
+        // 3. Máximo 3 intentos
+        if ($usuario->intentos_codigo >= 3) {
+            throw AuthException::demasiadosIntentos();
+        }
+
+        // 4. Código expirado
+        if ($usuario->codigo_expira_en && $usuario->codigo_expira_en->isPast()) {
+            throw AuthException::codigoExpirado();
+        }
+
+        // 5. Código incorrecto
+        if ($usuario->codigo_verificacion !== $dto->codigo) {
+            $this->usuarioRepository->update($usuario, [
+                'intentos_codigo' => $usuario->intentos_codigo + 1,
+            ]);
+
+            throw AuthException::codigoIncorrecto();
+        }
+
+        // 6. Verificar cuenta
+        $usuario = $this->usuarioRepository->marcarComoVerificado($usuario);
+
+        // 7. Generar token
+        $token = $this->jwtService->generarToken($usuario);
+
+        return [
+            'usuario' => $usuario,
+            'token'   => $token,
+        ];
     }
 
     /**
