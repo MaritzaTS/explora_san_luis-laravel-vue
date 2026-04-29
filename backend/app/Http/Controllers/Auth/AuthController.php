@@ -11,6 +11,8 @@ use App\Http\Resources\UsuarioResource;
 use App\Services\Auth\AuthService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use App\DTOs\Auth\LoginDTO;
+use App\Http\Requests\Auth\LoginRequest;
 
 // 🔹 Controlador de autenticación
 class AuthController extends Controller
@@ -60,6 +62,24 @@ class AuthController extends Controller
                 'token'   => $resultado['token'],
             ],
             'Cuenta verificada exitosamente.'
+        );
+    }
+
+    /**
+     * POST /api/auth/login
+     */
+    public function login(LoginRequest $request): JsonResponse
+    {
+        $dto = LoginDTO::fromRequest($request);
+
+        $resultado = $this->authService->login($dto);
+
+        return $this->success(
+            [
+                'usuario' => new UsuarioResource($resultado['usuario']),
+                'token'   => $resultado['token'],
+            ],
+            'Inicio de sesión exitoso.'
         );
     }
 }
