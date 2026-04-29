@@ -13,6 +13,7 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use App\DTOs\Auth\LoginDTO;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\CheckEmailRequest;
 
 // 🔹 Controlador de autenticación
 class AuthController extends Controller
@@ -103,6 +104,19 @@ class AuthController extends Controller
         return $this->success(
             new UsuarioResource($usuario),
             'Usuario autenticado.'
+        );
+    }
+
+    /**
+     * GET /api/auth/check-email?email=test@test.com
+     */
+    public function checkEmail(CheckEmailRequest $request): JsonResponse
+    {
+        $exists = $this->authService->checkEmail($request->input('email'));
+
+        return $this->success(
+            ['exists' => $exists],
+            $exists ? 'El email ya está registrado.' : 'El email está disponible.'
         );
     }
 }

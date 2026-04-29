@@ -210,4 +210,12 @@ class AuthService
         // 🔹 random_int es criptográficamente seguro
         return str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Verifica si un email ya está registrado.
+     */
+    public function checkEmail(string $email): bool
+    {
+        return $this->usuarioRepository->existsByEmail($email);
+    }
 }
