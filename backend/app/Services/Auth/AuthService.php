@@ -11,6 +11,7 @@ use App\Exceptions\AuthException;
 use App\Models\Usuario;
 use App\Repositories\Contracts\UsuarioRepositoryInterface;
 use Illuminate\Support\Facades\Hash;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 // 🔹 Servicio encargado de la lógica de autenticación (registro en este caso)
 class AuthService
@@ -182,6 +183,22 @@ class AuthService
             'usuario' => $usuario,
             'token'   => $token,
         ];
+    }
+
+    /**
+     * Cierra sesión invalidando el token.
+     */
+    public function logout(): void
+    {
+        JWTAuth::invalidate(JWTAuth::getToken());
+    }
+
+    /**
+     * Retorna el usuario autenticado actual.
+     */
+    public function me(): Usuario
+    {
+        return JWTAuth::parseToken()->authenticate();
     }
 
     /**
