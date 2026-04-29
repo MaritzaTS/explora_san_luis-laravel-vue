@@ -19,18 +19,29 @@ return Application::configure(basePath: dirname(__DIR__))
     // ====================================================
     // 🔹 CONFIGURACIÓN DE RUTAS
     // ====================================================
-    ->withRouting(
-        web: __DIR__ . '/../routes/web.php',       // rutas web (sesión, vistas, etc.)
-        api: __DIR__ . '/../routes/api.php',       // rutas API (JSON)
-        commands: __DIR__ . '/../routes/console.php', // comandos Artisan
-        health: '/up', // endpoint de salud (health check)
-    )
+    ->withMiddleware(function (Middleware $middleware) {
+        // Evita que los usuarios no autenticados sean redirigidos a una ruta de "login".
+        // Al retornar null, Laravel permite que la excepción de autenticación se maneje
+        // normalmente (ideal para respuestas JSON/API 401).
+        $middleware->redirectGuestsTo(fn () => null);
+
+        // Registro de alias para middlewares personalizados.
+        // Esto permite usar el nombre corto 'is_admin' dentro de los archivos de rutas.
+        $middleware->alias([
+            'is_admin' => \App\Http\Middleware\IsAdmin::class,
+        ]);
+
+        // 🔹 Aquí puedes registrar middlewares globales o por grupo
+    })
 
     // ====================================================
     // 🔹 MIDDLEWARES
     // ====================================================
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->redirectGuestsTo(fn () => null);
+        $middleware->alias([
+        'is_admin' => \App\Http\Middleware\IsAdmin::class,
+    ]);
         // 🔹 Aquí puedes registrar middlewares globales o por grupo
     })
 
