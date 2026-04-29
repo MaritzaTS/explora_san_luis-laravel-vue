@@ -9,6 +9,10 @@ use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\JWTException;
+
 // 🔹 Configuración principal de la aplicación (Laravel bootstrap moderno)
 return Application::configure(basePath: dirname(__DIR__))
 
@@ -16,9 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
     // 🔹 CONFIGURACIÓN DE RUTAS
     // ====================================================
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',       // rutas web (sesión, vistas, etc.)
-        api: __DIR__.'/../routes/api.php',       // rutas API (JSON)
-        commands: __DIR__.'/../routes/console.php', // comandos Artisan
+        web: __DIR__ . '/../routes/web.php',       // rutas web (sesión, vistas, etc.)
+        api: __DIR__ . '/../routes/api.php',       // rutas API (JSON)
+        commands: __DIR__ . '/../routes/console.php', // comandos Artisan
         health: '/up', // endpoint de salud (health check)
     )
 
@@ -26,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
     // 🔹 MIDDLEWARES
     // ====================================================
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->redirectGuestsTo(fn () => null);
         // 🔹 Aquí puedes registrar middlewares globales o por grupo
     })
 
@@ -95,6 +100,36 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
+        $exceptions->render(function (TokenInvalidException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Token inválido.',
+                    'error'   => 'TOKEN_INVALID',
+                ], 401);
+            }
+        });
+
+        $exceptions->render(function (TokenExpiredException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Token expirado.',
+                    'error'   => 'TOKEN_EXPIRED',
+                ], 401);
+            }
+        });
+
+        $exceptions->render(function (JWTException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Token no proporcionado.',
+                    'error'   => 'TOKEN_ABSENT',
+                ], 401);
+            }
+        });
+
         /**
          * 🔹 USUARIO NO AUTENTICADO
          * Ej: token JWT inválido o ausente
@@ -108,7 +143,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 401);
             }
         });
-
     })
 
     // 🔹 Crea la instancia final de la aplicación

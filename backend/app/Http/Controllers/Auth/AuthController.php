@@ -82,4 +82,27 @@ class AuthController extends Controller
             'Inicio de sesión exitoso.'
         );
     }
+
+    /**
+     * POST /api/auth/logout
+     */
+    public function logout(): JsonResponse
+    {
+        $this->authService->logout();
+
+        return $this->success(null, 'Sesión cerrada exitosamente.');
+    }
+
+    /**
+     * GET /api/auth/me
+     */
+    public function me(): JsonResponse
+    {
+        $usuario = $this->authService->me();
+
+        return $this->success(
+            new UsuarioResource($usuario),
+            'Usuario autenticado.'
+        );
+    }
 }

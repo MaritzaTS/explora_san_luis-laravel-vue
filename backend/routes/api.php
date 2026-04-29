@@ -13,3 +13,12 @@ Route::prefix('auth')->group(function () {
     Route::post('/verificar-codigo', [AuthController::class, 'verificarCodigo']);
     Route::post('/login', [AuthController::class, 'login']);
 });
+
+
+// ====================================================
+// RUTAS DE AUTENTICACIÓN (protegidas)
+// ====================================================
+Route::prefix('auth')->middleware('auth:api')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [AuthController::class, 'me']);
+});
