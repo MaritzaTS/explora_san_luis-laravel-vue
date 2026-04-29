@@ -2,6 +2,7 @@
 
 namespace App\Services\Auth;
 
+use App\DTOs\Auth\LoginDTO;
 use App\DTOs\Auth\RegisterDTO;
 use App\DTOs\Auth\VerificarCodigoDTO;
 use App\Enums\RolEnum;
@@ -132,6 +133,49 @@ class AuthService
         $usuario = $this->usuarioRepository->marcarComoVerificado($usuario);
 
         // 7. Generar token
+        $token = $this->jwtService->generarToken($usuario);
+
+        return [
+            'usuario' => $usuario,
+            'token'   => $token,
+        ];
+    }
+
+    /**
+     * Inicia sesión con email y contraseña.
+     *
+     * Flujo:
+     * 1. Buscar usuario por email
+     * 2. Validar que esté verificado
+     * 3. Validar que esté activo
+     * 4. Validar contraseña
+     * 5. Generar token JWT
+     */
+    public function login(LoginDTO $dto): array
+    {
+        // 1. Buscar usuario
+        $usuario = $this->usuarioRepository->findByEmail($dto->email);
+
+        if (!$usuario) {
+            throw AuthException::credencialesInvalidas();
+        }
+
+        // 2. Verificado
+        if (!$usuario->verificado) {
+            throw AuthException::usuarioNoVerificado();
+        }
+
+        // 3. Activo
+        if (!$usuario->estado) {
+            throw AuthException::usuarioInactivo();
+        }
+
+        // 4. Contraseña
+        if (!Hash::check($dto->password, $usuario->contrasena)) {
+            throw AuthException::credencialesInvalidas();
+        }
+
+        // 5. Token
         $token = $this->jwtService->generarToken($usuario);
 
         return [
