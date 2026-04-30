@@ -4,6 +4,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\CatalogoController;
+use App\Http\Controllers\EntidadPublicaController;
+
+
 
 // ====================================================
 // RUTAS DE AUTENTICACIÓN (públicas)
@@ -25,3 +29,9 @@ Route::prefix('auth')->middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 });
+
+// ====================================================
+// RUTAS PÚBLICAS (catálogo)
+// ====================================================
+Route::get('/tipos', [CatalogoController::class, 'tipos']);
+Route::get('/entidades/{tipoEntidad:slug}', [EntidadPublicaController::class, 'index']);

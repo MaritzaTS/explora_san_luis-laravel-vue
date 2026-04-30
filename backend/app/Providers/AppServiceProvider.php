@@ -8,6 +8,8 @@ use App\Repositories\Contracts\UsuarioRepositoryInterface;
 use App\Repositories\UsuarioRepository;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use App\Repositories\Contracts\EntidadRepositoryInterface;
+use App\Repositories\EntidadRepository;
 
 // 🔹 Service Provider principal de la aplicación
 class AppServiceProvider extends ServiceProvider
@@ -27,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
             UsuarioRepositoryInterface::class,
             UsuarioRepository::class
         );
+        $this->app->bind(EntidadRepositoryInterface::class, EntidadRepository::class);
     }
 
     /**
