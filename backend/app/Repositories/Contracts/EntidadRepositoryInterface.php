@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Contracts;
 
+use App\Models\Entidad;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
@@ -21,4 +22,16 @@ interface EntidadRepositoryInterface
      * @return LengthAwarePaginator Objeto de paginación compatible con Laravel que contiene los resultados.
      */
     public function filtrarPorTipo(int $tipoEntidadId, array $subtiposIds = [], int $porPagina = 6): LengthAwarePaginator;
+
+    public function listarTodas(int $porPagina = 15): LengthAwarePaginator;
+
+    public function findById(int $id): ?Entidad;
+
+    public function create(array $data): Entidad;
+
+    public function update(Entidad $entidad, array $data): Entidad;
+
+    public function cambiarEstado(Entidad $entidad, bool $estado): Entidad;
+
+    public function sincronizarSubtipos(Entidad $entidad, array $subtiposIds): void;
 }

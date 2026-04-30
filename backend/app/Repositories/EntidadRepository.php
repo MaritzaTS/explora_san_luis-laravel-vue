@@ -35,4 +35,38 @@ class EntidadRepository implements EntidadRepositoryInterface
             // Ejecuta la paginación de los resultados.
             ->paginate($porPagina);
     }
+
+    public function listarTodas(int $porPagina = 15): LengthAwarePaginator
+    {
+        return Entidad::with(['tipoEntidad', 'imagenes', 'tiposEspecificos', 'lugar'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($porPagina);
+    }
+
+    public function findById(int $id): ?Entidad
+    {
+        return Entidad::with(['tipoEntidad', 'imagenes', 'tiposEspecificos', 'lugar'])->find($id);
+    }
+
+    public function create(array $data): Entidad
+    {
+        return Entidad::create($data);
+    }
+
+    public function update(Entidad $entidad, array $data): Entidad
+    {
+        $entidad->update($data);
+        return $entidad->fresh(['tipoEntidad', 'imagenes', 'tiposEspecificos', 'lugar']);
+    }
+
+    public function cambiarEstado(Entidad $entidad, bool $estado): Entidad
+    {
+        $entidad->update(['estado' => $estado]);
+        return $entidad->fresh();
+    }
+
+    public function sincronizarSubtipos(Entidad $entidad, array $subtiposIds): void
+    {
+        $entidad->tiposEspecificos()->sync($subtiposIds);
+    }
 }
