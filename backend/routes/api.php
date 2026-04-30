@@ -9,6 +9,7 @@ use App\Http\Controllers\EntidadPublicaController;
 use App\Http\Controllers\SitioTuristicoController;
 use App\Http\Controllers\EventoController;
 use App\Http\Controllers\Admin\EntidadController as AdminEntidadController;
+use App\Http\Controllers\Admin\SitioTuristicoController as AdminSitioTuristicoController;
 
 
 
@@ -53,4 +54,10 @@ Route::prefix('admin')->middleware(['auth:api', 'is_admin'])->group(function () 
     Route::post('/entidades', [AdminEntidadController::class, 'store']);
     Route::put('/entidades/{id}', [AdminEntidadController::class, 'update']);
     Route::patch('/entidades/{id}/estado', [AdminEntidadController::class, 'cambiarEstado']);
+
+    // Sitios Turísticos
+    Route::get('/sitios-turisticos', [AdminSitioTuristicoController::class, 'index']);
+    Route::post('/sitios-turisticos', [AdminSitioTuristicoController::class, 'store']);
+    Route::put('/sitios-turisticos/{id}', [AdminSitioTuristicoController::class, 'update']);
+    Route::patch('/sitios-turisticos/{id}/estado', [AdminSitioTuristicoController::class, 'cambiarEstado']);
 });

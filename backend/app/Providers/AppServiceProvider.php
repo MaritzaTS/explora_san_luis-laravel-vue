@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\Contracts\EntidadRepositoryInterface;
 use App\Repositories\EntidadRepository;
+use App\Repositories\Contracts\SitioTuristicoRepositoryInterface;
+use App\Repositories\SitioTuristicoRepository;
 
 // 🔹 Service Provider principal de la aplicación
 class AppServiceProvider extends ServiceProvider
@@ -30,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
             UsuarioRepository::class
         );
         $this->app->bind(EntidadRepositoryInterface::class, EntidadRepository::class);
+        $this->app->bind(SitioTuristicoRepositoryInterface::class, SitioTuristicoRepository::class);
     }
 
     /**
