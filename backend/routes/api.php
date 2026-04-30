@@ -6,8 +6,8 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\EntidadPublicaController;
-
-
+use App\Http\Controllers\SitioTuristicoController;
+use App\Http\Controllers\EventoController;
 
 // ====================================================
 // RUTAS DE AUTENTICACIÓN (públicas)
@@ -35,3 +35,5 @@ Route::prefix('auth')->middleware('auth:api')->group(function () {
 // ====================================================
 Route::get('/tipos', [CatalogoController::class, 'tipos']);
 Route::get('/entidades/{tipoEntidad:slug}', [EntidadPublicaController::class, 'index']);
+Route::get('/sitios-turisticos', [SitioTuristicoController::class, 'index']);
+Route::get('/eventos', [EventoController::class, 'index']);
