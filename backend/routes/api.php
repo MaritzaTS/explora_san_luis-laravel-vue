@@ -8,6 +8,10 @@ use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\EntidadPublicaController;
 use App\Http\Controllers\SitioTuristicoController;
 use App\Http\Controllers\EventoController;
+use App\Http\Controllers\Admin\EntidadController as AdminEntidadController;
+
+
+
 
 // ====================================================
 // RUTAS DE AUTENTICACIÓN (públicas)
@@ -37,3 +41,16 @@ Route::get('/tipos', [CatalogoController::class, 'tipos']);
 Route::get('/entidades/{tipoEntidad:slug}', [EntidadPublicaController::class, 'index']);
 Route::get('/sitios-turisticos', [SitioTuristicoController::class, 'index']);
 Route::get('/eventos', [EventoController::class, 'index']);
+
+
+// ====================================================
+// RUTAS ADMIN (protegidas: auth + isAdmin)
+// ====================================================
+Route::prefix('admin')->middleware(['auth:api', 'is_admin'])->group(function () {
+
+    // Entidades
+    Route::get('/entidades', [AdminEntidadController::class, 'index']);
+    Route::post('/entidades', [AdminEntidadController::class, 'store']);
+    Route::put('/entidades/{id}', [AdminEntidadController::class, 'update']);
+    Route::patch('/entidades/{id}/estado', [AdminEntidadController::class, 'cambiarEstado']);
+});
