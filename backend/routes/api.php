@@ -12,7 +12,7 @@ use App\Http\Controllers\Admin\EntidadController as AdminEntidadController;
 use App\Http\Controllers\Admin\SitioTuristicoController as AdminSitioTuristicoController;
 use App\Http\Controllers\Admin\EventoController as AdminEventoController;
 use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
-
+use App\Http\Controllers\Admin\DashboardController;
 
 
 
@@ -74,4 +74,7 @@ Route::prefix('admin')->middleware(['auth:api', 'is_admin'])->group(function () 
 
     // Tipos - imagen de portada
     Route::post('/tipos/{id}/imagen', [CatalogoController::class, 'actualizarImagen']);
+
+    // Dashboard
+    Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
 });
