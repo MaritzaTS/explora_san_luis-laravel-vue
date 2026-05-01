@@ -71,4 +71,7 @@ Route::prefix('admin')->middleware(['auth:api', 'is_admin'])->group(function () 
     // Usuarios
     Route::get('/usuarios', [AdminUsuarioController::class, 'index']);
     Route::patch('/usuarios/{id}/estado', [AdminUsuarioController::class, 'cambiarEstado']);
+
+    // Tipos - imagen de portada
+    Route::post('/tipos/{id}/imagen', [CatalogoController::class, 'actualizarImagen']);
 });
