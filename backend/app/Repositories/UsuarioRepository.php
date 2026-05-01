@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Usuario;
 use App\Repositories\Contracts\UsuarioRepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 // 🔹 Implementación del repositorio de usuarios
 // Aquí se define la lógica concreta de acceso a datos
@@ -62,5 +63,18 @@ class UsuarioRepository implements UsuarioRepositoryInterface
 
         // 🔹 Retorna el modelo actualizado desde la BD
         return $usuario->fresh();
+    }
+
+    public function listarTodos(int $porPagina = 15): LengthAwarePaginator
+    {
+        return Usuario::with('rol')
+            ->orderBy('created_at', 'desc')
+            ->paginate($porPagina);
+    }
+
+    public function cambiarEstado(Usuario $usuario, bool $estado): Usuario
+    {
+        $usuario->update(['estado' => $estado]);
+        return $usuario->fresh('rol');
     }
 }
