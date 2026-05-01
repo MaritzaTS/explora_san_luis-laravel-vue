@@ -3,6 +3,7 @@
 namespace App\Repositories\Contracts;
 
 use App\Models\Usuario;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 // 🔹 Contrato (interface) para el repositorio de usuarios
 // Define qué operaciones se pueden hacer, pero no cómo se implementan
@@ -41,4 +42,8 @@ interface UsuarioRepositoryInterface
      * También limpia el código de verificación asociado
      */
     public function marcarComoVerificado(Usuario $usuario): Usuario;
+
+    public function listarTodos(int $porPagina = 15): LengthAwarePaginator;
+
+    public function cambiarEstado(Usuario $usuario, bool $estado): Usuario;
 }

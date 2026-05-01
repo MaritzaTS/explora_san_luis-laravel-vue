@@ -10,6 +10,8 @@ use App\Http\Controllers\SitioTuristicoController;
 use App\Http\Controllers\EventoController;
 use App\Http\Controllers\Admin\EntidadController as AdminEntidadController;
 use App\Http\Controllers\Admin\SitioTuristicoController as AdminSitioTuristicoController;
+use App\Http\Controllers\Admin\EventoController as AdminEventoController;
+use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
 
 
 
@@ -60,4 +62,13 @@ Route::prefix('admin')->middleware(['auth:api', 'is_admin'])->group(function () 
     Route::post('/sitios-turisticos', [AdminSitioTuristicoController::class, 'store']);
     Route::put('/sitios-turisticos/{id}', [AdminSitioTuristicoController::class, 'update']);
     Route::patch('/sitios-turisticos/{id}/estado', [AdminSitioTuristicoController::class, 'cambiarEstado']);
+
+    // Eventos
+    Route::get('/eventos', [AdminEventoController::class, 'index']);
+    Route::post('/eventos', [AdminEventoController::class, 'store']);
+    Route::put('/eventos/{id}', [AdminEventoController::class, 'update']);
+
+    // Usuarios
+    Route::get('/usuarios', [AdminUsuarioController::class, 'index']);
+    Route::patch('/usuarios/{id}/estado', [AdminUsuarioController::class, 'cambiarEstado']);
 });
