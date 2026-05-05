@@ -1,14 +1,8 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-
-</script>
-
 <template>
-
-  <h1>HOLA</h1>
-
-  <RouterView />
+  <!-- Aquí se renderizará DefaultLayout.vue y, dentro de él, cada página -->
+  <router-view />
 </template>
 
-<style scoped>
-</style>
+<script setup>
+// No se necesita lógica adicional aquí por ahora
+</script>
