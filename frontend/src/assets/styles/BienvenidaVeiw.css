@@ -1,0 +1,360 @@
+/*
+ * ============================================================
+ *  HomeView.css — Estilos del componente HomeView.vue
+ *  Plataforma de Turismo · San Luis, Antioquia
+ * ============================================================
+ *
+ *  USO EN VUE:
+ *  Pega todo este contenido dentro de <style scoped> en
+ *  tu componente, o bien impórtalo en main.js / app.css
+ *  si quieres que esté disponible globalmente.
+ *
+ *  FUENTES REQUERIDAS (agregar en index.html o en main.css):
+ *  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap');
+ *
+ *  DEPENDENCIAS:
+ *  - Bootstrap 5.3+
+ *  - Bootstrap Icons 1.11+
+ * ============================================================
+ */
+
+/* ────────────────────────────────────────────
+   VARIABLES DE MARCA
+   Úsalas con var(--verde-bosque) en cualquier
+   parte del componente o de la app.
+──────────────────────────────────────────── */
+:root {
+  --verde-bosque:  #4F7352;
+  --verde-lima:    #A8CF45;
+  --verde-claro:   #EAF3DE;
+  --azul-link:     #2469A6;
+  --negro:         #000000;
+  --blanco:        #ffffff;
+  --sombra-card:   0 4px 24px rgba(0, 0, 0, 0.10);
+  --font-display:  'Playfair Display', serif;
+  --font-body:     'DM Sans', sans-serif;
+}
+
+
+/* ────────────────────────────────────────────
+   1. HERO SECTION
+──────────────────────────────────────────── */
+.hero-section {
+  min-height: 85vh;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
+    url('/assets/img/principal/hero.webp');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--blanco);
+  position: relative;
+}
+
+.hero-section h1 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: 3px;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+  margin-bottom: 1rem;
+}
+
+.hero-section .lead {
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  letter-spacing: 3px;
+  opacity: 0.92;
+  margin-bottom: 2.5rem;
+}
+
+/* Botón hero — reemplaza el btn-success original */
+.btn-aventura {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  letter-spacing: 2px;
+  padding: 1rem 2.8rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--blanco);
+  border: 2px solid var(--blanco);
+  transition: background 0.25s, color 0.25s, border-color 0.25s, transform 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.btn-aventura:hover {
+  background: var(--verde-lima);
+  border-color: var(--verde-lima);
+  color: #1a2e0a;
+  transform: translateY(-2px);
+}
+
+
+/* ────────────────────────────────────────────
+   2. CARDS DE LUGARES DESTACADOS
+   CORRECCIÓN: margin-top negativo unificado
+   aquí — ya no se duplica con mt-n5 de Bootstrap
+──────────────────────────────────────────── */
+.lugares-section {
+  margin-top: -80px;
+  position: relative;
+  z-index: 10;
+  padding: 0 1rem;
+}
+
+.lugar-card {
+  background: var(--blanco);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--sombra-card);
+  border: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+}
+.lugar-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
+}
+
+.lugar-card .card-body {
+  padding: 1.6rem 1.4rem 1.2rem;
+  text-align: center;
+}
+
+.lugar-card h5 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 3px;
+  color: var(--negro);
+  margin-bottom: 0.5rem;
+}
+
+.lugar-card p {
+  font-size: 0.9rem;
+  letter-spacing: 3px;
+  color: #555555;
+  line-height: 1.5;
+}
+
+.lugar-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+
+/* ────────────────────────────────────────────
+   3. SECCIÓN ACTIVIDADES DE AVENTURA
+──────────────────────────────────────────── */
+.actividades-section {
+  padding: 5rem 0 1rem;
+}
+
+.actividades-section h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  letter-spacing: 3px;
+  color: var(--negro);
+  margin-bottom: 0.6rem;
+}
+
+.actividades-section p {
+  font-size: 1.05rem;
+  letter-spacing: 4px;
+  color: #444444;
+}
+
+.actividades-section hr {
+  border-top: 1px solid #cccccc;
+  opacity: 1;
+  margin-top: 1.8rem;
+}
+
+
+/* ────────────────────────────────────────────
+   4. BANNER INFO (Clima · Consejos · Ubicación)
+──────────────────────────────────────────── */
+.info-banner-brand {
+  background-color: var(--verde-bosque);
+  color: var(--blanco);
+  border-radius: 1rem;
+  padding: 2.5rem 3rem;
+}
+
+.brand-subtitle {
+  font-family: var(--font-body);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--verde-lima);
+  margin-bottom: 0.75rem;
+  font-size: 1.05rem;
+}
+
+.weather-container {
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 15px;
+  padding: 10px;
+  border: 1px solid rgba(168, 207, 69, 0.30);
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-icon {
+  color: var(--verde-lima);
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.info-banner-brand .small {
+  font-size: 0.88rem;
+  opacity: 0.85;
+  line-height: 1.8;
+  margin-bottom: 0.1rem;
+}
+
+
+/* ────────────────────────────────────────────
+   5. SECCIÓN TESTIMONIOS
+──────────────────────────────────────────── */
+.testimonios-section {
+  padding: 3rem 0 4rem;
+}
+
+.brand-section-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--negro);
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  letter-spacing: 3px;
+  margin-bottom: 0.4rem;
+}
+
+.brand-section-subtitle {
+  font-family: var(--font-body);
+  color: var(--negro);
+  font-size: 1.05rem;
+  letter-spacing: 3px;
+  opacity: 0.70;
+  margin-bottom: 2.5rem;
+}
+
+.testimonial-card {
+  background: var(--blanco);
+  border-radius: 12px;
+  border: none;
+  box-shadow: var(--sombra-card);
+  transition: transform 0.3s ease;
+  height: 100%;
+}
+.testimonial-card:hover {
+  transform: translateY(-5px);
+}
+
+.testimonial-card .card-body {
+  padding: 1.6rem;
+}
+
+.testimonial-text {
+  font-size: 0.92rem;
+  letter-spacing: 2px;
+  color: #333333;
+  line-height: 1.7;
+  font-style: italic;
+  margin-bottom: 1.2rem;
+}
+
+.divider-brand {
+  border-top: 1px solid #e0e0e0;
+  opacity: 1;
+  margin: 1rem 0;
+}
+
+.visitor-name {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 2px;
+  color: var(--negro);
+  margin-bottom: 0.15rem;
+}
+
+.visitor-location {
+  color: var(--azul-link);
+  font-weight: 500;
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.location-icon {
+  color: var(--verde-lima);
+}
+
+.visitor-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--verde-lima);
+}
+
+
+/* ────────────────────────────────────────────
+   6. CTA — ESCRIBIR RESEÑA
+──────────────────────────────────────────── */
+.cta-section {
+  padding: 3rem 0 5rem;
+  text-align: center;
+}
+
+.btn-resena {
+  background: rgba(79, 115, 82, 0.75);
+  color: var(--blanco);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 3px;
+  border: none;
+  border-radius: 8px;
+  padding: 0.9rem 2.8rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.btn-resena:hover {
+  background: var(--verde-bosque);
+  transform: translateY(-2px);
+}
+
+
+/* ────────────────────────────────────────────
+   7. RESPONSIVE
+──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .info-banner-brand {
+    padding: 2rem 1.2rem;
+  }
+
+  .lugares-section {
+    margin-top: -40px;
+  }
+
+  .brand-section-title {
+    font-size: 1.4rem;
+  }
+
+  .brand-section-subtitle {
+    font-size: 0.9rem;
+    letter-spacing: 1.5px;
+  }
+}
