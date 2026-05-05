@@ -44,20 +44,20 @@ class GoogleAuthController extends Controller
     /**
      * Endpoint: GET /api/auth/google/callback
      * Procesa la información del usuario devuelta por Google tras la autorización.
-     * * @return JsonResponse Datos del usuario autenticado y su token JWT.
+     * Redirige al frontend con el token y datos del usuario como query params.
      */
-    public function callback(): JsonResponse
+    public function callback()
     {
-        // Ejecuta la lógica de negocio para registrar o vincular al usuario
-        $resultado = $this->googleAuthService->handleCallback();
+        try {
+            $resultado = $this->googleAuthService->handleCallback();
+            $token = $resultado['token'];
+            $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
 
-        return $this->success(
-            [
-                // Transforma el modelo Usuario a un formato JSON específico mediante el Resource
-                'usuario' => new UsuarioResource($resultado['usuario']),
-                'token'   => $resultado['token'],
-            ],
-            'Inicio de sesión con Google exitoso.'
-        );
+            return redirect("{$frontendUrl}/auth/google/callback?token={$token}");
+        } catch (\Exception $e) {
+            $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+
+            return redirect("{$frontendUrl}/auth/google/callback?error=google_auth_failed");
+        }
     }
 }
