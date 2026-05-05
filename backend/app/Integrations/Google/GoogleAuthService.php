@@ -7,7 +7,7 @@ use App\Models\Usuario;
 use App\Repositories\Contracts\UsuarioRepositoryInterface;
 use App\Services\Auth\JwtService;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Support\Facades\Socialite;
+use Laravel\Socialite\Facades\Socialite;
 
 /**
  * Servicio para gestionar la autenticación mediante Google OAuth2.
