@@ -15,7 +15,7 @@
         </div>
         <div class="col-md-9 d-flex align-items-center">
           <div class="card-body p-3">
-            <h5 class="fw-bold mb-1">Gestión de Alojamientos</h5>
+            <h5 class="fw-bold mb-1">Gestión de Recreación</h5>
             <p class="text-muted mb-2 small">Personaliza la imagen que verán los usuarios en el catálogo principal.</p>
             <input ref="inputPortada" type="file" accept="image/*" class="d-none" @change="subirPortada" />
             <div v-if="portadaSeleccionada" class="mt-2 d-flex gap-2">
@@ -29,7 +29,7 @@
 
     <!-- ALERTA -->
     <div v-if="alerta.visible"
-      :class="`alert alert-${alerta.tipo} alert-dismissible fade show border-0 shadow-sm rounded-4`"
+      :class="`alert alert-${alerta.tipo} alert-dismissible fade show border-0 shadow-sm rounded-3`"
       role="alert">
       <strong>{{ alerta.titulo }}</strong> {{ alerta.mensaje }}
       <button type="button" class="btn-close" @click="alerta.visible = false"></button>
@@ -39,19 +39,19 @@
     <div class="row g-4 mb-4">
       <div class="col-md-4">
         <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-dark border-4">
-          <h5 class="fw-bold mb-3 text-muted">Total Alojamientos</h5>
+          <h5 class="fw-bold mb-3 text-muted">Total Recreación</h5>
           <h1 class="display-4 fw-bold mb-0 text-dark">{{ totalEntidades }}</h1>
         </div>
       </div>
       <div class="col-md-4">
         <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-success border-4">
-          <h5 class="fw-bold mb-3 text-success">Activos</h5>
+          <h5 class="fw-bold mb-3 text-success">Sitios Activos</h5>
           <h1 class="display-4 fw-bold mb-0 text-success">{{ activas }}</h1>
         </div>
       </div>
       <div class="col-md-4">
         <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-danger border-4">
-          <h5 class="fw-bold mb-3 text-danger">Inactivos</h5>
+          <h5 class="fw-bold mb-3 text-danger">Sitios Inactivos</h5>
           <h1 class="display-4 fw-bold mb-0 text-danger">{{ inactivas }}</h1>
         </div>
       </div>
@@ -68,30 +68,30 @@
               <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
               <input type="text" v-model="busqueda"
                 class="form-control border-0 shadow-none py-2"
-                placeholder="Buscar hotel, hostal..." />
+                placeholder="Buscar sitio de recreación..." />
             </div>
           </div>
           <div class="col-md-3">
-            <select v-model="filtroCategoria"
+            <select v-model="filtroTipo"
               class="form-select border border-secondary-subtle rounded-3 py-2 shadow-none fw-semibold">
-              <option value="">Todas las categorías</option>
-              <option>Hoteles</option>
-              <option>Hostales</option>
-              <option>Glamping / Cabañas</option>
+              <option value="">Todos los Tipos</option>
+              <option>Parques</option>
+              <option>Miradores</option>
+              <option>Centros Deportivos</option>
             </select>
           </div>
           <div class="col-md-2">
             <select v-model="filtroEstado"
               class="form-select border border-secondary-subtle rounded-3 py-2 shadow-none fw-semibold">
               <option value="">Todos</option>
-              <option value="1">Solo Activos</option>
-              <option value="0">Solo Inactivos</option>
+              <option value="1">Activos</option>
+              <option value="0">Inactivos</option>
             </select>
           </div>
           <div class="col-md-3 text-end">
-            <button class="btn btn-dark border-0 rounded-3 py-2 px-4 fw-bold shadow-none"
+            <button class="btn btn-outline-dark border border-secondary-subtle rounded-3 py-2 px-4 fw-bold shadow-none"
               @click="abrirModalAgregar">
-              <i class="bi bi-building-add me-1"></i> Nuevo Alojamiento
+              <i class="bi bi-plus-lg me-1"></i> Agregar
             </button>
           </div>
         </div>
@@ -100,12 +100,12 @@
         <div class="d-flex flex-column gap-3">
           <div v-if="cargando" class="text-center p-5 text-muted">
             <div class="spinner-border text-dark mb-3" role="status"></div>
-            <p>Cargando alojamientos...</p>
+            <p>Cargando sitios de recreación...</p>
           </div>
 
           <div v-else-if="entidadesFiltradas.length === 0" class="text-center p-5 text-muted">
-            <i class="bi bi-house-door fs-1 d-block mb-3"></i>
-            <p>No hay alojamientos registrados en el sistema.</p>
+            <i class="bi bi-tree fs-1 d-block mb-3"></i>
+            <p>No hay lugares registrados en la categoría Recreación.</p>
           </div>
 
           <div v-else v-for="entidad in entidadesFiltradas" :key="entidad.id_entidad"
@@ -113,7 +113,7 @@
             <div class="card-body d-flex align-items-center justify-content-between p-3">
 
               <div class="d-flex align-items-center">
-                <img :src="entidad.url_imagen_tipo_logo || '/assets/img/default-hotel.png'"
+                <img :src="entidad.url_imagen_tipo_logo || '/assets/img/default-recreacion.png'"
                   class="rounded-3 border border-dark me-3"
                   style="width: 60px; height: 60px; object-fit: cover;" />
                 <div>
@@ -133,11 +133,11 @@
                 </div>
               </div>
 
-              <div class="d-flex gap-2">
+              <div class="d-flex gap-3">
                 <button
                   :class="entidad.estado == 1
-                    ? 'btn btn-outline-danger border rounded-3 px-4 d-flex align-items-center gap-2 shadow-none fw-semibold'
-                    : 'btn btn-outline-success border rounded-3 px-4 d-flex align-items-center gap-2 shadow-none fw-semibold'"
+                    ? 'btn btn-outline-danger border border-secondary-subtle rounded-3 px-3 d-flex align-items-center gap-2 shadow-none fw-semibold btn-sm'
+                    : 'btn btn-outline-success border border-secondary-subtle rounded-3 px-3 d-flex align-items-center gap-2 shadow-none fw-semibold btn-sm'"
                   @click="toggleEstado(entidad)">
                   <i :class="entidad.estado == 1 ? 'bi bi-eye-slash fs-5' : 'bi bi-eye fs-5'"></i>
                   {{ entidad.estado == 1 ? 'Desactivar' : 'Activar' }}
@@ -160,12 +160,12 @@
     </div>
 
     <!-- ===== MODAL AGREGAR ===== -->
-    <div class="modal fade" id="modalAgregarAloj" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="modalAgregarRecr" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 rounded-4 shadow-lg">
           <div class="modal-header border-0 pb-0">
             <h5 class="modal-title fw-bold d-flex align-items-center">
-              <i class="bi bi-building-add fs-4 me-2"></i> Nuevo Alojamiento
+              <i class="bi bi-tree fs-4 me-2"></i> Nuevo Sitio de Recreación
             </h5>
             <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
           </div>
@@ -176,13 +176,13 @@
                   <label class="form-label fw-bold mb-0">Nombre Comercial *</label>
                   <input v-model="formNueva.nombre_comercial" type="text"
                     class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
-                    placeholder="Ej: Hotel El Paraíso" required />
+                    placeholder="Ej: Parque Principal" required />
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold mb-0">Razón Social *</label>
                   <input v-model="formNueva.razon_social" type="text"
                     class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
-                    placeholder="Ej: Inversiones S.A.S" required />
+                    placeholder="Ej: Recreaciones S.A.S" required />
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold mb-0">RUT (Opcional)</label>
@@ -199,13 +199,12 @@
                   <label class="form-label fw-bold mb-0">Horario de Atención *</label>
                   <input v-model="formNueva.hora_atencion" type="text"
                     class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
-                    placeholder="Ej: Lunes a Sábado 8am - 6pm" required />
+                    placeholder="Ej: Lunes a Domingo 6am - 8pm" required />
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold mb-0">Sitio Web o Facebook</label>
                   <input v-model="formNueva.sitio_web" type="url"
-                    class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
-                    placeholder="https://facebook.com/tu-pagina" />
+                    class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none" />
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold mb-0">Estado Inicial *</label>
@@ -225,11 +224,11 @@
                   <label class="form-label fw-bold mb-0">Descripción</label>
                   <textarea v-model="formNueva.descripcion" rows="2"
                     class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
-                    placeholder="Describe brevemente los servicios..."></textarea>
+                    placeholder="Describe brevemente el sitio..."></textarea>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold mb-1">
-                    <i class="bi bi-person-badge me-1"></i> Logo del Alojamiento *
+                    <i class="bi bi-image me-1"></i> Logo / Imagen *
                   </label>
                   <small class="text-muted d-block mb-2">Imagen cuadrada o logo distintivo.</small>
                   <input type="file" ref="inputLogoNueva" accept="image/*"
@@ -250,18 +249,18 @@
     </div>
 
     <!-- ===== MODAL VER DETALLE ===== -->
-    <div class="modal fade" id="modalDetalleAloj" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="modalDetalleRecr" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 rounded-4 shadow-lg">
           <div class="modal-header border-0 pb-0">
-            <h5 class="modal-title fw-bold">Detalle del Alojamiento</h5>
+            <h5 class="modal-title fw-bold">Detalle del Sitio</h5>
             <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body p-4" v-if="detalle">
             <div class="row g-4 align-items-start">
               <div class="col-md-4 text-center">
                 <div class="p-4 rounded-4 border bg-white shadow-sm mb-3">
-                  <img :src="detalle.url_imagen_tipo_logo || '/assets/img/default-hotel.png'"
+                  <img :src="detalle.url_imagen_tipo_logo || '/assets/img/default-recreacion.png'"
                     class="img-fluid rounded-4 mb-3 border"
                     style="width: 150px; height: 150px; object-fit: cover;" />
                   <h6 class="fw-bold mb-1 small">Identidad Visual</h6>
@@ -279,7 +278,7 @@
               <div class="col-md-8">
                 <h3 class="fw-bold text-dark mb-1">{{ detalle.nombre_comercial }}</h3>
                 <p class="text-primary fw-semibold mb-3 small">
-                  <i class="bi bi-tag-fill me-1"></i> Establecimiento Verificado
+                  <i class="bi bi-tag-fill me-1"></i> Sitio Verificado
                 </p>
                 <div class="row g-3">
                   <div class="col-md-6">
@@ -327,12 +326,12 @@
     </div>
 
     <!-- ===== MODAL EDITAR ===== -->
-    <div class="modal fade" id="modalEditarAloj" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="modalEditarRecr" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 rounded-4 shadow-lg">
           <div class="modal-header border-0 pb-0">
             <h5 class="modal-title fw-bold">
-              <i class="bi bi-pencil-fill me-2"></i> Editar Alojamiento
+              <i class="bi bi-pencil-fill me-2"></i> Editar Sitio
             </h5>
             <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
           </div>
@@ -341,7 +340,7 @@
               <div class="row g-4 align-items-start">
                 <div class="col-md-4 text-center">
                   <div class="p-4 rounded-4 border bg-white shadow-sm mb-3">
-                    <img :src="formEditar.logoPreview || '/assets/img/default-hotel.png'"
+                    <img :src="formEditar.logoPreview || '/assets/img/default-recreacion.png'"
                       class="img-fluid rounded-4 mb-3 border"
                       style="width: 150px; height: 150px; object-fit: cover;" />
                     <label class="fw-bold mb-1 small d-block">Cambiar Logo</label>
@@ -422,12 +421,12 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
-const ID_TIPO = 3  // Alojamientos
+const ID_TIPO = 2  // Recreación
 
 const entidades           = ref([])
 const cargando            = ref(true)
 const busqueda            = ref('')
-const filtroCategoria     = ref('')
+const filtroTipo          = ref('')
 const filtroEstado        = ref('')
 const imgPortada          = ref('/assets/img/placeholder-category.jpg')
 const portadaSeleccionada = ref(null)
@@ -466,7 +465,7 @@ async function cargarEntidades() {
     const { data } = await axios.get('/api/admin/entidades', { params: { id_tipo: ID_TIPO } })
     entidades.value = data
   } catch {
-    mostrarAlerta('danger', '¡Error!', 'No se pudieron cargar los alojamientos.')
+    mostrarAlerta('danger', '¡Error!', 'No se pudieron cargar los sitios de recreación.')
   } finally {
     cargando.value = false
   }
@@ -508,7 +507,7 @@ async function toggleEstado(entidad) {
 
 function verDetalle(entidad) {
   detalle.value = entidad
-  new bootstrap.Modal(document.getElementById('modalDetalleAloj')).show()
+  new bootstrap.Modal(document.getElementById('modalDetalleRecr')).show()
 }
 
 function abrirModalAgregar() {
@@ -516,7 +515,7 @@ function abrirModalAgregar() {
     nombre_comercial: '', razon_social: '', rut: '', telefono: '',
     hora_atencion: '', sitio_web: '', estado: 1, direccion: '', descripcion: ''
   }
-  new bootstrap.Modal(document.getElementById('modalAgregarAloj')).show()
+  new bootstrap.Modal(document.getElementById('modalAgregarRecr')).show()
 }
 
 async function guardarNueva() {
@@ -525,14 +524,14 @@ async function guardarNueva() {
   fd.append('id_tipo', ID_TIPO)
   if (inputLogoNueva.value?.files[0]) fd.append('url_imagen_tipo_logo', inputLogoNueva.value.files[0])
   await axios.post('/api/admin/entidades', fd)
-  bootstrap.Modal.getInstance(document.getElementById('modalAgregarAloj')).hide()
-  mostrarAlerta('success', '¡Guardado!', 'Alojamiento agregado correctamente.')
+  bootstrap.Modal.getInstance(document.getElementById('modalAgregarRecr')).hide()
+  mostrarAlerta('success', '¡Guardado!', 'Sitio agregado correctamente.')
   await cargarEntidades()
 }
 
 function abrirModalEditar(entidad) {
   formEditar.value = { ...entidad, logoPreview: entidad.url_imagen_tipo_logo }
-  new bootstrap.Modal(document.getElementById('modalEditarAloj')).show()
+  new bootstrap.Modal(document.getElementById('modalEditarRecr')).show()
 }
 
 function previewLogoEditar(e) {
@@ -546,9 +545,10 @@ async function guardarEdicion() {
     if (k !== 'logoPreview') fd.append(k, v)
   })
   if (inputLogoEditar.value?.files[0]) fd.append('url_imagen_tipo_logo', inputLogoEditar.value.files[0])
-  await axios.post(`/api/admin/entidades/${formEditar.value.id_entidad}?_method=PUT`, fd)
-  bootstrap.Modal.getInstance(document.getElementById('modalEditarAloj')).hide()
-  mostrarAlerta('success', '¡Actualizado!', 'Alojamiento editado correctamente.')
+  fd.append('_method', 'PUT')
+  await axios.post(`/api/admin/entidades/${formEditar.value.id_entidad}`, fd)
+  bootstrap.Modal.getInstance(document.getElementById('modalEditarRecr')).hide()
+  mostrarAlerta('success', '¡Actualizado!', 'Sitio editado correctamente.')
   await cargarEntidades()
 }
 
