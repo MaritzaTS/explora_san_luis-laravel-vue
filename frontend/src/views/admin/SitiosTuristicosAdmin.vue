@@ -1,0 +1,504 @@
+<template>
+  <div>
+
+    <!-- TARJETAS ESTADÍSTICAS -->
+    <div class="row g-4 mb-4">
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+          <h5 class="fw-bold mb-3 text-muted small">Total Sitios</h5>
+          <h1 class="display-4 fw-bold mb-0 text-dark">{{ totalGeneral }}</h1>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+          <h5 class="fw-bold mb-3 text-muted small">Activos</h5>
+          <h1 class="display-4 fw-bold mb-0 text-success">{{ totalActivos }}</h1>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+          <h5 class="fw-bold mb-3 text-muted small">Inactivos</h5>
+          <h1 class="display-4 fw-bold mb-0 text-danger">{{ totalInactivos }}</h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTA -->
+    <div v-if="alerta.visible"
+      :class="`alert alert-${alerta.tipo} alert-dismissible fade show shadow-sm`"
+      role="alert">
+      <strong>{{ alerta.titulo }}</strong> {{ alerta.mensaje }}
+      <button type="button" class="btn-close" @click="alerta.visible = false"></button>
+    </div>
+
+    <!-- LISTA DE SITIOS -->
+    <div class="card border-1 shadow-sm rounded-4 bg-white border-dark-subtle">
+      <div class="card-body p-4">
+
+        <!-- FILTROS -->
+        <div class="row g-3 mb-4 align-items-center">
+          <div class="col-md-4">
+            <div class="input-group border border-secondary-subtle rounded-3 bg-white">
+              <span class="input-group-text bg-transparent border-0">
+                <i class="bi bi-search text-muted"></i>
+              </span>
+              <input type="text" v-model="busqueda"
+                class="form-control border-0 shadow-none py-2"
+                placeholder="Buscar sitio..." />
+            </div>
+          </div>
+          <div class="col-md-3">
+            <select v-model="filtroLugar"
+              class="form-select border border-secondary-subtle rounded-3 py-2 shadow-none fw-semibold">
+              <option value="">Todos los lugares</option>
+              <option v-for="lug in lugares" :key="lug.id_lugar" :value="lug.id_lugar">
+                {{ lug.nombre }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-5 text-end">
+            <button class="btn btn-dark border-0 rounded-3 py-2 px-4 fw-bold shadow-none"
+              @click="abrirModalAgregar">
+              <i class="bi bi-plus-lg me-1"></i> Agregar Sitio
+            </button>
+          </div>
+        </div>
+
+        <!-- ITEMS -->
+        <div class="d-flex flex-column gap-3">
+          <div v-if="cargando" class="text-center p-5 text-muted">
+            <div class="spinner-border text-dark mb-3" role="status"></div>
+            <p>Cargando sitios turísticos...</p>
+          </div>
+
+          <div v-else-if="sitiosFiltrados.length === 0"
+            class="text-center p-5 text-muted bg-light rounded-4">
+            <i class="bi bi-geo fs-1 d-block mb-3"></i>
+            <p>No hay sitios turísticos registrados aún.</p>
+          </div>
+
+          <div v-else v-for="item in sitiosFiltrados" :key="item.id_sitio"
+            class="card border border-secondary-subtle rounded-4 shadow-none">
+            <div class="card-body d-flex align-items-center justify-content-between p-3">
+
+              <!-- INFO -->
+              <div class="d-flex align-items-center">
+                <img :src="item.url_imagen_1 || '/assets/img/placeholder.png'"
+                  class="rounded-3 border border-dark-subtle me-3 shadow-sm"
+                  style="width: 75px; height: 75px; object-fit: cover;" />
+                <div>
+                  <div class="d-flex align-items-center gap-2">
+                    <h5 class="fw-bold mb-0">{{ item.nombre }}</h5>
+                    <span
+                      :class="item.estado == 1
+                        ? 'badge bg-success-subtle text-success rounded-pill px-3 py-1'
+                        : 'badge bg-danger-subtle text-danger rounded-pill px-3 py-1'"
+                      style="font-size: 0.7rem;">
+                      {{ item.estado == 1 ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </div>
+                  <p class="text-muted small mb-0 mt-1">
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ item.nombre_lugar }}
+                  </p>
+                  <p class="text-secondary small mb-0 text-truncate" style="max-width: 350px;">
+                    {{ item.descripcion_corta }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- ACCIONES -->
+              <div class="d-flex gap-2">
+                <button
+                  :class="item.estado == 1
+                    ? 'btn btn-outline-danger border rounded-3 px-3 d-flex align-items-center gap-2 shadow-none fw-semibold btn-sm'
+                    : 'btn btn-outline-success border rounded-3 px-3 d-flex align-items-center gap-2 shadow-none fw-semibold btn-sm'"
+                  @click="toggleEstado(item)">
+                  <i :class="item.estado == 1 ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                  {{ item.estado == 1 ? 'Desactivar' : 'Activar' }}
+                </button>
+                <button
+                  class="btn btn-white border border-secondary-subtle rounded-3 px-3 d-flex align-items-center gap-2 shadow-none fw-semibold btn-sm"
+                  @click="verDetalle(item)">
+                  <i class="bi bi-eye"></i> Ver
+                </button>
+                <button
+                  class="btn btn-white border border-secondary-subtle rounded-3 px-3 d-flex align-items-center gap-2 shadow-none fw-semibold btn-sm"
+                  @click="abrirModalEditar(item)">
+                  <i class="bi bi-pencil-square"></i> Editar
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== MODAL AGREGAR ===== -->
+    <div class="modal fade" id="modalAgregarSitio" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title fw-bold d-flex align-items-center">
+              <i class="bi bi-geo-fill me-2"></i>Registrar Nuevo Sitio Turístico
+            </h5>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <form @submit.prevent="guardarSitio">
+              <div class="row g-4">
+
+                <div class="col-12">
+                  <label class="form-label fw-bold mb-0">Nombre del Sitio Turístico *</label>
+                  <input v-model="formNuevo.nombre" type="text"
+                    class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
+                    placeholder="Ej: Cascada La Cuba" required />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold mb-0">Ubicación (Municipio) *</label>
+                  <select v-model="formNuevo.id_lugar"
+                    class="form-select border-0 border-bottom border-dark rounded-0 px-0 shadow-none" required>
+                    <option value="" disabled>Seleccione el lugar</option>
+                    <option v-for="lug in lugares" :key="lug.id_lugar" :value="lug.id_lugar">
+                      {{ lug.nombre }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold mb-0">Estado Inicial</label>
+                  <select v-model="formNuevo.estado"
+                    class="form-select border-0 border-bottom border-dark rounded-0 px-0 shadow-none">
+                    <option value="1">Activo / Visible</option>
+                    <option value="0">Inactivo / Oculto</option>
+                  </select>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-bold mb-0">Descripción Corta *</label>
+                  <textarea v-model="formNuevo.descripcion_corta"
+                    class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
+                    rows="2" maxlength="255"
+                    placeholder="Una breve reseña que atraiga al turista..." required></textarea>
+                  <small class="text-muted">Máximo 255 caracteres.</small>
+                </div>
+
+                <div class="col-12">
+                  <hr class="my-2" />
+                  <h6 class="fw-bold mb-3">
+                    <i class="bi bi-images me-2"></i>Galería de Imágenes (Mínimo 1 obligatoria)
+                  </h6>
+                  <div class="row g-3">
+                    <div class="col-md-4" v-for="n in 3" :key="n">
+                      <label class="form-label small fw-bold mb-1">
+                        {{ n === 1 ? 'Imagen Principal *' : `Imagen ${n}` }}
+                      </label>
+                      <img v-if="previews[n-1]" :src="previews[n-1]"
+                        class="img-thumbnail rounded-3 w-100 mb-2"
+                        style="height: 120px; object-fit: cover;" />
+                      <input type="file" accept="image/*"
+                        class="form-control form-control-sm shadow-none"
+                        :required="n === 1"
+                        @change="e => previewImagen(e, n-1, 'nuevo')" />
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+              <div class="d-flex justify-content-center gap-3 mt-5">
+                <button type="button" class="btn btn-outline-dark px-4 py-2 fw-bold rounded-3 shadow-none"
+                  data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-dark px-4 py-2 fw-bold rounded-3 shadow-none">
+                  Publicar Sitio
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MODAL VER DETALLE ===== -->
+    <div class="modal fade" id="modalDetalleSitio" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title fw-bold">{{ detalle?.nombre }}</h5>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4" v-if="detalle">
+
+            <!-- GALERÍA -->
+            <div class="row g-2 mb-4">
+              <div class="col-8">
+                <img :src="detalle.url_imagen_1 || '/assets/img/placeholder.png'"
+                  class="rounded-3 w-100 shadow-sm"
+                  style="height: 300px; object-fit: cover;" />
+              </div>
+              <div class="col-4 d-flex flex-column gap-2">
+                <img v-if="detalle.url_imagen_2" :src="detalle.url_imagen_2"
+                  class="rounded-3 w-100 shadow-sm flex-grow-1"
+                  style="height: 146px; object-fit: cover;" />
+                <img v-if="detalle.url_imagen_3" :src="detalle.url_imagen_3"
+                  class="rounded-3 w-100 shadow-sm flex-grow-1"
+                  style="height: 146px; object-fit: cover;" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12">
+                <p class="text-muted mb-2">
+                  <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                  <span class="fw-bold text-dark">{{ detalle.nombre_lugar }}</span>
+                </p>
+                <hr class="my-3 border-secondary-subtle" />
+                <h6 class="fw-bold">Descripción</h6>
+                <p class="text-secondary" style="white-space: pre-line;">{{ detalle.descripcion_corta }}</p>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+              <button type="button" class="btn btn-dark px-4 fw-bold rounded-3"
+                data-bs-dismiss="modal">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MODAL EDITAR ===== -->
+    <div class="modal fade" id="modalEditarSitio" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title fw-bold">
+              <i class="bi bi-pencil-square me-2"></i>Editar Sitio Turístico
+            </h5>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4" v-if="formEditar">
+            <form @submit.prevent="guardarEdicion">
+              <div class="row g-4">
+
+                <div class="col-12">
+                  <label class="form-label fw-bold mb-0">Nombre del Sitio *</label>
+                  <input v-model="formEditar.nombre" type="text"
+                    class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none" required />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold mb-0">Ubicación *</label>
+                  <select v-model="formEditar.id_lugar"
+                    class="form-select border-0 border-bottom border-dark rounded-0 px-0 shadow-none" required>
+                    <option v-for="lug in lugares" :key="lug.id_lugar" :value="lug.id_lugar">
+                      {{ lug.nombre }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold mb-0">Estado</label>
+                  <select v-model="formEditar.estado"
+                    class="form-select border-0 border-bottom border-dark rounded-0 px-0 shadow-none">
+                    <option value="1">Activo / Visible</option>
+                    <option value="0">Inactivo / Oculto</option>
+                  </select>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-bold mb-0">Descripción Corta *</label>
+                  <textarea v-model="formEditar.descripcion_corta"
+                    class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
+                    rows="2" maxlength="255" required></textarea>
+                </div>
+
+                <div class="col-12">
+                  <hr class="my-3" />
+                  <h6 class="fw-bold mb-3">
+                    <i class="bi bi-images me-2"></i>Gestión de Imágenes
+                  </h6>
+                  <p class="small text-muted mb-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Si no seleccionas archivos, se conservarán las imágenes actuales.
+                  </p>
+                  <div class="row g-3">
+                    <div class="col-md-4 text-center" v-for="n in 3" :key="n">
+                      <label class="form-label small fw-bold d-block">
+                        {{ n === 1 ? 'Imagen Principal (1)' : `Imagen ${n}` }}
+                      </label>
+                      <img :src="previewsEditar[n-1] || formEditar[`url_imagen_${n}`] || '/assets/img/placeholder.png'"
+                        class="rounded-3 border shadow-sm w-100 mb-2"
+                        style="height: 100px; object-fit: cover;" />
+                      <input type="file" accept="image/*"
+                        class="form-control form-control-sm shadow-none"
+                        @change="e => previewImagen(e, n-1, 'editar')" />
+                      <small class="text-muted" style="font-size: 0.7rem;">Click para cambiar</small>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+              <div class="d-flex justify-content-center gap-3 mt-5">
+                <button type="button" class="btn btn-outline-dark px-4 py-2 fw-bold rounded-3 shadow-none"
+                  data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-dark px-4 py-2 fw-bold rounded-3 shadow-none">
+                  Actualizar Sitio
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+
+// ── Estado ────────────────────────────────────────────────
+const sitios       = ref([])
+const lugares      = ref([])
+const cargando     = ref(true)
+const busqueda     = ref('')
+const filtroLugar  = ref('')
+const detalle      = ref(null)
+const formEditar   = ref(null)
+const alerta       = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
+
+// Previews de imágenes
+const previews       = ref([null, null, null])   // modal agregar
+const previewsEditar = ref([null, null, null])   // modal editar
+const archivosNuevo  = ref([null, null, null])   // files agregar
+const archivosEditar = ref([null, null, null])   // files editar
+
+const formNuevo = ref({
+  nombre: '', id_lugar: '', estado: 1, descripcion_corta: ''
+})
+
+// ── Computed ──────────────────────────────────────────────
+const totalGeneral  = computed(() => sitios.value.length)
+const totalActivos  = computed(() => sitios.value.filter(s => s.estado == 1).length)
+const totalInactivos = computed(() => sitios.value.filter(s => s.estado == 0).length)
+
+const sitiosFiltrados = computed(() =>
+  sitios.value.filter(s => {
+    const coincideNombre = s.nombre.toLowerCase().includes(busqueda.value.toLowerCase())
+    const coincideLugar  = filtroLugar.value === '' || s.id_lugar == filtroLugar.value
+    return coincideNombre && coincideLugar
+  })
+)
+
+// ── Carga inicial ─────────────────────────────────────────
+onMounted(async () => {
+  await cargarSitios()
+  await cargarLugares()
+})
+
+async function cargarSitios() {
+  try {
+    cargando.value = true
+    const { data } = await axios.get('/api/admin/sitios-turisticos')
+    sitios.value = data
+  } catch {
+    mostrarAlerta('danger', '¡Error!', 'No se pudieron cargar los sitios turísticos.')
+  } finally {
+    cargando.value = false
+  }
+}
+
+async function cargarLugares() {
+  try {
+    const { data } = await axios.get('/api/admin/lugares')
+    lugares.value = data
+  } catch {}
+}
+
+// ── Preview de imágenes ───────────────────────────────────
+function previewImagen(e, index, modo) {
+  const file = e.target.files[0]
+  if (!file) return
+  const url = URL.createObjectURL(file)
+  if (modo === 'nuevo') {
+    previews.value[index] = url
+    archivosNuevo.value[index] = file
+  } else {
+    previewsEditar.value[index] = url
+    archivosEditar.value[index] = file
+  }
+}
+
+// ── Toggle estado ─────────────────────────────────────────
+async function toggleEstado(item) {
+  const nuevoEstado = item.estado == 1 ? 0 : 1
+  const accion = nuevoEstado == 1 ? 'activar' : 'desactivar'
+  if (!confirm(`¿Deseas ${accion} "${item.nombre}"?`)) return
+  await axios.patch(`/api/admin/sitios-turisticos/${item.id_sitio}/estado`, { estado: nuevoEstado })
+  item.estado = nuevoEstado
+}
+
+// ── Ver detalle ───────────────────────────────────────────
+function verDetalle(item) {
+  detalle.value = item
+  new bootstrap.Modal(document.getElementById('modalDetalleSitio')).show()
+}
+
+// ── Agregar ───────────────────────────────────────────────
+function abrirModalAgregar() {
+  formNuevo.value = { nombre: '', id_lugar: '', estado: 1, descripcion_corta: '' }
+  previews.value  = [null, null, null]
+  archivosNuevo.value = [null, null, null]
+  new bootstrap.Modal(document.getElementById('modalAgregarSitio')).show()
+}
+
+async function guardarSitio() {
+  try {
+    const fd = new FormData()
+    Object.entries(formNuevo.value).forEach(([k, v]) => fd.append(k, v))
+    archivosNuevo.value.forEach((file, i) => {
+      if (file) fd.append(`url_imagen_${i + 1}`, file)
+    })
+    await axios.post('/api/admin/sitios-turisticos', fd)
+    bootstrap.Modal.getInstance(document.getElementById('modalAgregarSitio')).hide()
+    mostrarAlerta('success', '¡Publicado!', 'Sitio turístico registrado correctamente.')
+    await cargarSitios()
+  } catch {
+    mostrarAlerta('danger', '¡Error!', 'No se pudo guardar el sitio.')
+  }
+}
+
+// ── Editar ────────────────────────────────────────────────
+function abrirModalEditar(item) {
+  formEditar.value     = { ...item }
+  previewsEditar.value = [null, null, null]
+  archivosEditar.value = [null, null, null]
+  new bootstrap.Modal(document.getElementById('modalEditarSitio')).show()
+}
+
+async function guardarEdicion() {
+  try {
+    const fd = new FormData()
+    Object.entries(formEditar.value).forEach(([k, v]) => fd.append(k, v))
+    archivosEditar.value.forEach((file, i) => {
+      if (file) fd.append(`url_imagen_${i + 1}`, file)
+    })
+    fd.append('_method', 'PUT')
+    await axios.post(`/api/admin/sitios-turisticos/${formEditar.value.id_sitio}`, fd)
+    bootstrap.Modal.getInstance(document.getElementById('modalEditarSitio')).hide()
+    mostrarAlerta('success', '¡Actualizado!', 'Sitio turístico editado correctamente.')
+    await cargarSitios()
+  } catch {
+    mostrarAlerta('danger', '¡Error!', 'No se pudo actualizar el sitio.')
+  }
+}
+
+// ── Alerta ────────────────────────────────────────────────
+function mostrarAlerta(tipo, titulo, mensaje) {
+  alerta.value = { visible: true, tipo, titulo, mensaje }
+  setTimeout(() => alerta.value.visible = false, 4000)
+}
+</script>

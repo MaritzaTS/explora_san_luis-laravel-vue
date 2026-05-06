@@ -1,47 +1,73 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import DefaultLayout from '@/layouts/DefaultLayout.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
 
-    // Rutas públicas — usan DefaultLayout
+    // ─── RUTAS PÚBLICAS ──────────────────────────────────
     {
       path: '/',
       component: () => import('@/layouts/DefaultLayout.vue'),
       children: [
-        { path: '', name: 'bienvenida', component: () => import('@/views/BienvenidaView.vue') },
-        { path: 'home', name: 'home',   component: () => import('@/views/HomeView.vue') },
-        { path: 'alojamientos', name: 'alojamientos', component: () => import('@/views/AlojamientosView.vue') },
-        { path: 'gastronomia', name: 'gastronomia', component: () => import('@/views/GastronomiaView.vue') },
-        { path: 'recreacion',  name: 'recreacion', component: () => import('@/views/RecreacionView.vue') },
-        { path: 'transportes',  name: 'transportes', component: () => import('@/views/TransportesView.vue') },
+        { path: '',                    name: 'bienvenida',          component: () => import('@/views/BienvenidaView.vue') },
+        { path: 'home',                name: 'home',                component: () => import('@/views/HomeView.vue') },
+        { path: 'alojamientos',        name: 'alojamientos',        component: () => import('@/views/AlojamientosView.vue') },
+        { path: 'gastronomia',         name: 'gastronomia',         component: () => import('@/views/GastronomiaView.vue') },
+        { path: 'recreacion',          name: 'recreacion',          component: () => import('@/views/RecreacionView.vue') },
+        { path: 'transportes',         name: 'transportes',         component: () => import('@/views/TransportesView.vue') },
         { path: 'agencias-turisticas', name: 'agencias-turisticas', component: () => import('@/views/AgenciasTuristicasView.vue') },
-        { path: 'sitios-turisticos', name: 'sitios-turisticos', component: () => import('@/views/SitiosTuristicosView.vue') },
-        { path: 'eventos', name: 'eventos', component: () => import('@/views/EventosView.vue') },
-        { path: 'historia',  name: 'historia', component: () => import('@/views/HistoriaView.vue') },
+        { path: 'sitios-turisticos',   name: 'sitios-turisticos',   component: () => import('@/views/SitiosTuristicosView.vue') },
+        { path: 'eventos',             name: 'eventos',             component: () => import('@/views/EventosView.vue') },
+        { path: 'historia',            name: 'historia',            component: () => import('@/views/HistoriaView.vue') },
       ]
     },
 
-    // Rutas de autenticación — usan AuthLayout
-  
+    // ─── AUTENTICACIÓN ───────────────────────────────────
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/LoginView.vue')
+    },
 
-    // Rutas admin — usan AdminLayout
+    // ─── RUTAS ADMIN ─────────────────────────────────────
     {
       path: '/admin',
       component: () => import('@/layouts/AdminLayout.vue'),
       meta: { requiresAuth: true },
       children: [
-        { path: '',             component: () => import('@/views/admin/AdminHome.vue') },
-        { path: 'alojamientos', component: () => import('@/views/admin/AlojamientosAdmin.vue') },
-        { path: 'gastronomia',  component: () => import('@/views/admin/GastronomiaAdmin.vue') },
-        { path: 'eventos',      component: () => import('@/views/admin/EventosAdmin.vue') },
-        { path: 'sitios',       component: () => import('@/views/admin/SitiosAdmin.vue') },
-        { path: 'usuarios',     component: () => import('@/views/admin/UsuariosAdmin.vue') },
+        { path: '',             name: 'admin-home',         component: () => import('@/views/admin/AdminHome.vue') },
+        { path: 'gastronomia',  name: 'admin-gastronomia',  component: () => import('@/views/admin/GastronomiaAdmin.vue') },
+        { path: 'recreacion',   name: 'admin-recreacion',   component: () => import('@/views/admin/RecreacionAdmin.vue') },
+        { path: 'alojamientos', name: 'admin-alojamientos', component: () => import('@/views/admin/AlojamientosAdmin.vue') },
+        { path: 'transportes',  name: 'admin-transportes',  component: () => import('@/views/admin/TransportesAdmin.vue') },
+        { path: 'agencias',     name: 'admin-agencias',     component: () => import('@/views/admin/AgenciasTuristicasAdmin.vue') },
+        { path: 'sitios',       name: 'admin-sitios',       component: () => import('@/views/admin/SitiosTuristicosAdmin.vue') },
+        { path: 'eventos',      name: 'admin-eventos',      component: () => import('@/views/admin/EventosAdmin.vue') },
+        { path: 'resenas',      name: 'admin-resenas',      component: () => import('@/views/admin/ResenasAdmin.vue') },
+        { path: 'usuarios',     name: 'admin-usuarios',     component: () => import('@/views/admin/UsuariosAdmin.vue') },
+        { path: 'perfil',       name: 'admin-perfil',       component: () => import('@/views/admin/PerfilAdmin.vue') },
       ]
     },
 
   ]
+})
+
+// ─── PROTECCIÓN DE RUTAS (Guard global) ─────────────────
+// Verifica que el usuario tenga sesión antes de entrar a rutas admin
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+
+  // Si la ruta requiere autenticación y no hay token → al login
+  if (to.meta.requiresAuth && !token) {
+    next({ name: 'login' })
+  }
+  // Si está autenticado e intenta ir al login → al admin
+  else if (to.name === 'login' && token) {
+    next({ name: 'admin-home' })
+  }
+  else {
+    next()
+  }
 })
 
 export default router
