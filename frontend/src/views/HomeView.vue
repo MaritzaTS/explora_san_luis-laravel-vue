@@ -159,7 +159,116 @@
 
 
   <!-- ==========================================
-       SECCIÓN 5: PRÓXIMOS EVENTOS
+       SECCIÓN 5: RESEÑAS DE VISITANTES
+  =========================================== -->
+  <section class="resenas-bg py-5 mb-0" v-reveal>
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="fw-bold mb-1">Lo que dicen nuestros visitantes</h2>
+        <p class="text-secondary fs-5">Experiencias reales de quienes exploraron San Luis</p>
+      </div>
+
+      <div v-if="cargandoResenas" class="text-center py-4">
+        <div class="spinner-border text-success" role="status"></div>
+      </div>
+
+      <div v-else-if="resenas.length === 0" class="text-center text-muted py-4">
+        <i class="bi bi-chat-left-heart fs-1 d-block mb-2 opacity-25"></i>
+        <p>Aún no hay reseñas. ¡Sé el primero!</p>
+      </div>
+
+      <div v-else class="resenas-scroll mb-5">
+        <div
+          v-for="(resena, idx) in resenas"
+          :key="resena.id"
+          class="resena-card"
+          v-reveal="idx * 80">
+          <div class="resena-comillas">
+            <i class="bi bi-quote"></i>
+          </div>
+          <p class="resena-texto">{{ resena.comentario }}</p>
+          <div class="resena-autor">
+            <div class="resena-avatar">{{ iniciales(resena.usuario?.nombre) }}</div>
+            <div>
+              <div class="fw-bold small">{{ resena.usuario?.nombre ?? 'Anónimo' }}</div>
+              <div class="text-muted" style="font-size:0.75rem;">{{ formatFecha(resena.created_at) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORMULARIO DE RESEÑA -->
+      <div class="resena-form-wrapper mx-auto">
+
+        <!-- Usuario autenticado: mostrar formulario -->
+        <template v-if="authStore.isAuthenticated">
+          <div v-if="resenaEnviada" class="text-center py-4">
+            <div class="resena-success-icon mb-3">
+              <i class="bi bi-check-circle-fill text-success" style="font-size:2.5rem;"></i>
+            </div>
+            <h5 class="fw-bold mb-1">¡Gracias por tu reseña!</h5>
+            <p class="text-muted small">Tu comentario será visible una vez que el administrador lo apruebe.</p>
+            <button class="btn btn-outline-success btn-sm mt-2" @click="resenaEnviada = false">
+              Escribir otra reseña
+            </button>
+          </div>
+
+          <form v-else @submit.prevent="enviarResena">
+            <h5 class="fw-bold mb-1 text-center">¿Ya visitaste San Luis?</h5>
+            <p class="text-muted small text-center mb-3">Cuéntanos tu experiencia</p>
+
+            <div class="mb-3">
+              <textarea
+                v-model="nuevoComentario"
+                class="form-control resena-textarea"
+                :class="{ 'is-invalid': errorResena }"
+                placeholder="Escribe aquí tu experiencia visitando San Luis..."
+                rows="4"
+                maxlength="1000"
+                @input="errorResena = ''"
+              ></textarea>
+              <div class="d-flex justify-content-between mt-1">
+                <div class="invalid-feedback d-block" v-if="errorResena">{{ errorResena }}</div>
+                <div v-else></div>
+                <small class="text-muted">{{ nuevoComentario.length }}/1000</small>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end">
+              <button
+                type="submit"
+                class="btn btn-success px-4 fw-bold"
+                :disabled="enviandoResena">
+                <span v-if="enviandoResena" class="spinner-border spinner-border-sm me-2"></span>
+                <i v-else class="bi bi-send me-2"></i>
+                {{ enviandoResena ? 'Enviando...' : 'Enviar reseña' }}
+              </button>
+            </div>
+          </form>
+        </template>
+
+        <!-- Usuario no autenticado: invitación a iniciar sesión -->
+        <template v-else>
+          <div class="text-center py-3">
+            <i class="bi bi-chat-left-heart fs-1 text-success opacity-50 d-block mb-3"></i>
+            <h5 class="fw-bold mb-1">¿Ya visitaste San Luis?</h5>
+            <p class="text-muted small mb-3">Inicia sesión para dejar tu reseña y ayudar a otros viajeros.</p>
+            <button
+              class="btn btn-success px-4 fw-bold"
+              data-bs-toggle="modal"
+              data-bs-target="#loginModal">
+              <i class="bi bi-person-circle me-2"></i>Iniciar sesión para comentar
+            </button>
+          </div>
+        </template>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==========================================
+       SECCIÓN 6: PRÓXIMOS EVENTOS
   =========================================== -->
   <section class="container mb-5 pb-5" v-reveal>
     <div class="d-flex justify-content-between align-items-end mb-4">
@@ -199,6 +308,9 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import api from '@/api/axios'
 import { PUBLICO } from '@/api/endpoints'
+import { useAuthStore } from '@/stores/auth.store'
+
+const authStore = useAuthStore()
 
 // ── Imágenes estáticas (fallback por slug si el backend no tiene imagen) ──
 import imgFundacion       from '@/assets/img/home/fundacion.webp'
@@ -222,12 +334,61 @@ const imgFallbackPorSlug = {
 const eventos          = ref([])
 const tipos            = ref([])
 const sitiosDestacados  = ref([])
+const resenas           = ref([])
+const cargandoResenas   = ref(true)
+const nuevoComentario   = ref('')
+const enviandoResena    = ref(false)
+const resenaEnviada     = ref(false)
+const errorResena       = ref('')
 const imageIndices      = ref({})
 const lugaresScrollRef  = ref(null)
 let   cicloInterval     = null
 
 function scrollLugares(dir) {
   lugaresScrollRef.value?.scrollBy({ left: dir * 320, behavior: 'smooth' })
+}
+
+async function enviarResena() {
+  const texto = nuevoComentario.value.trim()
+  if (texto.length < 10) {
+    errorResena.value = 'El comentario debe tener al menos 10 caracteres.'
+    return
+  }
+  enviandoResena.value = true
+  errorResena.value    = ''
+  try {
+    await api.post(PUBLICO.RESENAS, { comentario: texto })
+    nuevoComentario.value = ''
+    resenaEnviada.value   = true
+  } catch (e) {
+    const msg = e.response?.data?.message
+    errorResena.value = msg ?? 'No se pudo enviar la reseña. Intenta de nuevo.'
+  } finally {
+    enviandoResena.value = false
+  }
+}
+
+async function cargarResenas() {
+  try {
+    const { data } = await api.get(PUBLICO.RESENAS)
+    resenas.value = data.data ?? []
+  } catch {
+    resenas.value = []
+  } finally {
+    cargandoResenas.value = false
+  }
+}
+
+function iniciales(nombre) {
+  return (nombre ?? '?').split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()
+}
+
+function formatFecha(fecha) {
+  if (!fecha) return ''
+  // formato Y-m-d que devuelve el Resource
+  const [y, m, d] = fecha.split('-')
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
+  return `${parseInt(d)} ${meses[parseInt(m) - 1]} ${y}`
 }
 
 async function cargarEventos() {
@@ -291,7 +452,7 @@ const slidesCategorias = computed(() => {
   return grupos
 })
 
-onMounted(() => Promise.all([cargarEventos(), cargarTipos(), cargarSitiosDestacados()]))
+onMounted(() => Promise.all([cargarEventos(), cargarTipos(), cargarSitiosDestacados(), cargarResenas()]))
 onUnmounted(() => { if (cicloInterval) clearInterval(cicloInterval) })
 
 // ── Datos estáticos ──────────────────────────────
@@ -447,5 +608,95 @@ const cardsHistoria = [
   .lugar-card {
     min-width: 260px;
   }
+  .resenas-scroll {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── RESEÑAS ── */
+.resenas-bg {
+  background: linear-gradient(135deg, #f0faf4 0%, #e8f5e9 100%);
+}
+
+.resenas-scroll {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.resena-card {
+  background: #fff;
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.resena-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+}
+
+.resena-comillas {
+  font-size: 2.5rem;
+  line-height: 1;
+  color: #198754;
+  opacity: 0.35;
+}
+
+.resena-texto {
+  font-size: 0.92rem;
+  color: #444;
+  line-height: 1.65;
+  flex: 1;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.resena-autor {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 0.75rem;
+}
+
+.resena-form-wrapper {
+  max-width: 620px;
+  background: #fff;
+  border-radius: 1.25rem;
+  padding: 2rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+
+.resena-textarea {
+  border: 1.5px solid #dee2e6;
+  border-radius: 0.75rem;
+  resize: none;
+  font-size: 0.92rem;
+  transition: border-color 0.2s;
+}
+.resena-textarea:focus {
+  border-color: #198754;
+  box-shadow: 0 0 0 0.2rem rgba(25,135,84,0.15);
+}
+
+.resena-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #198754;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 </style>

@@ -14,6 +14,8 @@ use App\Repositories\Contracts\SitioTuristicoRepositoryInterface;
 use App\Repositories\SitioTuristicoRepository;
 use App\Repositories\Contracts\EventoRepositoryInterface;
 use App\Repositories\EventoRepository;
+use App\Repositories\Contracts\ResenaRepositoryInterface;
+use App\Repositories\ResenaRepository;
 
 
 
@@ -38,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(EntidadRepositoryInterface::class, EntidadRepository::class);
         $this->app->bind(SitioTuristicoRepositoryInterface::class, SitioTuristicoRepository::class);
         $this->app->bind(EventoRepositoryInterface::class, EventoRepository::class);
+        $this->app->bind(ResenaRepositoryInterface::class, ResenaRepository::class);
     }
 
     /**

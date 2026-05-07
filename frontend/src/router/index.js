@@ -77,13 +77,22 @@ function limpiarModalesBootstrap() {
 router.beforeEach((to, from, next) => {
   limpiarModalesBootstrap()
 
-  const token = localStorage.getItem('token')
+  const token   = localStorage.getItem('token')
+  const user    = JSON.parse(localStorage.getItem('user') ?? 'null')
+  const isAdmin = user?.rol?.id === 1
 
   if (to.meta.requiresAuth && !token) {
     next({ name: 'bienvenida' })
-  } else {
-    next()
+    return
   }
+
+  // Rutas /admin requieren token Y rol de admin
+  if (to.path.startsWith('/admin') && token && !isAdmin) {
+    next({ name: 'home' })
+    return
+  }
+
+  next()
 })
 
 export default router

@@ -13,6 +13,7 @@ export const PUBLICO = {
   ENTIDADES:        (slug) => `/entidades/${slug}`,
   SITIOS:           '/sitios-turisticos',
   EVENTOS:          '/eventos',
+  RESENAS:          '/resenas',
 }
 
 export const ADMIN = {

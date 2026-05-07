@@ -119,26 +119,36 @@
         Experiencias auténticas de quienes han vivido la magia de San Luis
       </p>
 
-      <div class="row g-4 align-items-stretch">
+      <!-- Cargando -->
+      <div v-if="cargandoResenas" class="text-center py-5">
+        <div class="spinner-border" style="color:#4F7352;" role="status"></div>
+      </div>
+
+      <!-- Sin reseñas -->
+      <div v-else-if="resenas.length === 0" class="text-center py-5 text-muted">
+        <p style="letter-spacing:2px;">Aún no hay reseñas. ¡Sé el primero en compartir tu experiencia!</p>
+      </div>
+
+      <!-- Grid de reseñas -->
+      <div v-else class="row g-4 align-items-stretch">
         <div
           class="col-md-4 d-flex"
-          v-for="(testimonio, idx) in testimonios"
-          :key="testimonio.nombre"
+          v-for="(resena, idx) in resenas"
+          :key="resena.id"
           v-reveal="idx * 130">
           <div class="testimonial-card w-100">
             <div class="card-body">
-              <p class="testimonial-text">"{{ testimonio.texto }}"</p>
+              <p class="testimonial-text">"{{ resena.comentario }}"</p>
               <hr class="divider-brand">
               <div class="d-flex align-items-center mt-3">
-                <img
-                  :src="testimonio.avatar"
-                  class="visitor-avatar me-3"
-                  :alt="testimonio.nombre">
+                <div class="visitor-avatar-initials me-3">
+                  {{ iniciales(resena.usuario?.nombre) }}
+                </div>
                 <div>
-                  <h6 class="visitor-name">{{ testimonio.nombre }}</h6>
+                  <h6 class="visitor-name">{{ resena.usuario?.nombre ?? 'Visitante' }}</h6>
                   <p class="visitor-location mb-0">
-                    <i class="bi bi-geo-alt-fill me-1 location-icon"></i>
-                    {{ testimonio.ciudad }}
+                    <i class="bi bi-calendar3 me-1 location-icon"></i>
+                    {{ formatFecha(resena.created_at) }}
                   </p>
                 </div>
               </div>

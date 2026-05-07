@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\SitioTuristicoController as AdminSitioTuristicoCo
 use App\Http\Controllers\Admin\EventoController as AdminEventoController;
 use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\ResenaController;
+use App\Http\Controllers\Admin\ResenaController as AdminResenaController;
 
 
 
@@ -44,6 +46,8 @@ Route::get('/tipos', [CatalogoController::class, 'tipos']);
 Route::get('/entidades/{tipoEntidad:slug}', [EntidadPublicaController::class, 'index']);
 Route::get('/sitios-turisticos', [SitioTuristicoController::class, 'index']);
 Route::get('/eventos', [EventoController::class, 'index']);
+Route::get('/resenas', [ResenaController::class, 'index']);
+Route::post('/resenas', [ResenaController::class, 'store'])->middleware('auth:api');
 
 
 // ====================================================
@@ -67,6 +71,10 @@ Route::prefix('admin')->middleware(['auth:api', 'is_admin'])->group(function () 
     Route::get('/eventos', [AdminEventoController::class, 'index']);
     Route::post('/eventos', [AdminEventoController::class, 'store']);
     Route::put('/eventos/{id}', [AdminEventoController::class, 'update']);
+
+    // Reseñas
+    Route::get('/resenas', [AdminResenaController::class, 'index']);
+    Route::patch('/resenas/{id}/estado', [AdminResenaController::class, 'cambiarEstado']);
 
     // Usuarios
     Route::get('/usuarios', [AdminUsuarioController::class, 'index']);

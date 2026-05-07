@@ -69,8 +69,10 @@
 
           <div v-else-if="errorCarga" class="text-center p-5 text-muted">
             <i class="bi bi-exclamation-circle fs-1 d-block mb-3 text-warning"></i>
-            <p class="fw-semibold">El módulo de reseñas aún no está disponible.</p>
-            <p class="small">El endpoint del backend está pendiente de implementación.</p>
+            <p class="fw-semibold">No se pudo cargar las reseñas.</p>
+            <button class="btn btn-sm btn-outline-dark mt-1" @click="cargarResenas">
+              <i class="bi bi-arrow-clockwise me-1"></i>Reintentar
+            </button>
           </div>
 
           <table v-else class="table table-hover align-middle">
@@ -142,12 +144,13 @@ import api from '@/api/axios'
 import { ADMIN } from '@/api/endpoints'
 
 const resenas    = ref([])
+const totalApi   = ref(0)
 const cargando   = ref(true)
 const errorCarga = ref(false)
 const busqueda   = ref('')
 const alerta     = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
 
-const totalResenas = computed(() => resenas.value.length)
+const totalResenas = computed(() => totalApi.value || resenas.value.length)
 const aprobadas    = computed(() => resenas.value.filter(r => r.estado).length)
 const pendientes   = computed(() => resenas.value.filter(r => !r.estado).length)
 
@@ -163,12 +166,14 @@ const resenasFiltradas = computed(() => {
 onMounted(cargarResenas)
 
 async function cargarResenas() {
-  cargando.value  = true
+  cargando.value   = true
   errorCarga.value = false
   try {
     const { data } = await api.get(ADMIN.RESENAS)
-    const payload = data.data
-    resenas.value = payload?.resenas ?? (Array.isArray(payload) ? payload : [])
+    const payload   = data.data
+    const raw       = payload?.resenas
+    resenas.value   = Array.isArray(raw) ? raw : (raw?.data ?? [])
+    totalApi.value  = payload?.total ?? resenas.value.length
   } catch {
     errorCarga.value = true
   } finally {
