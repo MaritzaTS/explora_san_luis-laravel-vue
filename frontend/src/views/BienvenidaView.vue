@@ -108,78 +108,177 @@
   </section>
 
   <!-- ==========================================
-       SECCIÓN 5: TESTIMONIOS
+       SECCIÓN 5: RESEÑAS DE VISITANTES
   =========================================== -->
-  <section class="testimonios-section">
+  <section class="resenas-bg py-5 mb-0" v-reveal>
     <div class="container">
-      <h2 class="brand-section-title" style="letter-spacing: 3px;">
-        Lo que dicen nuestros visitantes
-      </h2>
-      <p class="brand-section-subtitle mb-5" style="letter-spacing: 3px;">
-        Experiencias auténticas de quienes han vivido la magia de San Luis
-      </p>
-
-      <!-- Cargando -->
-      <div v-if="cargandoResenas" class="text-center py-5">
-        <div class="spinner-border" style="color:#4F7352;" role="status"></div>
+      <div class="text-center mb-5">
+        <h2 class="fw-bold mb-1">Lo que dicen nuestros visitantes</h2>
+        <p class="text-secondary fs-5">Experiencias reales de quienes exploraron San Luis</p>
       </div>
 
-      <!-- Sin reseñas -->
-      <div v-else-if="resenas.length === 0" class="text-center py-5 text-muted">
-        <p style="letter-spacing:2px;">Aún no hay reseñas. ¡Sé el primero en compartir tu experiencia!</p>
+      <div v-if="cargandoResenas" class="text-center py-4">
+        <div class="spinner-border text-success" role="status"></div>
       </div>
 
-      <!-- Grid de reseñas -->
-      <div v-else class="row g-4 align-items-stretch">
+      <div v-else-if="resenas.length === 0" class="text-center text-muted py-4">
+        <i class="bi bi-chat-left-heart fs-1 d-block mb-2 opacity-25"></i>
+        <p>Aún no hay reseñas. ¡Sé el primero!</p>
+      </div>
+
+      <div v-else class="resenas-scroll mb-5">
         <div
-          class="col-md-4 d-flex"
           v-for="(resena, idx) in resenas"
           :key="resena.id"
-          v-reveal="idx * 130">
-          <div class="testimonial-card w-100">
-            <div class="card-body">
-              <p class="testimonial-text">"{{ resena.comentario }}"</p>
-              <hr class="divider-brand">
-              <div class="d-flex align-items-center mt-3">
-                <div class="visitor-avatar-initials me-3">
-                  {{ iniciales(resena.usuario?.nombre) }}
-                </div>
-                <div>
-                  <h6 class="visitor-name">{{ resena.usuario?.nombre ?? 'Visitante' }}</h6>
-                  <p class="visitor-location mb-0">
-                    <i class="bi bi-calendar3 me-1 location-icon"></i>
-                    {{ formatFecha(resena.created_at) }}
-                  </p>
-                </div>
-              </div>
+          class="resena-card"
+          v-reveal="idx * 80">
+          <div class="resena-comillas">
+            <i class="bi bi-quote"></i>
+          </div>
+          <p class="resena-texto">{{ resena.comentario }}</p>
+          <div class="resena-autor">
+            <div class="resena-avatar">{{ iniciales(resena.usuario?.nombre) }}</div>
+            <div>
+              <div class="fw-bold small">{{ resena.usuario?.nombre ?? 'Anónimo' }}</div>
+              <div class="text-muted" style="font-size:0.75rem;">{{ formatFecha(resena.created_at) }}</div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- ==========================================
-       SECCIÓN 6: CTA RESEÑA
-  =========================================== -->
-  <section class="cta-section" v-reveal>
-    <div class="container">
-      <h2 class="brand-section-title mb-3" style="letter-spacing: 2px;">
-        ¿Ya visitaste San Luis? comparte tu experiencia
-      </h2>
-      <router-link to="/resenas" class="btn-resena">
-        Escribir reseña
-      </router-link>
+      <!-- FORMULARIO DE RESEÑA -->
+      <div class="resena-form-wrapper mx-auto">
+
+        <!-- Usuario autenticado: mostrar formulario -->
+        <template v-if="authStore.isAuthenticated">
+          <div v-if="resenaEnviada" class="text-center py-4">
+            <div class="resena-success-icon mb-3">
+              <i class="bi bi-check-circle-fill text-success" style="font-size:2.5rem;"></i>
+            </div>
+            <h5 class="fw-bold mb-1">¡Gracias por tu reseña!</h5>
+            <p class="text-muted small">Tu comentario será visible una vez que el administrador lo apruebe.</p>
+            <button class="btn btn-outline-success btn-sm mt-2" @click="resenaEnviada = false">
+              Escribir otra reseña
+            </button>
+          </div>
+
+          <form v-else @submit.prevent="enviarResena">
+            <h5 class="fw-bold mb-1 text-center">¿Ya visitaste San Luis?</h5>
+            <p class="text-muted small text-center mb-3">Cuéntanos tu experiencia</p>
+
+            <div class="mb-3">
+              <textarea
+                v-model="nuevoComentario"
+                class="form-control resena-textarea"
+                :class="{ 'is-invalid': errorResena }"
+                placeholder="Escribe aquí tu experiencia visitando San Luis..."
+                rows="4"
+                maxlength="1000"
+                @input="errorResena = ''"
+              ></textarea>
+              <div class="d-flex justify-content-between mt-1">
+                <div class="invalid-feedback d-block" v-if="errorResena">{{ errorResena }}</div>
+                <div v-else></div>
+                <small class="text-muted">{{ nuevoComentario.length }}/1000</small>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end">
+              <button
+                type="submit"
+                class="btn btn-success px-4 fw-bold"
+                :disabled="enviandoResena">
+                <span v-if="enviandoResena" class="spinner-border spinner-border-sm me-2"></span>
+                <i v-else class="bi bi-send me-2"></i>
+                {{ enviandoResena ? 'Enviando...' : 'Enviar reseña' }}
+              </button>
+            </div>
+          </form>
+        </template>
+
+        <!-- Usuario no autenticado: invitación a iniciar sesión -->
+        <template v-else>
+          <div class="text-center py-3">
+            <i class="bi bi-chat-left-heart fs-1 text-success opacity-50 d-block mb-3"></i>
+            <h5 class="fw-bold mb-1">¿Ya visitaste San Luis?</h5>
+            <p class="text-muted small mb-3">Inicia sesión para dejar tu reseña y ayudar a otros viajeros.</p>
+            <button
+              class="btn btn-success px-4 fw-bold"
+              data-bs-toggle="modal"
+              data-bs-target="#loginModal">
+              <i class="bi bi-person-circle me-2"></i>Iniciar sesión para comentar
+            </button>
+          </div>
+        </template>
+
+      </div>
     </div>
   </section>
 </template>
 
 
 <script setup>
+import { ref, onMounted } from 'vue'
+import api from '@/api/axios'
+import { PUBLICO } from '@/api/endpoints'
+import { useAuthStore } from '@/stores/auth.store'
+
 import imgHero      from '@/assets/img/principal/hero.webp'
 import imgPlanta    from '@/assets/img/principal/planta.webp'
 import imgCastellon from '@/assets/img/principal/cerro_castellon.webp'
 import imgSamana    from '@/assets/img/principal/rio_samana.webp'
+
+const authStore        = useAuthStore()
+const resenas          = ref([])
+const cargandoResenas  = ref(true)
+const nuevoComentario  = ref('')
+const enviandoResena   = ref(false)
+const resenaEnviada    = ref(false)
+const errorResena      = ref('')
+
+async function enviarResena() {
+  const texto = nuevoComentario.value.trim()
+  if (texto.length < 10) {
+    errorResena.value = 'El comentario debe tener al menos 10 caracteres.'
+    return
+  }
+  enviandoResena.value = true
+  errorResena.value    = ''
+  try {
+    await api.post(PUBLICO.RESENAS, { comentario: texto })
+    nuevoComentario.value = ''
+    resenaEnviada.value   = true
+  } catch (e) {
+    const msg = e.response?.data?.message
+    errorResena.value = msg ?? 'No se pudo enviar la reseña. Intenta de nuevo.'
+  } finally {
+    enviandoResena.value = false
+  }
+}
+
+function iniciales(nombre) {
+  return (nombre ?? '?').split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()
+}
+
+function formatFecha(fecha) {
+  if (!fecha) return ''
+  const [y, m, d] = fecha.split('-')
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
+  return `${parseInt(d)} ${meses[parseInt(m) - 1]} ${y}`
+}
+
+async function cargarResenas() {
+  try {
+    const { data } = await api.get(PUBLICO.RESENAS)
+    resenas.value = data.data ?? []
+  } catch {
+    resenas.value = []
+  } finally {
+    cargandoResenas.value = false
+  }
+}
+
+onMounted(cargarResenas)
 
 const lugaresDestacados = [
   {
@@ -217,26 +316,7 @@ const ubicacion = [
   'Corazón del Oriente'
 ]
 
-const testimonios = [
-  {
-    texto: 'Paisajes imponentes y una caminata brutal. El pozo natural al final es la mejor recompensa para el calor. Un tesoro de San Luis que debes conocer.',
-    nombre: 'Diana Gonzales',
-    ciudad: 'Rionegro',
-    avatar: 'https://i.pravatar.cc/150?u=diana1'
-  },
-  {
-    texto: 'Pura paz y sonidos de la naturaleza. Ideal para relajarse y respirar aire puro. Por favor, cuidemos este paraíso y no dejemos basura.',
-    nombre: 'Andres Perez',
-    ciudad: 'Canada',
-    avatar: 'https://i.pravatar.cc/150?u=andres1'
-  },
-  {
-    texto: 'San Luis me sorprendió completamente. La naturaleza es espectacular y la gente es muy amable.',
-    nombre: 'Marcela Moncada',
-    ciudad: 'Medellín',
-    avatar: 'https://i.pravatar.cc/150?u=marcela1'
-  }
-]
+
 </script>
 
 
@@ -512,121 +592,94 @@ const testimonios = [
   margin-bottom: 0.1rem;
 }
 
-/* ── 5. TESTIMONIOS ── */
-.testimonios-section {
-  padding: 3rem 0 4rem;
+/* ── 5. RESEÑAS ── */
+.resenas-bg {
+  background: linear-gradient(135deg, #f0faf4 0%, #e8f5e9 100%);
 }
 
-.brand-section-title {
-  font-family: var(--font-display);
-  font-weight: 700;
-  color: var(--negro);
-  font-size: clamp(1.5rem, 3vw, 2.2rem);
-  letter-spacing: 3px;
-  margin-bottom: 0.4rem;
+.resenas-scroll {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
 
-.brand-section-subtitle {
-  font-family: var(--font-body);
-  color: var(--negro);
-  font-size: 1.05rem;
-  letter-spacing: 3px;
-  opacity: 0.70;
-  margin-bottom: 2.5rem;
-}
-
-.testimonial-card {
-  background: #ffffff;
-  border-radius: 12px;
-  border: none;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.20);
-  transition: transform 0.3s ease;
-  height: 100%;
+.resena-card {
+  background: #fff;
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
   display: flex;
   flex-direction: column;
+  gap: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-.testimonial-card:hover {
+.resena-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.12);
 }
 
-.testimonial-card .card-body {
-  padding: 1.6rem;
+.resena-comillas {
+  font-size: 2.5rem;
+  line-height: 1;
+  color: #198754;
+  opacity: 0.35;
+}
+
+.resena-texto {
+  font-size: 0.92rem;
+  color: #444;
+  line-height: 1.65;
+  flex: 1;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.resena-autor {
   display: flex;
-  flex-direction: column;
-  flex: 1;
+  align-items: center;
+  gap: 0.75rem;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 0.75rem;
 }
 
-.testimonial-text {
+.resena-form-wrapper {
+  max-width: 620px;
+  background: #fff;
+  border-radius: 1.25rem;
+  padding: 2rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+
+.resena-textarea {
+  border: 1.5px solid #dee2e6;
+  border-radius: 0.75rem;
+  resize: none;
   font-size: 0.92rem;
-  letter-spacing: 2px;
-  color: #333333;
-  line-height: 1.7;
-  font-style: italic;
-  flex: 1;
+  transition: border-color 0.2s;
+}
+.resena-textarea:focus {
+  border-color: #198754;
+  box-shadow: 0 0 0 0.2rem rgba(25,135,84,0.15);
 }
 
-.divider-brand {
-  border-top: 1px solid #e0e0e0;
-  opacity: 1;
-  margin: 1rem 0;
-  margin-top: auto;
-}
-
-.visitor-name {
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 0.92rem;
-  letter-spacing: 2px;
-  color: var(--negro);
-  margin-bottom: 0.15rem;
-}
-
-.visitor-location {
-  color: var(--azul-link);
-  font-weight: 500;
-  font-size: 0.82rem;
-}
-
-.location-icon {
-  color: var(--verde-lima);
-}
-
-.visitor-avatar {
-  width: 60px;
-  height: 60px;
+.resena-avatar {
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #A8CF45;
-}
-
-/* ── 6. CTA ── */
-.cta-section {
-  padding: 3rem 0 5rem;
-  text-align: center;
-}
-/*text-decoration: none me quita el sunrayado del texto */
-.btn-resena {
-  color: #ffffff;
-  background-color: seagreen;
-  font-family: var(--font-body);
+  background: #198754;
+  color: #fff;
+  font-size: 0.8rem;
   font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: 3px;
-  border: none;
-  border-radius: 20px;
-  padding: 0.9rem 2.8rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-  text-decoration: none; 
-}
-.btn-resena:hover {
-  background-color: #3d5a40;
-  color: #ffffff;
-  opacity: 1;
-  transform: translateY(-2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-/* ── 7. ANIMACIONES DE ENTRADA (hero — se ejecutan al cargar) ── */
+/* ── 6. ANIMACIONES DE ENTRADA (hero — se ejecutan al cargar) ── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(40px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -694,7 +747,6 @@ const testimonios = [
 
   .info-banner-brand { padding: 2rem 1.2rem; }
   .lugares-section   { margin-top: -40px; }
-  .brand-section-title    { font-size: 1.4rem; }
-  .brand-section-subtitle { font-size: 0.9rem; letter-spacing: 1.5px; }
+  .resenas-scroll    { grid-template-columns: 1fr !important; }
 }
 </style>
