@@ -49,7 +49,7 @@
 
         <!-- Cards de Gastronomía -->
         <template v-else>
-          <div class="col-md-6 col-lg-4" v-for="entidad in entidadesFiltradas" :key="entidad.id">
+          <div class="col-md-6 col-lg-4" v-for="(entidad, idx) in entidadesFiltradas" :key="entidad.id" v-reveal="idx * 80">
             <div class="card h-100 border-0 shadow-sm hover-card">
               <img :src="imagen(entidad)"
                    class="card-img-top object-fit-cover"

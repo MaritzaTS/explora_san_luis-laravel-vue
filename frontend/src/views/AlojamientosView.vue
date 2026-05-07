@@ -37,7 +37,7 @@
       </div>
 
       <template v-else>
-        <div class="col-md-6" v-for="entidad in entidades" :key="entidad.id">
+        <div class="col-md-6" v-for="(entidad, idx) in entidades" :key="entidad.id" v-reveal="idx * 80">
           <div class="d-flex align-items-start border rounded-3 p-3 shadow-sm h-100 hover-card">
             <img :src="imagen(entidad)"
                  class="rounded-3 object-fit-cover flex-shrink-0"

@@ -23,7 +23,7 @@
         </div>
 
         <div class="row g-4">
-          <div class="col-sm-6 col-lg-4" v-for="sitio in sitios" :key="sitio.id">
+          <div class="col-sm-6 col-lg-4" v-for="(sitio, idx) in sitios" :key="sitio.id" v-reveal="idx * 80">
             <div class="card h-100 border-0 shadow overflow-hidden place-card">
 
               <!-- Imagen principal -->

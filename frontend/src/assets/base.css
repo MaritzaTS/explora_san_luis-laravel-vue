@@ -58,6 +58,49 @@
   font-weight: normal;
 }
 
+/* ── Micro-animaciones globales ── */
+
+/* Botones */
+.btn {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease, border-color 0.2s ease !important;
+}
+.btn:active { transform: scale(0.96) !important; }
+
+/* Cards */
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Links de nav */
+.nav-link, .navbar-brand {
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Badges */
+.badge { transition: background-color 0.2s ease; }
+
+/* Imágenes con lazy fade */
+img {
+  transition: opacity 0.4s ease;
+}
+img[src=""] { opacity: 0; }
+
+/* Spinner de carga */
+@keyframes spin-smooth {
+  to { transform: rotate(360deg); }
+}
+
+/* Pulso para skeleton loaders */
+@keyframes pulse-bg {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+.skeleton {
+  background: #e9ecef;
+  border-radius: 0.5rem;
+  animation: pulse-bg 1.4s ease-in-out infinite;
+}
+
 body {
   min-height: 100vh;
   color: var(--color-text);

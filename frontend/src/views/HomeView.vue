@@ -8,7 +8,7 @@
   <!-- ==========================================
        SECCIÓN 2: CARDS DE HISTORIA
   =========================================== -->
-  <section class="container mb-5">
+  <section class="container mb-5" v-reveal>
     <div class="row g-4 mb-5">
       <div
         class="col-md-4"
@@ -40,7 +40,7 @@
   <!-- ==========================================
        SECCIÓN 3: CAROUSEL DE CATEGORÍAS
   =========================================== -->
-  <section class="container py-5">
+  <section class="container py-5" v-reveal>
     <div class="mb-5">
       <h2 class="fw-bold mb-1">Explora por categorías</h2>
       <p class="text-secondary fs-5">Descubre todo lo que San Luis tiene para ofrecerte</p>
@@ -108,7 +108,7 @@
   <!-- ==========================================
        SECCIÓN 4: LUGARES IMPERDIBLES
   =========================================== -->
-  <section class="container mb-5 px-4 px-lg-5">
+  <section class="container mb-5 px-4 px-lg-5" v-reveal>
     <div class="d-flex justify-content-between align-items-end mb-4">
       <div>
         <h2 class="fw-bold mb-1">Lugares imperdibles</h2>
@@ -161,7 +161,7 @@
   <!-- ==========================================
        SECCIÓN 5: PRÓXIMOS EVENTOS
   =========================================== -->
-  <section class="container mb-5 pb-5">
+  <section class="container mb-5 pb-5" v-reveal>
     <div class="d-flex justify-content-between align-items-end mb-4">
       <div>
         <h2 class="fw-bold mb-1">Próximos eventos</h2>
@@ -175,8 +175,9 @@
     <div class="row g-4">
       <div
         class="col-md-3"
-        v-for="evento in eventos"
-        :key="evento.nombre">
+        v-for="(evento, idx) in eventos"
+        :key="evento.nombre"
+        v-reveal="idx * 100">
         <div class="card h-100 border-0 shadow-sm text-center overflow-hidden evento-card">
           <img
             :src="evento.url_poster"

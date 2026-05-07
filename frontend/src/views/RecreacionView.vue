@@ -39,7 +39,7 @@
         </div>
 
         <template v-else>
-          <div class="col-md-6 col-lg-4" v-for="sitio in sitiosFiltrados" :key="sitio.id">
+          <div class="col-md-6 col-lg-4" v-for="(sitio, idx) in sitiosFiltrados" :key="sitio.id" v-reveal="idx * 80">
             <div class="card border-0 shadow-sm h-100 overflow-hidden tourist-card">
               <div class="position-relative">
                 <img :src="imagen(sitio)" class="card-img-top object-fit-cover" style="height: 220px;" :alt="sitio.nombre_comercial">

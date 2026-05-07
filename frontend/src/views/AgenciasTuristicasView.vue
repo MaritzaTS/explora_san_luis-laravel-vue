@@ -48,8 +48,9 @@
         <!-- Lista de Agencias -->
         <div v-else-if="agenciasFiltradas.length > 0"
              class="col-md-6 col-lg-4"
-             v-for="agencia in agenciasFiltradas"
-             :key="agencia.id">
+             v-for="(agencia, idx) in agenciasFiltradas"
+             :key="agencia.id"
+             v-reveal="idx * 80">
           <div class="card h-100 border-0 shadow-sm hover-card">
             <img :src="imagen(agencia)" class="card-img-top object-fit-cover" style="height: 200px;" :alt="agencia.nombre_comercial">
             <div class="card-body">

@@ -56,7 +56,7 @@
         </div>
 
         <div v-else class="row g-4">
-          <div class="col-md-6 col-lg-4" v-for="item in transporteFiltrado" :key="item.id">
+          <div class="col-md-6 col-lg-4" v-for="(item, idx) in transporteFiltrado" :key="item.id" v-reveal="idx * 80">
             <div class="card h-100 border-0 shadow-sm overflow-hidden transport-card">
               <img :src="imagen(item)" class="card-img-top" style="height: 200px; object-fit: cover;" :alt="item.nombre_comercial">
               <div class="card-body p-4 text-center">

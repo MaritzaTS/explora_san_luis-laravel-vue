@@ -6,7 +6,11 @@
     <TheHeroBanner v-if="route.name !== 'bienvenida'" />
 
     <main class="main-content">
-      <router-view />
+      <router-view v-slot="{ Component, route }">
+        <transition name="page" mode="out-in">
+          <component :is="Component" :key="route.path" />
+        </transition>
+      </router-view>
     </main>
 
     <TheFooter />
@@ -52,14 +56,16 @@ const debeMostrarBanner = computed(() => {
 </script>
 
 <style>
-/* Configuración para que el footer siempre esté abajo */
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
+.main-content { flex: 1 0 auto; }
 
-.main-content {
-  flex: 1 0 auto; /* Permite que el contenido crezca y empuje al footer */
-}
+/* ── Transición de página ── */
+.page-enter-active { transition: opacity 0.35s ease, transform 0.35s ease; }
+.page-leave-active { transition: opacity 0.2s ease; }
+.page-enter-from   { opacity: 0; transform: translateY(14px); }
+.page-leave-to     { opacity: 0; }
 </style>

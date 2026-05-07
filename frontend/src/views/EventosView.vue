@@ -12,7 +12,7 @@
 
     <template v-else>
       <div class="row g-4">
-        <div class="col-md-6" v-for="evento in eventos" :key="evento.id">
+        <div class="col-md-6" v-for="(evento, idx) in eventos" :key="evento.id" v-reveal="idx * 80">
           <div class="card border-0 shadow-sm h-100 overflow-hidden hover-effect">
             <div class="row g-0 h-100">
               <div class="col-4">
