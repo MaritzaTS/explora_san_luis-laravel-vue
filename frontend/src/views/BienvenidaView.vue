@@ -11,34 +11,34 @@
 
     <!-- Contenido central -->
     <div class="hero-content text-center text-white">
-      <h1 class="hero-title">
+      <h1 class="hero-title anim-hero-title">
         Explora la belleza única de San Luis
       </h1>
-      <p class="hero-subtitle">
+      <p class="hero-subtitle anim-hero-subtitle">
         Ríos que conectan, montañas que inspiran.
       </p>
-      <router-link to="/home" class="btn-aventura">
+      <router-link to="/home" class="btn-aventura anim-hero-btn">
         Comienza tu Aventura <i class="bi bi-arrow-right ms-2"></i>
       </router-link>
     </div>
 
     <!-- Marcador 1 — Cascadas -->
-    <div class="marker cascadas" > 
-      <span class="dot"></span>
+    <div class="marker cascadas anim-marker" style="animation-delay:1.4s">
+      <span class="dot pulse"></span>
       <span class="line"></span>
-      <span class="label ">Cascadas la Planta</span>
+      <span class="label">Cascadas la Planta</span>
     </div>
 
     <!-- Marcador 2 — Río Samaná -->
-    <div class="marker rio">
-      <span class="dot"></span>
+    <div class="marker rio anim-marker" style="animation-delay:1.7s">
+      <span class="dot pulse"></span>
       <span class="line"></span>
       <span class="label">Río Samaná</span>
     </div>
 
     <!-- Marcador 3 — El Prodigio -->
-    <div class="marker prodigio">
-      <span class="dot"></span>
+    <div class="marker prodigio anim-marker" style="animation-delay:2s">
+      <span class="dot pulse"></span>
       <span class="line"></span>
       <span class="label">Las Confusas</span>
     </div>
@@ -49,11 +49,12 @@
   =========================================== -->
   <section class="lugares-section">
     <div class="container">
-      <div class="row g-4 justify-content-center align-items-start">
+      <div class="row g-4 justify-content-center align-items-stretch">
         <div
           class="col-md-4"
-          v-for="lugar in lugaresDestacados"
-          :key="lugar.nombre">
+          v-for="(lugar, idx) in lugaresDestacados"
+          :key="lugar.nombre"
+          v-reveal="idx * 120">
           <div class="lugar-card">
             <div class="card-body">
               <h5>{{ lugar.nombre }}</h5>
@@ -69,7 +70,7 @@
   <!-- ==========================================
        SECCIÓN 3: ACTIVIDADES DE AVENTURA
   =========================================== -->
-  <section class="actividades-section">
+  <section class="actividades-section" v-reveal>
     <div class="container">
       <h2>Actividades de aventura</h2>
       <p>Vive experiencias únicas en contacto directo con la naturaleza.</p>
@@ -80,23 +81,23 @@
   <!-- ==========================================
        SECCIÓN 4: BANNER INFO
   =========================================== -->
-  <section class="container mb-5">
+  <section class="container mb-5" v-reveal>
     <div class="info-banner-brand p-4 p-md-5">
       <div class="row g-4 text-center align-items-center">
 
-        <div class="col-md-4">
+        <div class="col-md-4" v-reveal="0">
           <i class="bi bi-cloud-sun brand-icon mb-3"></i>
           <h4 class="brand-subtitle mb-3">Clima</h4>
           <p class="mb-1 small" v-for="item in clima" :key="item">{{ item }}</p>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-4" v-reveal="150">
           <i class="bi bi-lightbulb brand-icon mb-3"></i>
           <h4 class="brand-subtitle">Consejos</h4>
           <p class="mb-1 small" v-for="consejo in consejos" :key="consejo">{{ consejo }}</p>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-4" v-reveal="300">
           <i class="bi bi-geo-alt brand-icon mb-3"></i>
           <h4 class="brand-subtitle">Ubicación</h4>
           <p class="mb-1 small" v-for="dato in ubicacion" :key="dato">{{ dato }}</p>
@@ -121,8 +122,9 @@
       <div class="row g-4 align-items-stretch">
         <div
           class="col-md-4 d-flex"
-          v-for="testimonio in testimonios"
-          :key="testimonio.nombre">
+          v-for="(testimonio, idx) in testimonios"
+          :key="testimonio.nombre"
+          v-reveal="idx * 130">
           <div class="testimonial-card w-100">
             <div class="card-body">
               <p class="testimonial-text">"{{ testimonio.texto }}"</p>
@@ -150,7 +152,7 @@
   <!-- ==========================================
        SECCIÓN 6: CTA RESEÑA
   =========================================== -->
-  <section class="cta-section">
+  <section class="cta-section" v-reveal>
     <div class="container">
       <h2 class="brand-section-title mb-3" style="letter-spacing: 2px;">
         ¿Ya visitaste San Luis? comparte tu experiencia
@@ -614,7 +616,59 @@ const testimonios = [
   transform: translateY(-2px);
 }
 
-/* ── 7. RESPONSIVE ── */
+/* ── 7. ANIMACIONES DE ENTRADA (hero — se ejecutan al cargar) ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes markerAppear {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 0.85; transform: translateY(0); }
+}
+
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(255,255,255,0.3); }
+  50%       { box-shadow: 0 0 0 7px rgba(255,255,255,0.1); }
+}
+
+/* Hero image zoom lento */
+.hero-img {
+  animation: heroZoom 18s ease-in-out infinite alternate;
+}
+@keyframes heroZoom {
+  from { transform: scale(1); }
+  to   { transform: scale(1.06); }
+}
+
+.anim-hero-title {
+  animation: fadeUp 0.9s ease both;
+  animation-delay: 0.2s;
+}
+.anim-hero-subtitle {
+  animation: fadeUp 0.9s ease both;
+  animation-delay: 0.55s;
+}
+.anim-hero-btn {
+  animation: fadeUp 0.9s ease both;
+  animation-delay: 0.85s;
+}
+
+.anim-marker {
+  opacity: 0;
+  animation: markerAppear 0.7s ease forwards;
+}
+
+.pulse {
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+/* ── 8. RESPONSIVE ── */
 @media (max-width: 768px) {
   .hero {
     height: 100svh;
