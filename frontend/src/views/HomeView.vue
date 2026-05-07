@@ -209,12 +209,12 @@
 
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { Carousel } from 'bootstrap'
 import api from '@/api/axios'
 import { PUBLICO } from '@/api/endpoints'
 
-// ── Imágenes estáticas (historia y categorías no tienen endpoint) ──
+// ── Imágenes estáticas (fallback por slug si el backend no tiene imagen) ──
 import imgFundacion       from '@/assets/img/home/fundacion.webp'
 import imgCultura         from '@/assets/img/home/cultura.webp'
 import imgEconomia        from '@/assets/img/home/economia.webp'
@@ -231,8 +231,17 @@ import imgSamana1         from '@/assets/img/principal/rio_samana.webp'
 import imgSamana2         from '@/assets/img/principal/rio_samana2.webp'
 import imgSamana3         from '@/assets/img/principal/samana3.webp'
 
+const imgFallbackPorSlug = {
+  'alojamientos':        imgHospedaje,
+  'recreacion':          imgPiscina,
+  'transportes':         imgTransporte,
+  'gastronomia':         imgGastronomia,
+  'agencias-turisticas': imgAgencia,
+}
+
 // ── Estado API ───────────────────────────────────
 const eventos = ref([])
+const tipos   = ref([])
 
 async function cargarEventos() {
   try {
@@ -243,8 +252,30 @@ async function cargarEventos() {
   } catch { /* muestra sección vacía si falla */ }
 }
 
+async function cargarTipos() {
+  try {
+    const { data } = await api.get(PUBLICO.TIPOS)
+    const lista = data.data ?? (Array.isArray(data) ? data : [])
+    tipos.value = lista
+  } catch { /* mantiene array vacío */ }
+}
+
+// Agrupa los tipos en slides de 3 para el carousel
+const slidesCategorias = computed(() => {
+  const cats = tipos.value.map((t) => ({
+    nombre: t.nombre,
+    ruta:   '/' + t.slug,
+    imagen: t.url_imagen ?? imgFallbackPorSlug[t.slug] ?? imgHospedaje,
+  }))
+  const grupos = []
+  for (let i = 0; i < cats.length; i += 3) {
+    grupos.push(cats.slice(i, i + 3))
+  }
+  return grupos
+})
+
 onMounted(async () => {
-  await cargarEventos()
+  await Promise.all([cargarEventos(), cargarTipos()])
   await nextTick()
   lugaresImperdibles.forEach((lugar) => {
     const el = document.getElementById('galeria-' + lugar.id)
@@ -259,23 +290,11 @@ const cardsHistoria = [
   { titulo: 'Economía', subtitulo: null, descripcion: 'La economía local se basa en la agricultura, la ganadería y la producción de madera, con crecimiento en el ecoturismo y productos artesanales.', imagen: imgEconomia },
 ]
 
-const slidesCategorias = [
-  [
-    { nombre: 'Alojamiento',         ruta: '/alojamientos',        imagen: imgHospedaje,  claseResponsive: '' },
-    { nombre: 'Recreación',          ruta: '/recreacion',          imagen: imgPiscina,    claseResponsive: 'd-none d-md-block' },
-    { nombre: 'Transporte',          ruta: '/transportes',         imagen: imgTransporte, claseResponsive: 'd-none d-lg-block' },
-  ],
-  [
-    { nombre: 'Gastronomía',         ruta: '/gastronomia',         imagen: imgGastronomia, claseResponsive: '' },
-    { nombre: 'Agencias Turísticas', ruta: '/agencias-turisticas', imagen: imgAgencia,     claseResponsive: 'd-none d-md-block' },
-  ],
-]
-
 const lugaresImperdibles = [
-  { id: 'sitio1', nombre: 'Cascada La Planta',    zona: 'La Planta',  descripcion: 'Naturaleza pura y aguas cristalinas.',       claseResponsive: '',              imagenes: [imgPlanta1,   imgPlanta2] },
-  { id: 'sitio2', nombre: 'Charcos del Dormilón', zona: 'El Dormilón', descripcion: 'El mejor lugar para un baño relajante.',    claseResponsive: 'd-none d-md-block', imagenes: [imgDormilon1, imgDormilon2] },
-  { id: 'sitio3', nombre: 'Río el Samaná',        zona: 'Samaná',     descripcion: 'El único río libre de Antioquia.',           claseResponsive: '',              imagenes: [imgSamana1,   imgSamana2, imgSamana3] },
-  { id: 'sitio4', nombre: 'Charcos del Dormilón', zona: 'El Dormilón', descripcion: 'El mejor lugar para un baño relajante.',    claseResponsive: 'd-none d-md-block', imagenes: [imgDormilon1, imgDormilon2] },
+  { id: 'sitio1', nombre: 'Cascada La Planta',    zona: 'La Planta',   descripcion: 'Naturaleza pura y aguas cristalinas.',    claseResponsive: '',                  imagenes: [imgPlanta1,   imgPlanta2] },
+  { id: 'sitio2', nombre: 'Charcos del Dormilón', zona: 'El Dormilón', descripcion: 'El mejor lugar para un baño relajante.',  claseResponsive: 'd-none d-md-block', imagenes: [imgDormilon1, imgDormilon2] },
+  { id: 'sitio3', nombre: 'Río el Samaná',        zona: 'Samaná',      descripcion: 'El único río libre de Antioquia.',        claseResponsive: '',                  imagenes: [imgSamana1,   imgSamana2, imgSamana3] },
+  { id: 'sitio4', nombre: 'Charcos del Dormilón', zona: 'El Dormilón', descripcion: 'El mejor lugar para un baño relajante.',  claseResponsive: 'd-none d-md-block', imagenes: [imgDormilon1, imgDormilon2] },
 ]
 </script>
 

@@ -186,10 +186,9 @@
                       <img v-if="previews[n-1]" :src="previews[n-1]"
                         class="img-thumbnail rounded-3 w-100 mb-2"
                         style="height: 120px; object-fit: cover;" />
-                      <input type="file" accept="image/*"
-                        class="form-control form-control-sm shadow-none"
+                      <ImagenInput
                         :required="n === 1"
-                        @change="e => previewImagen(e, n-1, 'nuevo')" />
+                        @change="file => onImagenNueva(file, n-1)" />
                     </div>
                   </div>
                 </div>
@@ -311,10 +310,7 @@
                       <img :src="previewsEditar[n-1] || formEditar[`url_imagen_${n}`] || '/assets/img/placeholder.png'"
                         class="rounded-3 border shadow-sm w-100 mb-2"
                         style="height: 100px; object-fit: cover;" />
-                      <input type="file" accept="image/*"
-                        class="form-control form-control-sm shadow-none"
-                        @change="e => previewImagen(e, n-1, 'editar')" />
-                      <small class="text-muted" style="font-size: 0.7rem;">Click para cambiar</small>
+                      <ImagenInput @change="file => onImagenEditar(file, n-1)" />
                     </div>
                   </div>
                 </div>
@@ -343,6 +339,7 @@ import { ref, computed, onMounted } from 'vue'
 import { Modal } from 'bootstrap'
 import api from '@/api/axios'
 import { ADMIN } from '@/api/endpoints'
+import ImagenInput from '@/components/ui/ImagenInput.vue'
 
 const sitios       = ref([])
 const cargando     = ref(true)
@@ -383,11 +380,14 @@ async function cargarSitios() {
   } finally { cargando.value = false }
 }
 
-function previewImagen(e, index, modo) {
-  const file = e.target.files[0]; if (!file) return
-  const url = URL.createObjectURL(file)
-  if (modo === 'nuevo') { previews.value[index] = url; archivosNuevo.value[index] = file }
-  else { previewsEditar.value[index] = url; archivosEditar.value[index] = file }
+function onImagenNueva(file, index) {
+  archivosNuevo.value[index] = file
+  previews.value[index] = file ? URL.createObjectURL(file) : null
+}
+
+function onImagenEditar(file, index) {
+  archivosEditar.value[index] = file
+  previewsEditar.value[index] = file ? URL.createObjectURL(file) : null
 }
 
 async function toggleEstado(item) {

@@ -25,10 +25,10 @@ export function useEntidades(slug) {
       if (filtros.value.length) params.subtipos = filtros.value
       const { data } = await api.get(PUBLICO.ENTIDADES(slug), { params })
       const payload = data.data
-      if (payload?.data) {
-        entidades.value    = payload.data
-        pagina.value       = payload.current_page ?? pagina.value
-        totalPaginas.value = payload.last_page    ?? 1
+      if (payload?.entidades) {
+        entidades.value    = payload.entidades
+        pagina.value       = payload.pagina_actual  ?? pagina.value
+        totalPaginas.value = payload.total_paginas  ?? 1
       } else {
         entidades.value = Array.isArray(payload) ? payload : []
       }

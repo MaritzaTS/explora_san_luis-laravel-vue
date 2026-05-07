@@ -30,16 +30,21 @@ class EntidadResource extends JsonResource
             'sitio_web'         => $this->sitio_web,
             'estado'            => $this->estado,
 
-            // Lógica de Imagen: Obtiene la primera imagen de la relación si existe y genera su URL absoluta.
-            // Si la entidad no tiene imágenes, retorna null.
-            'imagen'           => $this->imagenes->first()
+            // Primera imagen como URL directa (legacy)
+            'imagen'            => $this->imagenes->first()
                 ? asset('storage/' . $this->imagenes->first()->url_imagen)
                 : null,
+
+            // Array completo con url_completa (usado por el frontend)
+            'imagenes'          => $this->imagenes->map(fn($img) => [
+                'url_completa' => asset('storage/' . $img->url_imagen),
+            ])->values(),
 
             // Carga Condicional: Solo incluye el recurso TipoEntidad si la relación fue cargada (Eager Loading).
             'tipo_entidad'      => new TipoEntidadResource($this->whenLoaded('tipoEntidad')),
 
-            // Carga Condicional: Transforma la colección de tipos específicos si la relación está disponible.
+            // Alias 'subtipos' para compatibilidad con el frontend
+            'subtipos'          => TipoEspecificoResource::collection($this->whenLoaded('tiposEspecificos')),
             'tipos_especificos' => TipoEspecificoResource::collection($this->whenLoaded('tiposEspecificos')),
 
             // Carga Condicional con Transformación: Retorna solo el nombre del lugar si la relación 'lugar' está cargada.

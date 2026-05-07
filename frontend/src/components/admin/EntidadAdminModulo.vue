@@ -25,10 +25,19 @@
             <p class="text-muted mb-2 small">
               Personaliza la imagen que verán los usuarios en el catálogo principal.
             </p>
+            <div class="d-flex gap-1 flex-wrap mb-2">
+              <span v-for="fmt in ['JPG','PNG','WEBP']" :key="fmt"
+                class="badge border fw-normal"
+                style="font-size:0.68rem; color:#555; background:#f1f5f9;">{{ fmt }}</span>
+              <span class="text-muted" style="font-size:0.72rem;">· Máx. 5 MB</span>
+            </div>
+            <p v-if="errorPortada" class="text-danger small mb-1">
+              <i class="bi bi-exclamation-circle me-1"></i>{{ errorPortada }}
+            </p>
             <input
               ref="inputPortada"
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               class="d-none"
               @change="seleccionarPortada"
             />
@@ -259,8 +268,7 @@
                     <i class="bi bi-person-badge me-1"></i> Logo del Comercio *
                   </label>
                   <small class="text-muted d-block mb-2">Imagen cuadrada o logo distintivo.</small>
-                  <input type="file" ref="inputLogoNueva" accept="image/*"
-                    class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none" required />
+                  <ImagenInput ref="inputLogoNuevaComp" :required="true" @change="logoNuevaFile = $event" />
                 </div>
               </div>
               <div class="d-flex justify-content-center gap-3 mt-5">
@@ -371,9 +379,7 @@
                       class="img-fluid rounded-4 mb-3 border"
                       style="width: 150px; height: 150px; object-fit: cover;" />
                     <label class="fw-bold mb-1 small d-block">Cambiar Logo</label>
-                    <input type="file" ref="inputLogoEditar" accept="image/*"
-                      class="form-control form-control-sm"
-                      @change="previewLogoEditar" />
+                    <ImagenInput ref="inputLogoEditarComp" @change="onLogoEditarChange" />
                   </div>
                   <div class="p-3 rounded-4 border bg-light text-start">
                     <label class="fw-bold mb-1 small text-muted text-uppercase" style="font-size:0.7rem">Estado</label>
@@ -452,6 +458,7 @@ import { ref, computed, onMounted } from 'vue'
 import { Modal } from 'bootstrap'
 import api from '@/api/axios'
 import { ADMIN, PUBLICO } from '@/api/endpoints'
+import ImagenInput from '@/components/ui/ImagenInput.vue'
 
 const props = defineProps({ slug: String })
 
@@ -466,10 +473,13 @@ const imgPortada    = ref(null)
 const portadaFile   = ref(null)
 const detalle       = ref(null)
 const formEditar    = ref(null)
-const logoPreview   = ref(null)
-const inputLogoNueva  = ref(null)
-const inputLogoEditar = ref(null)
-const inputPortada    = ref(null)
+const logoPreview        = ref(null)
+const logoNuevaFile      = ref(null)
+const logoEditarFile     = ref(null)
+const inputLogoNuevaComp = ref(null)
+const inputLogoEditarComp= ref(null)
+const inputPortada       = ref(null)
+const errorPortada       = ref(null)
 const alerta = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
 
 const formNueva = ref({
@@ -478,12 +488,18 @@ const formNueva = ref({
 })
 
 const subtipos = computed(() => tipoData.value?.tipos_especificos ?? [])
-const totalEntidades = computed(() => entidades.value.length)
-const activas        = computed(() => entidades.value.filter(e => e.estado).length)
-const inactivas      = computed(() => entidades.value.filter(e => !e.estado).length)
+
+// Base: solo entidades de este tipo (para stats y lista)
+const entidadesDelTipo = computed(() =>
+  entidades.value.filter(e => !props.slug || e.tipo_entidad?.slug === props.slug)
+)
+
+const totalEntidades = computed(() => entidadesDelTipo.value.length)
+const activas        = computed(() => entidadesDelTipo.value.filter(e => e.estado).length)
+const inactivas      = computed(() => entidadesDelTipo.value.filter(e => !e.estado).length)
 
 const entidadesFiltradas = computed(() => {
-  return entidades.value.filter(e => {
+  return entidadesDelTipo.value.filter(e => {
     const nombre = e.nombre_comercial?.toLowerCase() ?? ''
     const okBusqueda = !busqueda.value || nombre.includes(busqueda.value.toLowerCase())
     const okEstado   = filtroEstado.value === '' || String(e.estado ? '1' : '0') === filtroEstado.value
@@ -513,15 +529,31 @@ async function cargarEntidades() {
     const params = tipoData.value ? { tipo_entidad_id: tipoData.value.id } : {}
     const { data } = await api.get(ADMIN.ENTIDADES, { params })
     const payload = data.data
-    entidades.value = payload?.data ?? (Array.isArray(payload) ? payload : [])
+    entidades.value = payload?.entidades ?? (Array.isArray(payload) ? payload : [])
   } finally {
     cargando.value = false
   }
 }
 
+const TIPOS_VALIDOS  = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_BYTES      = 5 * 1024 * 1024
+
 function seleccionarPortada(e) {
-  portadaFile.value = e.target.files[0]
-  if (portadaFile.value) imgPortada.value = URL.createObjectURL(portadaFile.value)
+  const file = e.target.files[0]
+  errorPortada.value = null
+  if (!file) return
+  if (!TIPOS_VALIDOS.includes(file.type)) {
+    errorPortada.value = 'Formato no válido. Usa: JPG, PNG o WEBP.'
+    e.target.value = ''
+    return
+  }
+  if (file.size > MAX_BYTES) {
+    errorPortada.value = `La imagen pesa ${(file.size / 1024 / 1024).toFixed(1)} MB. El máximo es 5 MB.`
+    e.target.value = ''
+    return
+  }
+  portadaFile.value = file
+  imgPortada.value  = URL.createObjectURL(file)
 }
 
 async function confirmarPortada() {
@@ -556,6 +588,8 @@ function abrirModalAgregar() {
     nombre_comercial: '', razon_social: '', rut: '', telefono: '',
     hora_atencion: '', sitio_web: '', estado: true, direccion: '', descripcion: ''
   }
+  logoNuevaFile.value = null
+  inputLogoNuevaComp.value?.reset()
   new Modal(document.getElementById('modalAgregar')).show()
 }
 
@@ -566,7 +600,7 @@ async function guardarNueva() {
     Object.entries(formNueva.value).forEach(([k, v]) => fd.append(k, v))
     fd.append('lugar_id', 1)
     if (tipoData.value) fd.append('tipo_entidad_id', tipoData.value.id)
-    if (inputLogoNueva.value?.files[0]) fd.append('logo', inputLogoNueva.value.files[0])
+    if (logoNuevaFile.value) fd.append('logo', logoNuevaFile.value)
     await api.post(ADMIN.ENTIDADES, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
     Modal.getInstance(document.getElementById('modalAgregar')).hide()
     mostrarAlerta('success', '¡Guardado!', 'Establecimiento agregado.')
@@ -579,14 +613,16 @@ async function guardarNueva() {
 }
 
 function abrirModalEditar(e) {
-  formEditar.value = { ...e }
-  logoPreview.value = e.imagenes?.[0]?.url_completa ?? null
+  formEditar.value   = { ...e }
+  logoPreview.value  = e.imagenes?.[0]?.url_completa ?? e.imagen ?? null
+  logoEditarFile.value = null
+  inputLogoEditarComp.value?.reset()
   new Modal(document.getElementById('modalEditar')).show()
 }
 
-function previewLogoEditar(e) {
-  const f = e.target.files[0]
-  if (f) logoPreview.value = URL.createObjectURL(f)
+function onLogoEditarChange(file) {
+  logoEditarFile.value = file
+  if (file) logoPreview.value = URL.createObjectURL(file)
 }
 
 async function guardarEdicion() {
@@ -597,7 +633,7 @@ async function guardarEdicion() {
     campos.forEach(k => fd.append(k, formEditar.value[k] ?? ''))
     fd.append('lugar_id', formEditar.value.lugar?.id ?? 1)
     fd.append('_method', 'PUT')
-    if (inputLogoEditar.value?.files[0]) fd.append('logo', inputLogoEditar.value.files[0])
+    if (logoEditarFile.value) fd.append('logo', logoEditarFile.value)
     await api.post(ADMIN.ENTIDAD(formEditar.value.id), fd, { headers: { 'Content-Type': 'multipart/form-data' } })
     Modal.getInstance(document.getElementById('modalEditar')).hide()
     mostrarAlerta('success', '¡Actualizado!', 'Establecimiento editado.')
