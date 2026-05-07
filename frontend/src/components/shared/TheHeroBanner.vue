@@ -72,26 +72,14 @@ onMounted(() => {
 <style scoped>
 .carousel-img {
   width: 100%;
-  height: 600px;
+  height: 300px;
   object-fit: cover;
 }
 
 @media (max-width: 768px) {
   .carousel-img {
-    height: 350px;
+    height: 200px;
   }
-}
-
-/* Forzamos una altura mínima para que no sea invisible */
-#carouselExplora {
-  min-height: 400px; 
-  background-color: #333; /* Color de fondo temporal para ver si el bloque existe */
-}
-
-.carousel-img {
-  width: 100%;
-  height: 600px;
-  object-fit: cover;
 }
 
 .btn-volver {
