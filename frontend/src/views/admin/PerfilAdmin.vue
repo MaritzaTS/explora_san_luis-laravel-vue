@@ -36,9 +36,9 @@
           <div class="text-start">
             <p class="mb-2 small">
               <i class="bi bi-patch-check-fill me-2"
-                :class="perfil.verificado == 1 ? 'text-success' : 'text-warning'"></i>
+                :class="perfil.verificado ? 'text-success' : 'text-warning'"></i>
               <span class="fw-semibold">Cuenta verificada:</span>
-              {{ perfil.verificado == 1 ? 'Sí' : 'Pendiente' }}
+              {{ perfil.verificado ? 'Sí' : 'Pendiente' }}
             </p>
             <p class="mb-2 small">
               <i class="bi bi-calendar3 me-2 text-muted"></i>
@@ -169,9 +169,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import api from '@/api/axios'
+import { AUTH } from '@/api/endpoints'
+import { useAuthStore } from '@/stores/auth.store'
 
-// ── Estado ────────────────────────────────────────────────
+const authStore = useAuthStore()
 const perfil   = ref({})
 const formDatos = ref({ nombre: '', email: '' })
 const formPassword = ref({ actual: '', nueva: '', confirmar: '' })
@@ -179,27 +181,20 @@ const editandoDatos     = ref(false)
 const cambiandoPassword = ref(false)
 const alerta = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
 
-// ── Carga inicial ─────────────────────────────────────────
-onMounted(() => {
-  cargarPerfil()
-})
+onMounted(cargarPerfil)
 
 async function cargarPerfil() {
   try {
-    // Endpoint que devuelve los datos del usuario autenticado
-    const { data } = await axios.get('/api/admin/perfil')
-    perfil.value = data
-    formDatos.value = { nombre: data.nombre, email: data.email }
+    const { data } = await api.get(AUTH.ME)
+    perfil.value = data.data ?? data
+    formDatos.value = { nombre: perfil.value.nombre, email: perfil.value.email }
   } catch {
-    mostrarAlerta('danger', '¡Error!', 'No se pudo cargar tu información.')
+    perfil.value = authStore.usuario ?? {}
+    formDatos.value = { nombre: perfil.value.nombre ?? '', email: perfil.value.email ?? '' }
   }
 }
 
-// ── Editar datos ──────────────────────────────────────────
-function activarEdicion() {
-  editandoDatos.value = true
-  formDatos.value = { nombre: perfil.value.nombre, email: perfil.value.email }
-}
+function activarEdicion() { editandoDatos.value = true }
 
 function cancelarEdicion() {
   editandoDatos.value = false
@@ -207,51 +202,20 @@ function cancelarEdicion() {
 }
 
 async function guardarDatos() {
-  try {
-    const { data } = await axios.put('/api/admin/perfil', formDatos.value)
-    perfil.value = { ...perfil.value, ...data }
-
-    // Actualiza también el localStorage para que el saludo del header refleje el cambio
-    const userLocal = JSON.parse(localStorage.getItem('user') || '{}')
-    userLocal.nombre = data.nombre
-    userLocal.email  = data.email
-    localStorage.setItem('user', JSON.stringify(userLocal))
-
-    editandoDatos.value = false
-    mostrarAlerta('success', '¡Actualizado!', 'Tu información ha sido guardada correctamente.')
-  } catch (err) {
-    const msg = err.response?.data?.message || 'No se pudieron guardar los cambios.'
-    mostrarAlerta('danger', '¡Error!', msg)
-  }
+  mostrarAlerta('warning', 'No disponible', 'La edición de perfil no está habilitada aún.')
+  editandoDatos.value = false
 }
 
-// ── Cambiar contraseña ────────────────────────────────────
 function cancelarPassword() {
   cambiandoPassword.value = false
   formPassword.value = { actual: '', nueva: '', confirmar: '' }
 }
 
 async function cambiarPassword() {
-  if (formPassword.value.nueva !== formPassword.value.confirmar) {
-    mostrarAlerta('danger', '¡Error!', 'Las contraseñas nuevas no coinciden.')
-    return
-  }
-
-  try {
-    await axios.put('/api/admin/perfil/password', {
-      contrasena_actual: formPassword.value.actual,
-      contrasena_nueva:  formPassword.value.nueva
-    })
-
-    cancelarPassword()
-    mostrarAlerta('success', '¡Listo!', 'Tu contraseña ha sido actualizada correctamente.')
-  } catch (err) {
-    const msg = err.response?.data?.message || 'No se pudo actualizar la contraseña.'
-    mostrarAlerta('danger', '¡Error!', msg)
-  }
+  mostrarAlerta('warning', 'No disponible', 'El cambio de contraseña no está habilitado aún.')
+  cancelarPassword()
 }
 
-// ── Helpers ───────────────────────────────────────────────
 function formatFecha(fecha) {
   if (!fecha) return '—'
   const d = new Date(fecha)

@@ -48,12 +48,11 @@
             </div>
           </div>
           <div class="col-md-3">
-            <select v-model="filtroLugar"
+            <select v-model="filtroEstado"
               class="form-select border border-secondary-subtle rounded-3 py-2 shadow-none fw-semibold">
-              <option value="">Todos los lugares</option>
-              <option v-for="lug in lugares" :key="lug.id_lugar" :value="lug.id_lugar">
-                {{ lug.nombre }}
-              </option>
+              <option value="">Todos</option>
+              <option value="1">Activos</option>
+              <option value="0">Inactivos</option>
             </select>
           </div>
           <div class="col-md-5 text-end">
@@ -77,7 +76,7 @@
             <p>No hay sitios turísticos registrados aún.</p>
           </div>
 
-          <div v-else v-for="item in sitiosFiltrados" :key="item.id_sitio"
+          <div v-else v-for="item in sitiosFiltrados" :key="item.id"
             class="card border border-secondary-subtle rounded-4 shadow-none">
             <div class="card-body d-flex align-items-center justify-content-between p-3">
 
@@ -90,18 +89,18 @@
                   <div class="d-flex align-items-center gap-2">
                     <h5 class="fw-bold mb-0">{{ item.nombre }}</h5>
                     <span
-                      :class="item.estado == 1
+                      :class="item.estado
                         ? 'badge bg-success-subtle text-success rounded-pill px-3 py-1'
                         : 'badge bg-danger-subtle text-danger rounded-pill px-3 py-1'"
                       style="font-size: 0.7rem;">
-                      {{ item.estado == 1 ? 'Activo' : 'Inactivo' }}
+                      {{ item.estado ? 'Activo' : 'Inactivo' }}
                     </span>
                   </div>
                   <p class="text-muted small mb-0 mt-1">
-                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ item.nombre_lugar }}
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ item.lugar?.nombre }}
                   </p>
                   <p class="text-secondary small mb-0 text-truncate" style="max-width: 350px;">
-                    {{ item.descripcion_corta }}
+                    {{ item.descripcion }}
                   </p>
                 </div>
               </div>
@@ -109,12 +108,12 @@
               <!-- ACCIONES -->
               <div class="d-flex gap-2">
                 <button
-                  :class="item.estado == 1
+                  :class="item.estado
                     ? 'btn btn-outline-danger border rounded-3 px-3 d-flex align-items-center gap-2 shadow-none fw-semibold btn-sm'
                     : 'btn btn-outline-success border rounded-3 px-3 d-flex align-items-center gap-2 shadow-none fw-semibold btn-sm'"
                   @click="toggleEstado(item)">
-                  <i :class="item.estado == 1 ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
-                  {{ item.estado == 1 ? 'Desactivar' : 'Activar' }}
+                  <i :class="item.estado ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                  {{ item.estado ? 'Desactivar' : 'Activar' }}
                 </button>
                 <button
                   class="btn btn-white border border-secondary-subtle rounded-3 px-3 d-flex align-items-center gap-2 shadow-none fw-semibold btn-sm"
@@ -157,28 +156,17 @@
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label fw-bold mb-0">Ubicación (Municipio) *</label>
-                  <select v-model="formNuevo.id_lugar"
-                    class="form-select border-0 border-bottom border-dark rounded-0 px-0 shadow-none" required>
-                    <option value="" disabled>Seleccione el lugar</option>
-                    <option v-for="lug in lugares" :key="lug.id_lugar" :value="lug.id_lugar">
-                      {{ lug.nombre }}
-                    </option>
-                  </select>
-                </div>
-
-                <div class="col-md-6">
                   <label class="form-label fw-bold mb-0">Estado Inicial</label>
                   <select v-model="formNuevo.estado"
                     class="form-select border-0 border-bottom border-dark rounded-0 px-0 shadow-none">
-                    <option value="1">Activo / Visible</option>
-                    <option value="0">Inactivo / Oculto</option>
+                    <option :value="true">Activo / Visible</option>
+                    <option :value="false">Inactivo / Oculto</option>
                   </select>
                 </div>
 
                 <div class="col-12">
-                  <label class="form-label fw-bold mb-0">Descripción Corta *</label>
-                  <textarea v-model="formNuevo.descripcion_corta"
+                  <label class="form-label fw-bold mb-0">Descripción *</label>
+                  <textarea v-model="formNuevo.descripcion"
                     class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
                     rows="2" maxlength="255"
                     placeholder="Una breve reseña que atraiga al turista..." required></textarea>
@@ -210,7 +198,9 @@
               <div class="d-flex justify-content-center gap-3 mt-5">
                 <button type="button" class="btn btn-outline-dark px-4 py-2 fw-bold rounded-3 shadow-none"
                   data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-dark px-4 py-2 fw-bold rounded-3 shadow-none">
+                <button type="submit" class="btn btn-dark px-4 py-2 fw-bold rounded-3 shadow-none"
+                  :disabled="guardando">
+                  <span v-if="guardando" class="spinner-border spinner-border-sm me-2" role="status"></span>
                   Publicar Sitio
                 </button>
               </div>
@@ -251,11 +241,11 @@
               <div class="col-12">
                 <p class="text-muted mb-2">
                   <i class="bi bi-geo-alt-fill text-danger me-1"></i>
-                  <span class="fw-bold text-dark">{{ detalle.nombre_lugar }}</span>
+                  <span class="fw-bold text-dark">{{ detalle.lugar?.nombre }}</span>
                 </p>
                 <hr class="my-3 border-secondary-subtle" />
                 <h6 class="fw-bold">Descripción</h6>
-                <p class="text-secondary" style="white-space: pre-line;">{{ detalle.descripcion_corta }}</p>
+                <p class="text-secondary" style="white-space: pre-line;">{{ detalle.descripcion }}</p>
               </div>
             </div>
 
@@ -289,27 +279,17 @@
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label fw-bold mb-0">Ubicación *</label>
-                  <select v-model="formEditar.id_lugar"
-                    class="form-select border-0 border-bottom border-dark rounded-0 px-0 shadow-none" required>
-                    <option v-for="lug in lugares" :key="lug.id_lugar" :value="lug.id_lugar">
-                      {{ lug.nombre }}
-                    </option>
-                  </select>
-                </div>
-
-                <div class="col-md-6">
                   <label class="form-label fw-bold mb-0">Estado</label>
                   <select v-model="formEditar.estado"
                     class="form-select border-0 border-bottom border-dark rounded-0 px-0 shadow-none">
-                    <option value="1">Activo / Visible</option>
-                    <option value="0">Inactivo / Oculto</option>
+                    <option :value="true">Activo / Visible</option>
+                    <option :value="false">Inactivo / Oculto</option>
                   </select>
                 </div>
 
                 <div class="col-12">
-                  <label class="form-label fw-bold mb-0">Descripción Corta *</label>
-                  <textarea v-model="formEditar.descripcion_corta"
+                  <label class="form-label fw-bold mb-0">Descripción *</label>
+                  <textarea v-model="formEditar.descripcion"
                     class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
                     rows="2" maxlength="255" required></textarea>
                 </div>
@@ -343,7 +323,9 @@
               <div class="d-flex justify-content-center gap-3 mt-5">
                 <button type="button" class="btn btn-outline-dark px-4 py-2 fw-bold rounded-3 shadow-none"
                   data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-dark px-4 py-2 fw-bold rounded-3 shadow-none">
+                <button type="submit" class="btn btn-dark px-4 py-2 fw-bold rounded-3 shadow-none"
+                  :disabled="guardando">
+                  <span v-if="guardando" class="spinner-border spinner-border-sm me-2" role="status"></span>
                   Actualizar Sitio
                 </button>
               </div>
@@ -358,145 +340,117 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import { Modal } from 'bootstrap'
+import api from '@/api/axios'
+import { ADMIN } from '@/api/endpoints'
 
-// ── Estado ────────────────────────────────────────────────
 const sitios       = ref([])
-const lugares      = ref([])
 const cargando     = ref(true)
+const guardando    = ref(false)
 const busqueda     = ref('')
-const filtroLugar  = ref('')
+const filtroEstado = ref('')
 const detalle      = ref(null)
 const formEditar   = ref(null)
 const alerta       = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
 
-// Previews de imágenes
-const previews       = ref([null, null, null])   // modal agregar
-const previewsEditar = ref([null, null, null])   // modal editar
-const archivosNuevo  = ref([null, null, null])   // files agregar
-const archivosEditar = ref([null, null, null])   // files editar
+const previews       = ref([null, null, null])
+const previewsEditar = ref([null, null, null])
+const archivosNuevo  = ref([null, null, null])
+const archivosEditar = ref([null, null, null])
 
-const formNuevo = ref({
-  nombre: '', id_lugar: '', estado: 1, descripcion_corta: ''
-})
+const formNuevo = ref({ nombre: '', descripcion: '', estado: true })
 
-// ── Computed ──────────────────────────────────────────────
-const totalGeneral  = computed(() => sitios.value.length)
-const totalActivos  = computed(() => sitios.value.filter(s => s.estado == 1).length)
-const totalInactivos = computed(() => sitios.value.filter(s => s.estado == 0).length)
+const totalGeneral   = computed(() => sitios.value.length)
+const totalActivos   = computed(() => sitios.value.filter(s => s.estado).length)
+const totalInactivos = computed(() => sitios.value.filter(s => !s.estado).length)
 
 const sitiosFiltrados = computed(() =>
   sitios.value.filter(s => {
-    const coincideNombre = s.nombre.toLowerCase().includes(busqueda.value.toLowerCase())
-    const coincideLugar  = filtroLugar.value === '' || s.id_lugar == filtroLugar.value
-    return coincideNombre && coincideLugar
+    const okNombre = !busqueda.value || s.nombre.toLowerCase().includes(busqueda.value.toLowerCase())
+    const okEstado = filtroEstado.value === '' || String(s.estado ? '1' : '0') === filtroEstado.value
+    return okNombre && okEstado
   })
 )
 
-// ── Carga inicial ─────────────────────────────────────────
-onMounted(async () => {
-  await cargarSitios()
-  await cargarLugares()
-})
+onMounted(cargarSitios)
 
 async function cargarSitios() {
+  cargando.value = true
   try {
-    cargando.value = true
-    const { data } = await axios.get('/api/admin/sitios-turisticos')
-    sitios.value = data
-  } catch {
-    mostrarAlerta('danger', '¡Error!', 'No se pudieron cargar los sitios turísticos.')
-  } finally {
-    cargando.value = false
-  }
+    const { data } = await api.get(ADMIN.SITIOS)
+    const payload = data.data
+    sitios.value = payload?.data ?? (Array.isArray(payload) ? payload : [])
+  } finally { cargando.value = false }
 }
 
-async function cargarLugares() {
-  try {
-    const { data } = await axios.get('/api/admin/lugares')
-    lugares.value = data
-  } catch {}
-}
-
-// ── Preview de imágenes ───────────────────────────────────
 function previewImagen(e, index, modo) {
-  const file = e.target.files[0]
-  if (!file) return
+  const file = e.target.files[0]; if (!file) return
   const url = URL.createObjectURL(file)
-  if (modo === 'nuevo') {
-    previews.value[index] = url
-    archivosNuevo.value[index] = file
-  } else {
-    previewsEditar.value[index] = url
-    archivosEditar.value[index] = file
-  }
+  if (modo === 'nuevo') { previews.value[index] = url; archivosNuevo.value[index] = file }
+  else { previewsEditar.value[index] = url; archivosEditar.value[index] = file }
 }
 
-// ── Toggle estado ─────────────────────────────────────────
 async function toggleEstado(item) {
-  const nuevoEstado = item.estado == 1 ? 0 : 1
-  const accion = nuevoEstado == 1 ? 'activar' : 'desactivar'
+  const accion = item.estado ? 'desactivar' : 'activar'
   if (!confirm(`¿Deseas ${accion} "${item.nombre}"?`)) return
-  await axios.patch(`/api/admin/sitios-turisticos/${item.id_sitio}/estado`, { estado: nuevoEstado })
-  item.estado = nuevoEstado
+  await api.patch(ADMIN.SITIO_ESTADO(item.id), { estado: !item.estado })
+  item.estado = !item.estado
+  mostrarAlerta('success', '¡Actualizado!', `Sitio ${item.estado ? 'activado' : 'desactivado'}.`)
 }
 
-// ── Ver detalle ───────────────────────────────────────────
 function verDetalle(item) {
   detalle.value = item
-  new bootstrap.Modal(document.getElementById('modalDetalleSitio')).show()
+  new Modal(document.getElementById('modalDetalleSitio')).show()
 }
 
-// ── Agregar ───────────────────────────────────────────────
 function abrirModalAgregar() {
-  formNuevo.value = { nombre: '', id_lugar: '', estado: 1, descripcion_corta: '' }
-  previews.value  = [null, null, null]
-  archivosNuevo.value = [null, null, null]
-  new bootstrap.Modal(document.getElementById('modalAgregarSitio')).show()
+  formNuevo.value = { nombre: '', descripcion: '', estado: true }
+  previews.value = [null, null, null]; archivosNuevo.value = [null, null, null]
+  new Modal(document.getElementById('modalAgregarSitio')).show()
 }
 
 async function guardarSitio() {
+  guardando.value = true
   try {
     const fd = new FormData()
-    Object.entries(formNuevo.value).forEach(([k, v]) => fd.append(k, v))
-    archivosNuevo.value.forEach((file, i) => {
-      if (file) fd.append(`url_imagen_${i + 1}`, file)
-    })
-    await axios.post('/api/admin/sitios-turisticos', fd)
-    bootstrap.Modal.getInstance(document.getElementById('modalAgregarSitio')).hide()
-    mostrarAlerta('success', '¡Publicado!', 'Sitio turístico registrado correctamente.')
+    fd.append('nombre', formNuevo.value.nombre)
+    fd.append('descripcion', formNuevo.value.descripcion)
+    fd.append('estado', formNuevo.value.estado)
+    fd.append('lugar_id', 1)
+    archivosNuevo.value.forEach((file, i) => { if (file) fd.append(`url_imagen_${i + 1}`, file) })
+    await api.post(ADMIN.SITIOS, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    Modal.getInstance(document.getElementById('modalAgregarSitio')).hide()
+    mostrarAlerta('success', '¡Publicado!', 'Sitio registrado.')
     await cargarSitios()
-  } catch {
-    mostrarAlerta('danger', '¡Error!', 'No se pudo guardar el sitio.')
-  }
+  } catch (err) {
+    mostrarAlerta('danger', '¡Error!', err.response?.data?.message ?? 'No se pudo guardar.')
+  } finally { guardando.value = false }
 }
 
-// ── Editar ────────────────────────────────────────────────
 function abrirModalEditar(item) {
-  formEditar.value     = { ...item }
-  previewsEditar.value = [null, null, null]
-  archivosEditar.value = [null, null, null]
-  new bootstrap.Modal(document.getElementById('modalEditarSitio')).show()
+  formEditar.value = { ...item }; previewsEditar.value = [null, null, null]; archivosEditar.value = [null, null, null]
+  new Modal(document.getElementById('modalEditarSitio')).show()
 }
 
 async function guardarEdicion() {
+  guardando.value = true
   try {
     const fd = new FormData()
-    Object.entries(formEditar.value).forEach(([k, v]) => fd.append(k, v))
-    archivosEditar.value.forEach((file, i) => {
-      if (file) fd.append(`url_imagen_${i + 1}`, file)
-    })
+    fd.append('nombre', formEditar.value.nombre)
+    fd.append('descripcion', formEditar.value.descripcion)
+    fd.append('estado', formEditar.value.estado)
+    fd.append('lugar_id', formEditar.value.lugar?.id ?? 1)
     fd.append('_method', 'PUT')
-    await axios.post(`/api/admin/sitios-turisticos/${formEditar.value.id_sitio}`, fd)
-    bootstrap.Modal.getInstance(document.getElementById('modalEditarSitio')).hide()
-    mostrarAlerta('success', '¡Actualizado!', 'Sitio turístico editado correctamente.')
+    archivosEditar.value.forEach((file, i) => { if (file) fd.append(`url_imagen_${i + 1}`, file) })
+    await api.post(ADMIN.SITIO(formEditar.value.id), fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    Modal.getInstance(document.getElementById('modalEditarSitio')).hide()
+    mostrarAlerta('success', '¡Actualizado!', 'Sitio editado.')
     await cargarSitios()
-  } catch {
-    mostrarAlerta('danger', '¡Error!', 'No se pudo actualizar el sitio.')
-  }
+  } catch (err) {
+    mostrarAlerta('danger', '¡Error!', err.response?.data?.message ?? 'No se pudo actualizar.')
+  } finally { guardando.value = false }
 }
 
-// ── Alerta ────────────────────────────────────────────────
 function mostrarAlerta(tipo, titulo, mensaje) {
   alerta.value = { visible: true, tipo, titulo, mensaje }
   setTimeout(() => alerta.value.visible = false, 4000)

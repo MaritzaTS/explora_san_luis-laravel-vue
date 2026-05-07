@@ -73,7 +73,7 @@
     </div>
 
     <div v-else class="row g-3 mb-5">
-      <div class="col-md-4" v-for="tipo in porTipo" :key="tipo.id_tipo">
+      <div class="col-md-4" v-for="tipo in porTipo" :key="tipo.nombre">
         <div class="card border-0 shadow-sm rounded-4 bg-white p-3 h-100">
 
           <div class="d-flex align-items-center gap-3 mb-3">
@@ -119,12 +119,12 @@
               No hay registros recientes.
             </td>
           </tr>
-          <tr v-for="e in ultimas" :key="e.id_entidad">
-            <td class="ps-4 text-muted small">{{ e.id_entidad }}</td>
+          <tr v-for="e in ultimas" :key="e.id">
+            <td class="ps-4 text-muted small">{{ e.id }}</td>
             <td class="fw-semibold">{{ e.nombre_comercial }}</td>
-            <td><span class="text-muted small">{{ capitalizar(e.tipo) }}</span></td>
+            <td><span class="text-muted small">{{ capitalizar(e.tipo?.nombre ?? e.tipo) }}</span></td>
             <td>
-              <span v-if="e.estado == 1"
+              <span v-if="e.estado"
                 class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
                 Activo
               </span>
@@ -133,7 +133,7 @@
                 Inactivo
               </span>
             </td>
-            <td class="text-muted small">{{ formatFecha(e.fecha_registro) }}</td>
+            <td class="text-muted small">{{ formatFecha(e.created_at) }}</td>
           </tr>
         </tbody>
       </table>
@@ -144,7 +144,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import api from '@/api/axios'
+import { ADMIN } from '@/api/endpoints'
+import { useAuthStore } from '@/stores/auth.store'
 
 // ── Estado ────────────────────────────────────────────────
 const stats    = ref({ total: 0, activos: 0, inactivos: 0, usuarios: 0 })
@@ -153,9 +155,9 @@ const ultimas  = ref([])
 const cargando = ref(true)
 
 // ── Saludo ────────────────────────────────────────────────
+const authStore = useAuthStore()
 const nombreAdmin = computed(() => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}')
-  const completo = user.nombre || 'Administrador'
+  const completo = authStore.usuario?.nombre ?? 'Administrador'
   return completo.split(' ')[0]
 })
 
@@ -163,13 +165,16 @@ const nombreAdmin = computed(() => {
 onMounted(async () => {
   try {
     cargando.value = true
-
-    // Llamamos a un endpoint que devuelve todo el dashboard de una vez
-    const { data } = await axios.get('/api/admin/dashboard')
-
-    stats.value   = data.stats
-    porTipo.value = data.porTipo
-    ultimas.value = data.ultimas
+    const { data } = await api.get(ADMIN.DASHBOARD_STATS)
+    const payload = data.data
+    stats.value = {
+      total:    payload.total_entidades,
+      activos:  payload.entidades_activas,
+      inactivos: payload.entidades_inactivas,
+      usuarios: payload.total_usuarios,
+    }
+    porTipo.value = payload.por_tipo ?? []
+    ultimas.value = payload.ultimas_entidades ?? []
   } catch (err) {
     console.error('Error al cargar dashboard:', err)
   } finally {
@@ -190,7 +195,6 @@ function formatFecha(fecha) {
   return `${d.getDate().toString().padStart(2,'0')} ${meses[d.getMonth()]} ${d.getFullYear()}`
 }
 
-// Mapea el nombre de la categoría a la ruta del módulo en Vue Router
 function rutaModulo(nombre) {
   const mapa = {
     'gastronomia':         '/admin/gastronomia',
@@ -202,6 +206,6 @@ function rutaModulo(nombre) {
     'agencias turisticas': '/admin/agencias',
     'agencias_turisticas': '/admin/agencias',
   }
-  return mapa[nombre.toLowerCase()] || '/admin'
+  return mapa[nombre?.toLowerCase()] || '/admin'
 }
 </script>
