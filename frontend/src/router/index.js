@@ -24,9 +24,14 @@ const router = createRouter({
 
     // ─── AUTENTICACIÓN ───────────────────────────────────
     {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/LoginView.vue')
+      path: '/registro',
+      name: 'registro',
+      component: () => import('@/views/RegisterView.vue')
+    },
+    {
+      path: '/verificar-cuenta',
+      name: 'verificar-cuenta',
+      component: () => import('@/views/VerifyView.vue')
     },
     {
       path: '/auth/google/callback',
@@ -57,20 +62,25 @@ const router = createRouter({
   ]
 })
 
+// ─── LIMPIEZA DE MODALES BOOTSTRAP ──────────────────────
+// Al navegar, Bootstrap deja el backdrop y la clase modal-open en el body.
+// Esto bloquea toda la UI. Lo limpiamos en cada cambio de ruta.
+function limpiarModalesBootstrap() {
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove())
+  document.body.classList.remove('modal-open')
+  document.body.style.removeProperty('overflow')
+  document.body.style.removeProperty('padding-right')
+}
+
 // ─── PROTECCIÓN DE RUTAS (Guard global) ─────────────────
-// Verifica que el usuario tenga sesión antes de entrar a rutas admin
 router.beforeEach((to, from, next) => {
+  limpiarModalesBootstrap()
+
   const token = localStorage.getItem('token')
 
-  // Si la ruta requiere autenticación y no hay token → al login
   if (to.meta.requiresAuth && !token) {
-    next({ name: 'login' })
-  }
-  // Si está autenticado e intenta ir al login → al admin
-  else if (to.name === 'login' && token) {
-    next({ name: 'admin-home' })
-  }
-  else {
+    next({ name: 'bienvenida' })
+  } else {
     next()
   }
 })

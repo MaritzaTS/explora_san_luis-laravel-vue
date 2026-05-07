@@ -2,17 +2,16 @@
   <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true" ref="modalEl">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 p-4 shadow-lg">
-        <div class="modal-header border-0 justify-content-end pb-0">
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+        <div class="modal-header border-0 justify-content-center pb-0">
+          <h2 class="fw-bold modal-title">Iniciar sesión</h2>
         </div>
 
-        <div class="modal-body pt-0">
-          <h2 class="fw-bold text-center mb-4">Iniciar sesión</h2>
+        <div class="modal-body">
 
           <!-- Google -->
-          <div class="d-grid gap-2 mb-4">
-            <button type="button" @click="loginConGoogle"
-              :disabled="loadingGoogle || loading"
+          <div class="d-grid mb-4">
+            <button type="button" @click="loginConGoogle" :disabled="loadingGoogle || loading"
               class="btn btn-outline-dark py-2 d-flex align-items-center justify-content-center gap-2">
               <span v-if="loadingGoogle" class="spinner-border spinner-border-sm"></span>
               <svg v-else viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
@@ -25,24 +24,29 @@
             </button>
           </div>
 
-          <div class="d-flex align-items-center gap-2 mb-4">
-            <hr class="flex-grow-1 m-0">
-            <span class="text-muted small">o</span>
-            <hr class="flex-grow-1 m-0">
-          </div>
+          <div class="divider"><span>o</span></div>
 
-          <!-- Formulario -->
+          <!-- Formulario email/contraseña -->
           <form @submit.prevent="handleLogin">
+
             <div class="mb-3">
-              <label class="small fw-bold">Correo electrónico</label>
-              <input v-model="form.email" type="email" class="form-control" placeholder="juan@mail.com" required :disabled="loading">
+              <div class="d-flex justify-content-between mb-1">
+                <label class="small fw-bold">Correo electrónico</label>
+              </div>
+              <input v-model="form.email" type="email" class="form-control border-secondary shadow-none"
+                placeholder="juan@mail.com" required :disabled="loading" />
             </div>
 
             <div class="mb-4">
-              <label class="small fw-bold">Contraseña</label>
+              <div class="d-flex justify-content-between mb-1">
+                <label class="small fw-bold">Contraseña</label>
+              </div>
               <div class="input-group">
-                <input :type="showPassword ? 'text' : 'password'" v-model="form.password" class="form-control" required :disabled="loading">
-                <button class="btn btn-outline-secondary" type="button" @click="showPassword = !showPassword">
+                <input v-model="form.password" :type="showPassword ? 'text' : 'password'"
+                  class="form-control border-dark shadow-none" placeholder="••••••••"
+                  required :disabled="loading" />
+                <button class="btn btn-outline-dark border-dark" type="button"
+                  @click="showPassword = !showPassword">
                   <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
                 </button>
               </div>
@@ -50,15 +54,30 @@
 
             <p v-if="error" class="text-danger small text-center bg-danger-subtle rounded p-2 mb-3">{{ error }}</p>
 
-            <div class="d-grid">
-              <button type="submit" class="btn btn-lg fw-bold border-0 py-2 d-flex align-items-center justify-content-center gap-2"
-                      style="background-color: #a3e635;" :disabled="loading">
-                <span v-if="loading" class="spinner-border spinner-border-sm"></span>
+            <div class="d-grid mb-3">
+              <button type="submit" class="btn btn-lg fw-bold border-0 py-2"
+                style="background-color: #a3e635;" :disabled="loading || loadingGoogle">
+                <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
                 {{ loading ? 'Ingresando...' : 'Iniciar sesión' }}
               </button>
             </div>
+
+            <div class="text-center small">
+              ¿Eres nuevo?
+              <a href="#" @click.prevent="irARegistro" class="text-dark fw-bold">Crear una cuenta</a>
+            </div>
+
           </form>
         </div>
+
+        <div class="modal-footer border-0 pt-0 justify-content-center">
+          <p class="text-muted" style="font-size: 0.75rem; text-align:center; max-width:320px;">
+            Al continuar, confirmas que tienes 18 años o más y aceptas nuestra
+            <a href="#" class="text-muted">Política de Privacidad</a> y
+            <a href="#" class="text-muted">Términos de Uso</a>.
+          </p>
+        </div>
+
       </div>
     </div>
   </div>
@@ -83,9 +102,30 @@ const error         = ref(null)
 const form          = reactive({ email: '', password: '' })
 
 let bsModal = null
-onMounted(() => {
-  bsModal = new Modal(modalEl.value)
-})
+onMounted(() => { bsModal = new Modal(modalEl.value) })
+
+async function handleLogin() {
+  loading.value = true
+  error.value   = null
+  try {
+    await authStore.login(form.email, form.password)
+    form.email    = ''
+    form.password = ''
+    const destino = authStore.isAdmin ? '/admin' : '/home'
+    modalEl.value.addEventListener('hidden.bs.modal', () => router.push(destino), { once: true })
+    bsModal?.hide()
+  } catch (e) {
+    if (e.response?.status === 401) {
+      error.value = 'Correo o contraseña incorrectos'
+    } else if (e.response?.status === 422) {
+      error.value = 'Por favor verifica los datos ingresados'
+    } else {
+      error.value = 'Error de conexión. Verifica que el servidor esté activo.'
+    }
+  } finally {
+    loading.value = false
+  }
+}
 
 async function loginConGoogle() {
   loadingGoogle.value = true
@@ -99,25 +139,25 @@ async function loginConGoogle() {
   }
 }
 
-async function handleLogin() {
-  loading.value = true
-  error.value   = null
-  try {
-    await authStore.login(form.email, form.password)
-    bsModal?.hide()
-    form.email    = ''
-    form.password = ''
-    authStore.isAdmin ? router.push('/admin') : router.push('/home')
-  } catch (e) {
-    if (e.response?.status === 401) {
-      error.value = 'Correo o contraseña incorrectos'
-    } else if (e.response?.status === 422) {
-      error.value = 'Por favor verifica los datos ingresados'
-    } else {
-      error.value = 'Error de conexión. Verifica que el servidor esté activo.'
-    }
-  } finally {
-    loading.value = false
-  }
+function irARegistro() {
+  if (!bsModal) { router.push('/registro'); return }
+  modalEl.value.addEventListener('hidden.bs.modal', () => router.push('/registro'), { once: true })
+  bsModal.hide()
 }
 </script>
+
+<style scoped>
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 20px;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+.divider span { color: #94a3b8; font-size: 13px; }
+</style>

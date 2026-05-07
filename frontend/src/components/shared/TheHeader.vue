@@ -98,7 +98,7 @@ const iniciales = computed(() => {
 
 async function cerrarSesion() {
   await authStore.logout()
-  router.push('/')
+  router.push('/home')
 }
 </script>
 
