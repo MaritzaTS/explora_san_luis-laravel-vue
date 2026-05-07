@@ -117,34 +117,34 @@
               <span class="d-block fw-bold small">Administrador</span>
               <span class="text-muted small">{{ userName }}</span>
             </li>
-            <li class="nav-item">
-              <div class="dropdown">
-                <button class="btn p-0 border-0 bg-light rounded-circle d-flex align-items-center justify-content-center"
-                  type="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  style="width: 42px; height: 42px;">
-                  <i class="bi bi-person-fill fs-4"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                  <li>
-                    <RouterLink class="dropdown-item" to="/admin/perfil">
-                      <i class="bi bi-person me-2"></i> Mi Perfil
-                    </RouterLink>
-                  </li>
-                  <li>
-                    <RouterLink class="dropdown-item" to="/">
-                      <i class="bi bi-house me-2"></i> Ver Sitio Web
-                    </RouterLink>
-                  </li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li>
-                    <button class="dropdown-item text-danger" @click="logout">
-                      <i class="bi bi-box-arrow-right me-2"></i> Cerrar sesión
-                    </button>
-                  </li>
-                </ul>
-              </div>
+            <li class="nav-item position-relative">
+              <button class="btn p-0 border-0 bg-light rounded-circle d-flex align-items-center justify-content-center"
+                type="button"
+                @click="menuAbierto = !menuAbierto"
+                style="width: 42px; height: 42px;">
+                <i class="bi bi-person-fill fs-4"></i>
+              </button>
+              <!-- Overlay para cerrar al hacer click fuera -->
+              <div v-if="menuAbierto" class="position-fixed top-0 start-0 w-100 h-100" style="z-index: 1040;" @click="menuAbierto = false"></div>
+              <!-- Menú -->
+              <ul v-if="menuAbierto" class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 show position-absolute" style="z-index: 1050; right: 0; top: 100%;">
+                <li>
+                  <RouterLink class="dropdown-item" to="/admin/perfil" @click="menuAbierto = false">
+                    <i class="bi bi-person me-2"></i> Mi Perfil
+                  </RouterLink>
+                </li>
+                <li>
+                  <RouterLink class="dropdown-item" to="/" @click="menuAbierto = false">
+                    <i class="bi bi-house me-2"></i> Ver Sitio Web
+                  </RouterLink>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <button class="dropdown-item text-danger" @click="logout">
+                    <i class="bi bi-box-arrow-right me-2"></i> Cerrar sesión
+                  </button>
+                </li>
+              </ul>
             </li>
           </ul>
         </div>
@@ -160,7 +160,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+
+const menuAbierto = ref(false)
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 
