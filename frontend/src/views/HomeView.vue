@@ -109,36 +109,48 @@
        SECCIÓN 4: LUGARES IMPERDIBLES
   =========================================== -->
   <section class="container mb-5 px-4 px-lg-5">
-    <div class="mb-4">
-      <h2 class="fw-bold mb-1">Lugares imperdibles</h2>
-      <p class="text-secondary fs-5">Los destinos que no puedes dejar de visitar</p>
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Lugares imperdibles</h2>
+        <p class="text-secondary fs-5 mb-0">Los destinos que no puedes dejar de visitar</p>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="scroll-nav-btn" @click="scrollLugares(-1)" aria-label="Anterior">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button class="scroll-nav-btn" @click="scrollLugares(1)" aria-label="Siguiente">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
     </div>
 
     <div v-if="sitiosDestacados.length === 0" class="text-center py-5 text-muted">
       <div class="spinner-border text-success" role="status"></div>
     </div>
 
-    <div v-else class="lugares-scroll">
+    <div v-else ref="lugaresScrollRef" class="lugares-scroll">
       <div
         v-for="sitio in sitiosDestacados"
         :key="sitio.id"
-        class="card border-0 shadow-sm overflow-hidden lugar-card flex-shrink-0">
+        class="lugar-card flex-shrink-0">
 
-        <div class="position-relative overflow-hidden lugar-card-img-wrapper">
+        <div class="position-relative overflow-hidden lugar-card-inner">
+          <!-- Imagen ciclando -->
           <transition name="fade-img" mode="out-in">
             <img
               :key="imageIndices[sitio.id]"
               :src="imagenActual(sitio)"
-              class="d-block w-100 lugar-card-img" />
+              class="lugar-card-img" />
           </transition>
-          <span class="position-absolute top-0 start-0 m-2 badge bg-dark bg-opacity-50 py-1 px-2 rounded-1 small zona-badge">
-            <i class="bi bi-geo-alt-fill text-success"></i> {{ sitio.lugar }}
-          </span>
-        </div>
 
-        <div class="card-body">
-          <h5 class="fw-bold mb-1">{{ sitio.nombre }}</h5>
-          <p class="text-muted mb-0 lugar-desc">{{ sitio.descripcion }}</p>
+          <!-- Gradiente y contenido superpuesto -->
+          <div class="lugar-card-overlay">
+            <span class="badge bg-success bg-opacity-90 rounded-pill px-3 py-1 mb-2 d-inline-block">
+              <i class="bi bi-geo-alt-fill me-1"></i>{{ sitio.lugar ?? 'San Luis' }}
+            </span>
+            <h5 class="fw-bold text-white mb-1 lh-sm">{{ sitio.nombre }}</h5>
+            <p class="text-white opacity-75 small mb-0 lugar-desc-clamp">{{ sitio.descripcion }}</p>
+          </div>
         </div>
 
       </div>
@@ -208,9 +220,14 @@ const imgFallbackPorSlug = {
 // ── Estado API ───────────────────────────────────
 const eventos          = ref([])
 const tipos            = ref([])
-const sitiosDestacados = ref([])
-const imageIndices     = ref({})
-let   cicloInterval    = null
+const sitiosDestacados  = ref([])
+const imageIndices      = ref({})
+const lugaresScrollRef  = ref(null)
+let   cicloInterval     = null
+
+function scrollLugares(dir) {
+  lugaresScrollRef.value?.scrollBy({ left: dir * 320, behavior: 'smooth' })
+}
 
 async function cargarEventos() {
   try {
@@ -330,37 +347,77 @@ const cardsHistoria = [
 }
 
 /* ── LUGARES IMPERDIBLES ── */
+.scroll-nav-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid #dee2e6;
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.scroll-nav-btn:hover { background: #198754; border-color: #198754; color: #fff; }
+
 .lugares-scroll {
   display: flex;
   gap: 1.25rem;
   overflow-x: auto;
-  padding-bottom: 1rem;
+  padding-bottom: 0.75rem;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: #198754 transparent;
+  scrollbar-color: #c8e6c9 transparent;
 }
-.lugares-scroll::-webkit-scrollbar { height: 5px; }
+.lugares-scroll::-webkit-scrollbar { height: 4px; }
 .lugares-scroll::-webkit-scrollbar-track { background: transparent; }
-.lugares-scroll::-webkit-scrollbar-thumb { background: #198754; border-radius: 99px; }
+.lugares-scroll::-webkit-scrollbar-thumb { background: #a5d6a7; border-radius: 99px; }
 
 .lugar-card {
-  width: 280px;
-  min-width: 280px;
+  width: 300px;
+  min-width: 300px;
   scroll-snap-align: start;
-  transition: transform 0.3s ease;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-.lugar-card:hover { transform: translateY(-4px); }
+.lugar-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+}
 
-.lugar-card-img-wrapper { height: 200px; }
-.lugar-card-img { height: 200px; object-fit: cover; }
+.lugar-card-inner { height: 340px; border-radius: 1.25rem; }
 
-.lugar-desc { font-size: 0.8rem; }
-.zona-badge { z-index: 5; }
+.lugar-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.lugar-card:hover .lugar-card-img { transform: scale(1.05); }
+
+.lugar-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.15) 55%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.25rem;
+}
+
+.lugar-desc-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 .fade-img-enter-active,
 .fade-img-leave-active {
-  transition: opacity 0.8s ease;
+  transition: opacity 0.9s ease;
   position: absolute;
   inset: 0;
 }
