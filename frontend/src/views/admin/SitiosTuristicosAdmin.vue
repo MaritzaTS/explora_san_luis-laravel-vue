@@ -188,6 +188,7 @@
                         class="img-thumbnail rounded-3 w-100 mb-2"
                         style="height: 120px; object-fit: cover;" />
                       <ImagenInput
+                        :key="`nuevo-${n}-${resetKeyNuevo}`"
                         :required="true"
                         @change="file => onImagenNueva(file, n-1)" />
                     </div>
@@ -355,6 +356,7 @@ const previews       = ref([null, null, null])
 const previewsEditar = ref([null, null, null])
 const archivosNuevo  = ref([null, null, null])
 const archivosEditar = ref([null, null, null])
+const resetKeyNuevo  = ref(0)
 
 const formNuevo = ref({ nombre: '', descripcion: '', estado: true })
 
@@ -406,7 +408,9 @@ function verDetalle(item) {
 
 function abrirModalAgregar() {
   formNuevo.value = { nombre: '', descripcion: '', estado: true }
-  previews.value = [null, null, null]; archivosNuevo.value = [null, null, null]
+  previews.value = [null, null, null]
+  archivosNuevo.value = [null, null, null]
+  resetKeyNuevo.value++
   new Modal(document.getElementById('modalAgregarSitio')).show()
 }
 

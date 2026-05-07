@@ -53,7 +53,7 @@
 
       <div class="carousel-indicators mb-n4">
         <button
-          v-for="(grupo, index) in slidesCategorias"
+          v-for="(_, index) in slidesCategorias"
           :key="'cat-ind-' + index"
           type="button"
           data-bs-target="#carouselCategorias"
@@ -108,66 +108,40 @@
   <!-- ==========================================
        SECCIÓN 4: LUGARES IMPERDIBLES
   =========================================== -->
-  <section class="container mb-5">
+  <section class="container mb-5 px-4 px-lg-5">
     <div class="mb-4">
       <h2 class="fw-bold mb-1">Lugares imperdibles</h2>
       <p class="text-secondary fs-5">Los destinos que no puedes dejar de visitar</p>
     </div>
 
-    <div id="carouselPrincipalSitios" class="carousel slide" data-bs-ride="false">
-      <div class="carousel-inner">
-        <div class="carousel-item active">
-          <div class="d-flex justify-content-center gap-4">
-            <div
-              v-for="lugar in lugaresImperdibles"
-              :key="lugar.id"
-              class="card border-0 shadow-sm flex-fill overflow-hidden lugar-card"
-              :class="lugar.claseResponsive">
+    <div v-if="sitiosDestacados.length === 0" class="text-center py-5 text-muted">
+      <div class="spinner-border text-success" role="status"></div>
+    </div>
 
-              <!-- Carousel interno por lugar -->
-              <div
-                :id="'galeria-' + lugar.id"
-                class="carousel slide carousel-fade"
-                data-bs-ride="carousel">
-                <div class="carousel-inner">
-                  <div
-                    v-for="(img, imgIndex) in lugar.imagenes"
-                    :key="img + imgIndex"
-                    class="carousel-item"
-                    :class="{ active: imgIndex === 0 }">
-                    <img
-                      :src="img"
-                      class="d-block w-100 lugar-card-img">
-                  </div>
-                </div>
-                <!-- Badge de zona -->
-                <span class="position-absolute top-0 start-0 m-2 badge bg-dark bg-opacity-50 py-1 px-2 rounded-1 small zona-badge">
-                  <i class="bi bi-geo-alt-fill text-success"></i> {{ lugar.zona }}
-                </span>
-              </div>
+    <div v-else class="lugares-scroll">
+      <div
+        v-for="sitio in sitiosDestacados"
+        :key="sitio.id"
+        class="card border-0 shadow-sm overflow-hidden lugar-card flex-shrink-0">
 
-              <div class="card-body">
-                <h5 class="fw-bold mb-1">{{ lugar.nombre }}</h5>
-                <p class="text-muted mb-0 lugar-desc">{{ lugar.descripcion }}</p>
-              </div>
-
-            </div>
-          </div>
+        <div class="position-relative overflow-hidden lugar-card-img-wrapper">
+          <transition name="fade-img" mode="out-in">
+            <img
+              :key="imageIndices[sitio.id]"
+              :src="imagenActual(sitio)"
+              class="d-block w-100 lugar-card-img" />
+          </transition>
+          <span class="position-absolute top-0 start-0 m-2 badge bg-dark bg-opacity-50 py-1 px-2 rounded-1 small zona-badge">
+            <i class="bi bi-geo-alt-fill text-success"></i> {{ sitio.lugar }}
+          </span>
         </div>
-      </div>
 
-      <button class="carousel-control-prev w-auto" type="button"
-              data-bs-target="#carouselPrincipalSitios" data-bs-slide="prev">
-        <span class="bg-dark rounded-circle p-2 shadow">
-          <i class="bi bi-chevron-left text-white fs-5"></i>
-        </span>
-      </button>
-      <button class="carousel-control-next w-auto" type="button"
-              data-bs-target="#carouselPrincipalSitios" data-bs-slide="next">
-        <span class="bg-dark rounded-circle p-2 shadow">
-          <i class="bi bi-chevron-right text-white fs-5"></i>
-        </span>
-      </button>
+        <div class="card-body">
+          <h5 class="fw-bold mb-1">{{ sitio.nombre }}</h5>
+          <p class="text-muted mb-0 lugar-desc">{{ sitio.descripcion }}</p>
+        </div>
+
+      </div>
     </div>
   </section>
 
@@ -209,8 +183,7 @@
 
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
-import { Carousel } from 'bootstrap'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import api from '@/api/axios'
 import { PUBLICO } from '@/api/endpoints'
 
@@ -223,13 +196,6 @@ import imgPiscina         from '@/assets/img/piscina.webp'
 import imgTransporte      from '@/assets/img/principal/transporte.webp'
 import imgGastronomia     from '@/assets/img/principal/gastronomia.webp'
 import imgAgencia         from '@/assets/img/principal/agencia_turistica.webp'
-import imgPlanta1         from '@/assets/img/principal/planta.webp'
-import imgPlanta2         from '@/assets/img/principal/cascada_la_planta.webp'
-import imgDormilon1       from '@/assets/img/principal/rio_dormilon.webp'
-import imgDormilon2       from '@/assets/img/principal/rio_dormilon2.webp'
-import imgSamana1         from '@/assets/img/principal/rio_samana.webp'
-import imgSamana2         from '@/assets/img/principal/rio_samana2.webp'
-import imgSamana3         from '@/assets/img/principal/samana3.webp'
 
 const imgFallbackPorSlug = {
   'alojamientos':        imgHospedaje,
@@ -240,8 +206,11 @@ const imgFallbackPorSlug = {
 }
 
 // ── Estado API ───────────────────────────────────
-const eventos = ref([])
-const tipos   = ref([])
+const eventos          = ref([])
+const tipos            = ref([])
+const sitiosDestacados = ref([])
+const imageIndices     = ref({})
+let   cicloInterval    = null
 
 async function cargarEventos() {
   try {
@@ -250,6 +219,36 @@ async function cargarEventos() {
     const lista = payload?.data ?? (Array.isArray(payload) ? payload : [])
     eventos.value = lista.slice(0, 4)
   } catch { /* muestra sección vacía si falla */ }
+}
+
+async function cargarSitiosDestacados() {
+  try {
+    const { data } = await api.get(PUBLICO.SITIOS, { params: { page: 1 } })
+    const payload = data.data
+    let lista = []
+    if (payload?.data)    lista = payload.data
+    else if (payload?.sitios) lista = payload.sitios
+    else if (Array.isArray(payload)) lista = payload
+    sitiosDestacados.value = lista.filter(s => s.estado !== false)
+    sitiosDestacados.value.forEach(s => { imageIndices.value[s.id] = 0 })
+    iniciarCiclo()
+  } catch {}
+}
+
+function imagenActual(sitio) {
+  const imgs = (sitio.imagenes ?? []).filter(Boolean)
+  return imgs[imageIndices.value[sitio.id] ?? 0] || null
+}
+
+function iniciarCiclo() {
+  if (cicloInterval) clearInterval(cicloInterval)
+  cicloInterval = setInterval(() => {
+    sitiosDestacados.value.forEach(s => {
+      const imgs = (s.imagenes ?? []).filter(Boolean)
+      if (imgs.length > 1)
+        imageIndices.value[s.id] = ((imageIndices.value[s.id] ?? 0) + 1) % imgs.length
+    })
+  }, 3500)
 }
 
 async function cargarTipos() {
@@ -274,14 +273,8 @@ const slidesCategorias = computed(() => {
   return grupos
 })
 
-onMounted(async () => {
-  await Promise.all([cargarEventos(), cargarTipos()])
-  await nextTick()
-  lugaresImperdibles.forEach((lugar) => {
-    const el = document.getElementById('galeria-' + lugar.id)
-    if (el) new Carousel(el, { interval: 4500, ride: 'carousel', pause: false })
-  })
-})
+onMounted(() => Promise.all([cargarEventos(), cargarTipos(), cargarSitiosDestacados()]))
+onUnmounted(() => { if (cicloInterval) clearInterval(cicloInterval) })
 
 // ── Datos estáticos ──────────────────────────────
 const cardsHistoria = [
@@ -290,12 +283,6 @@ const cardsHistoria = [
   { titulo: 'Economía', subtitulo: null, descripcion: 'La economía local se basa en la agricultura, la ganadería y la producción de madera, con crecimiento en el ecoturismo y productos artesanales.', imagen: imgEconomia },
 ]
 
-const lugaresImperdibles = [
-  { id: 'sitio1', nombre: 'Cascada La Planta',    zona: 'La Planta',   descripcion: 'Naturaleza pura y aguas cristalinas.',    claseResponsive: '',                  imagenes: [imgPlanta1,   imgPlanta2] },
-  { id: 'sitio2', nombre: 'Charcos del Dormilón', zona: 'El Dormilón', descripcion: 'El mejor lugar para un baño relajante.',  claseResponsive: 'd-none d-md-block', imagenes: [imgDormilon1, imgDormilon2] },
-  { id: 'sitio3', nombre: 'Río el Samaná',        zona: 'Samaná',      descripcion: 'El único río libre de Antioquia.',        claseResponsive: '',                  imagenes: [imgSamana1,   imgSamana2, imgSamana3] },
-  { id: 'sitio4', nombre: 'Charcos del Dormilón', zona: 'El Dormilón', descripcion: 'El mejor lugar para un baño relajante.',  claseResponsive: 'd-none d-md-block', imagenes: [imgDormilon1, imgDormilon2] },
-]
 </script>
 
 
@@ -343,24 +330,42 @@ const lugaresImperdibles = [
 }
 
 /* ── LUGARES IMPERDIBLES ── */
+.lugares-scroll {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #198754 transparent;
+}
+.lugares-scroll::-webkit-scrollbar { height: 5px; }
+.lugares-scroll::-webkit-scrollbar-track { background: transparent; }
+.lugares-scroll::-webkit-scrollbar-thumb { background: #198754; border-radius: 99px; }
+
 .lugar-card {
-  min-width: 300px;
-  max-width: 350px;
+  width: 280px;
+  min-width: 280px;
+  scroll-snap-align: start;
   transition: transform 0.3s ease;
 }
-.lugar-card:hover {
-  transform: translateY(-4px);
+.lugar-card:hover { transform: translateY(-4px); }
+
+.lugar-card-img-wrapper { height: 200px; }
+.lugar-card-img { height: 200px; object-fit: cover; }
+
+.lugar-desc { font-size: 0.8rem; }
+.zona-badge { z-index: 5; }
+
+.fade-img-enter-active,
+.fade-img-leave-active {
+  transition: opacity 0.8s ease;
+  position: absolute;
+  inset: 0;
 }
-.lugar-card-img {
-  height: 200px;
-  object-fit: cover;
-}
-.lugar-desc {
-  font-size: 0.8rem;
-}
-.zona-badge {
-  z-index: 5;
-}
+.fade-img-enter-from,
+.fade-img-leave-to { opacity: 0; }
 
 /* ── EVENTOS ── */
 .evento-card {

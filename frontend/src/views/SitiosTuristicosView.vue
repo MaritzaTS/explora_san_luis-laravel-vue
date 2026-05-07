@@ -1,6 +1,6 @@
 <template>
   <div class="sitios-view">
-    <section class="container py-5">
+    <section class="container py-5 px-4 px-lg-5">
       <div class="mb-5 text-center">
         <h1 class="fw-bold display-4">Sitios Turísticos</h1>
         <p class="text-secondary fs-5 mx-auto" style="max-width: 700px;">
@@ -17,41 +17,50 @@
       </div>
 
       <template v-else>
-        <div class="row g-4">
-          <div class="col-md-6 col-lg-4" v-for="sitio in sitios" :key="sitio.id">
-            <div class="card h-100 border-0 shadow-lg overflow-hidden place-card">
-              <div class="position-relative overflow-hidden">
-                <img :src="sitio.imagenes?.[0] || sitio.imagenes?.[1] || 'https://via.placeholder.com/600x400?text=Sitio+Turístico'"
-                     class="card-img-top hover-zoom"
-                     :alt="sitio.nombre">
-                <div class="overlay-gradient"></div>
-                <span class="position-absolute bottom-0 start-0 m-3 badge bg-success py-2 px-3 rounded-pill shadow">
-                  <i class="bi bi-geo-alt-fill me-1"></i>{{ sitio.lugar ?? 'San Luis' }}
-                </span>
-              </div>
-              <div class="card-body p-4">
-                <h4 class="fw-bold mb-2">{{ sitio.nombre }}</h4>
-                <p class="text-muted small mb-4 lh-lg">{{ sitio.descripcion }}</p>
-                <div v-if="sitio.url_imagen_2 || sitio.url_imagen_3" class="d-flex gap-2">
-                  <img v-if="sitio.imagenes?.[1]"
-                       :src="sitio.imagenes[1]"
-                       class="rounded-2 object-fit-cover"
-                       width="70" height="55"
-                       alt="foto">
-                  <img v-if="sitio.imagenes?.[2]"
-                       :src="sitio.imagenes[2]"
-                       class="rounded-2 object-fit-cover"
-                       width="70" height="55"
-                       alt="foto">
-                </div>
-              </div>
-            </div>
-          </div>
+        <div v-if="!sitios.length" class="text-center py-5 text-muted">
+          <i class="bi bi-map fs-1 d-block mb-3"></i>
+          <p>No hay sitios turísticos disponibles por el momento.</p>
         </div>
 
-        <div v-if="!sitios.length" class="text-center py-5 text-muted">
-          <i class="bi bi-map fs-1"></i>
-          <p class="mt-3">No hay sitios turísticos disponibles por el momento.</p>
+        <div class="row g-4">
+          <div class="col-sm-6 col-lg-4" v-for="sitio in sitios" :key="sitio.id">
+            <div class="card h-100 border-0 shadow overflow-hidden place-card">
+
+              <!-- Imagen principal -->
+              <div class="position-relative overflow-hidden img-wrapper">
+                <img
+                  :src="sitio.imagenes?.[0] || 'https://placehold.co/600x400/198754/white?text=Sin+imagen'"
+                  class="card-img-top hover-zoom"
+                  :alt="sitio.nombre">
+                <div class="overlay-gradient"></div>
+
+                <!-- Badge ubicación -->
+                <span class="position-absolute bottom-0 start-0 m-3 badge bg-success py-2 px-3 rounded-pill shadow-sm">
+                  <i class="bi bi-geo-alt-fill me-1"></i>{{ sitio.lugar ?? 'San Luis' }}
+                </span>
+
+                <!-- Indicadores de galería -->
+                <div v-if="sitio.imagenes?.filter(Boolean).length > 1"
+                  class="position-absolute bottom-0 end-0 m-3 d-flex gap-1">
+                  <span
+                    v-for="(_, i) in sitio.imagenes.filter(Boolean)"
+                    :key="i"
+                    class="galeria-dot"
+                    :class="i === 0 ? 'galeria-dot--active' : ''">
+                  </span>
+                </div>
+              </div>
+
+              <!-- Cuerpo -->
+              <div class="card-body p-4 d-flex flex-column">
+                <h5 class="fw-bold mb-2">{{ sitio.nombre }}</h5>
+                <p class="text-muted small lh-lg mb-0 desc-clamp flex-grow-1">
+                  {{ sitio.descripcion }}
+                </p>
+              </div>
+
+            </div>
+          </div>
         </div>
 
         <!-- Paginación -->
@@ -150,13 +159,45 @@ onMounted(cargar)
 </script>
 
 <style scoped>
-.place-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.place-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important; }
-.hover-zoom { transition: transform 0.6s ease; height: 250px; object-fit: cover; }
-.place-card:hover .hover-zoom { transform: scale(1.08); }
+/* Card */
+.place-card {
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  border-radius: 1rem !important;
+}
+.place-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.13) !important;
+}
+
+/* Imagen */
+.img-wrapper { height: 230px; }
+.hover-zoom {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.place-card:hover .hover-zoom { transform: scale(1.06); }
+
+/* Gradiente */
 .overlay-gradient {
   position: absolute; inset: 0;
-  background: linear-gradient(to bottom, transparent 55%, rgba(0,0,0,0.45));
+  background: linear-gradient(to bottom, transparent 45%, rgba(0,0,0,0.55));
 }
-.object-fit-cover { object-fit: cover; }
+
+/* Descripción recortada a 3 líneas */
+.desc-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Puntitos de galería */
+.galeria-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  display: inline-block;
+}
+.galeria-dot--active { background: #fff; }
 </style>
