@@ -1,27 +1,37 @@
 <template>
-  <div class="eventos-view">
-    <!-- El HeroBanner aparecerá automáticamente gracias al DefaultLayout -->
+  <section class="container py-5">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold border-bottom pb-3 d-inline-block px-5">Eventos</h2>
+    </div>
 
-    <section class="container py-5">
-      <div class="text-center mb-5">
-        <h2 class="fw-bold border-bottom pb-3 d-inline-block px-5">Eventos</h2>
-      </div>
+    <!-- Cargando -->
+    <div v-if="cargando" class="text-center py-5 text-muted">
+      <div class="spinner-border text-success" role="status"></div>
+      <p class="mt-3">Cargando eventos...</p>
+    </div>
 
+    <template v-else>
       <div class="row g-4">
-        <!-- Usamos v-for para no repetir el código de las tarjetas -->
-        <div class="col-md-6" v-for="(evento, index) in listaEventos" :key="index">
+        <div class="col-md-6" v-for="evento in eventos" :key="evento.id">
           <div class="card border-0 shadow-sm h-100 overflow-hidden hover-effect">
             <div class="row g-0 h-100">
               <div class="col-4">
-                <img :src="evento.imagen" class="img-fluid h-100 w-100 object-fit-cover" :alt="evento.titulo">
+                <img :src="evento.url_poster_completa || 'https://via.placeholder.com/200x150?text=Evento'"
+                     class="img-fluid h-100 w-100 object-fit-cover"
+                     :alt="evento.nombre">
               </div>
               <div class="col-8">
                 <div class="card-body">
-                  <h5 class="fw-bold mb-1">{{ evento.titulo }}</h5>
-                  <p class="small mb-1"><strong>Fecha:</strong> {{ evento.fecha }}</p>
-                  <p class="small mb-0 text-secondary">
-                    <strong>Descripción:</strong> {{ evento.descripcion }}
+                  <h5 class="fw-bold mb-1">{{ evento.nombre }}</h5>
+                  <p class="small mb-1">
+                    <strong>Fecha:</strong>
+                    {{ formatFecha(evento.fecha_inicio) }}
+                    <span v-if="evento.fecha_fin"> — {{ formatFecha(evento.fecha_fin) }}</span>
                   </p>
+                  <p class="small mb-1" v-if="evento.lugar">
+                    <i class="bi bi-geo-alt me-1 text-success"></i>{{ evento.lugar.nombre }}
+                  </p>
+                  <p class="small mb-0 text-secondary">{{ evento.descripcion }}</p>
                 </div>
               </div>
             </div>
@@ -29,62 +39,67 @@
         </div>
       </div>
 
-      <!-- Paginación reactiva -->
+      <div v-if="!eventos.length" class="text-center py-5 text-muted">
+        <i class="bi bi-calendar-x fs-1"></i>
+        <p class="mt-3">No hay eventos próximos disponibles.</p>
+      </div>
+
+      <!-- Paginación -->
       <div class="d-flex justify-content-center align-items-center mt-5 pt-4">
-        <button class="btn btn-link text-dark p-0 mx-3" :disabled="paginaActual === 1">
+        <button class="btn btn-link text-dark p-0 mx-3" :disabled="pagina === 1" @click="irAnterior">
           <i class="bi bi-chevron-left fs-4"></i>
         </button>
-        <span class="fs-5 fw-bold">{{ paginaActual }} de {{ totalPaginas }}</span>
-        <button class="btn btn-link text-dark p-0 mx-3" :disabled="paginaActual === totalPaginas">
+        <span class="fs-5 fw-bold">{{ pagina }} de {{ totalPaginas }}</span>
+        <button class="btn btn-link text-dark p-0 mx-3" :disabled="pagina === totalPaginas" @click="irSiguiente">
           <i class="bi bi-chevron-right fs-4"></i>
         </button>
       </div>
-    </section>
-  </div>
+    </template>
+  </section>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import api from '@/api/axios'
+import { PUBLICO } from '@/api/endpoints'
 
-// Importación de imágenes locales
-import imgMadera from '@/assets/img/fiestas_de_la_madera.webp'
-import imgRetorno from '@/assets/img/fiesta_del_retorno.webp'
+const eventos      = ref([])
+const cargando     = ref(false)
+const pagina       = ref(1)
+const totalPaginas = ref(1)
 
-const paginaActual = ref(1)
-const totalPaginas = ref(6)
+async function cargar() {
+  cargando.value = true
+  try {
+    const { data } = await api.get(PUBLICO.EVENTOS, { params: { page: pagina.value } })
+    const payload = data.data
+    if (payload?.data) {
+      eventos.value      = payload.data
+      pagina.value       = payload.current_page ?? pagina.value
+      totalPaginas.value = payload.last_page    ?? 1
+    } else {
+      eventos.value = Array.isArray(payload) ? payload : []
+    }
+  } finally {
+    cargando.value = false
+  }
+}
 
-// Datos organizados en un array para facilitar el mantenimiento
-const listaEventos = ref([
-  {
-    titulo: 'Fiestas de la madera',
-    fecha: 'Junio a Julio',
-    descripcion: 'Se exalta la labor del campesino y su trabajo en el campo. Se realizan diferentes actividades enfocadas en la madera y la economía del municipio.',
-    imagen: imgMadera
-  },
-  {
-    titulo: 'Fiestas del retorno',
-    fecha: 'Enero',
-    descripcion: 'Encuentro de colonias, donde se realizan diferentes actividades deportivas con el fin de propiciar un encuentro ameno entre los municipios.',
-    imagen: imgRetorno
-  },
-  // Aquí puedes agregar más eventos y el v-for los dibujará automáticamente
-])
+function irAnterior() { if (pagina.value > 1) { pagina.value--; cargar() } }
+function irSiguiente() { if (pagina.value < totalPaginas.value) { pagina.value++; cargar() } }
+
+function formatFecha(fecha) {
+  if (!fecha) return ''
+  return new Date(fecha).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
+onMounted(cargar)
 </script>
 
 <style scoped>
-.object-fit-cover {
-  object-fit: cover;
-}
-
-.hover-effect {
-  transition: transform 0.3s ease;
-}
-
-.hover-effect:hover {
-  transform: translateY(-5px);
-}
-
-/* Ajuste para que la descripción no se vea cortada si es muy larga */
+.object-fit-cover { object-fit: cover; }
+.hover-effect { transition: transform 0.3s ease; }
+.hover-effect:hover { transform: translateY(-5px); }
 .card-body {
   display: flex;
   flex-direction: column;

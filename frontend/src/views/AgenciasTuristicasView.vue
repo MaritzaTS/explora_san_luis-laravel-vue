@@ -46,19 +46,22 @@
         </div>
 
         <!-- Lista de Agencias -->
-        <div v-else-if="agenciasFiltradas.length > 0" 
-             class="col-md-6 col-lg-4" 
-             v-for="agencia in agenciasFiltradas" 
+        <div v-else-if="agenciasFiltradas.length > 0"
+             class="col-md-6 col-lg-4"
+             v-for="agencia in agenciasFiltradas"
              :key="agencia.id">
           <div class="card h-100 border-0 shadow-sm hover-card">
-            <img :src="agencia.imagen" class="card-img-top object-fit-cover" style="height: 200px;" :alt="agencia.nombre">
+            <img :src="imagen(agencia)" class="card-img-top object-fit-cover" style="height: 200px;" :alt="agencia.nombre_comercial">
             <div class="card-body">
-              <h5 class="fw-bold">{{ agencia.nombre }}</h5>
-              <p class="text-muted small mb-2"><i class="bi bi-tag-fill me-1"></i>{{ agencia.subtipoNombre }}</p>
+              <h5 class="fw-bold">{{ agencia.nombre_comercial }}</h5>
+              <p class="text-muted small mb-2"><i class="bi bi-tag-fill me-1"></i>{{ formatNombre(subtipo(agencia)) }}</p>
               <p class="small text-secondary">{{ agencia.descripcion }}</p>
               <div class="d-flex gap-2 mt-3">
-                <a :href="'https://wa.me/' + agencia.whatsapp" class="btn btn-success btn-sm w-100">
-                  <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                <a v-if="agencia.telefono" :href="'tel:' + agencia.telefono" class="btn btn-success btn-sm w-100">
+                  <i class="bi bi-telephone-fill me-1"></i>Contactar
+                </a>
+                <a v-if="agencia.sitio_web" :href="agencia.sitio_web" target="_blank" class="btn btn-outline-success btn-sm w-100">
+                  <i class="bi bi-globe me-1"></i>Sitio web
                 </a>
               </div>
             </div>
@@ -74,11 +77,11 @@
 
       <!-- PAGINACIÓN -->
       <div class="d-flex justify-content-center align-items-center mt-5 pt-4">
-        <button class="btn btn-link text-dark p-0 mx-4" :disabled="paginaActual === 1" @click="paginaActual--">
+        <button class="btn btn-link text-dark p-0 mx-4" :disabled="paginaActual === 1" @click="irAnterior">
           <i class="bi bi-chevron-left fs-4"></i>
         </button>
         <span class="fw-bold h5 mb-0">{{ paginaActual }} de {{ totalPaginas }}</span>
-        <button class="btn btn-link text-dark p-0 mx-4" :disabled="paginaActual === totalPaginas" @click="paginaActual++">
+        <button class="btn btn-link text-dark p-0 mx-4" :disabled="paginaActual === totalPaginas" @click="irSiguiente">
           <i class="bi bi-chevron-right fs-4"></i>
         </button>
       </div>
@@ -87,60 +90,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useEntidades } from '@/composables/useEntidades'
 
-// --- ESTADO ---
-const cargando = ref(true)
-const paginaActual = ref(1)
-const totalPaginas = ref(1)
-const filtrosSeleccionados = ref([])
+const { entidades, subtipos, filtros, cargando, pagina, totalPaginas, init, irAnterior, irSiguiente } = useEntidades('agencias-turisticas')
 
-// --- DATA MOCK (Esto vendrá de tu API Laravel) ---
-const subtipos = ref([
-  { id: 1, nombre: 'Guianza local' },
-  { id: 2, nombre: 'Transporte Turístico' },
-  { id: 3, nombre: 'Deportes de Aventura' },
-  { id: 4, nombre: 'Avistamiento de aves' }
-])
+const filtrosSeleccionados = filtros
+const paginaActual         = pagina
+const agenciasFiltradas    = computed(() => entidades.value)
 
-const agencias = ref([
-  { 
-    id: 101, 
-    nombre: 'Aventuras San Luis', 
-    subtipoId: 3, 
-    subtipoNombre: 'Deportes de Aventura',
-    descripcion: 'Rafting y senderismo por el Río Samaná.',
-    whatsapp: '573000000000',
-    imagen: 'https://via.placeholder.com/400x250'
-    
-  },
-  { 
-    id: 102, 
-    nombre: 'Caminantes del Samaná', 
-    subtipoId: 1, 
-    subtipoNombre: 'Guianza local',
-    descripcion: 'Tours especializados en avistamiento de aves.',
-    whatsapp: '573000000000',
-    imagen: 'https://via.placeholder.com/400x250'
-  }
-])
+const imagen      = (e) => e.imagenes?.[0]?.url_completa ?? 'https://via.placeholder.com/400x250?text=Sin+imagen'
+const subtipo     = (e) => e.subtipos?.[0]?.nombre ?? ''
+const formatNombre = (txt) => txt.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
 
-// --- LÓGICA ---
-onMounted(() => {
-  // Inicializamos los filtros seleccionados con todos los subtipos
-  filtrosSeleccionados.value = subtipos.value.map(s => s.id)
-  
-  // Simulamos carga de API
-  setTimeout(() => {
-    cargando.value = false
-  }, 800)
-})
-
-const agenciasFiltradas = computed(() => {
-  if (filtrosSeleccionados.value.length === 0) return []
-  return agencias.value.filter(a => filtrosSeleccionados.value.includes(a.subtipoId))
-})
-
+onMounted(init)
 </script>
 
 <style scoped>

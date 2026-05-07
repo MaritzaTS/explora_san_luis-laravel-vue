@@ -51,17 +51,17 @@
         <template v-else>
           <div class="col-md-6 col-lg-4" v-for="entidad in entidadesFiltradas" :key="entidad.id">
             <div class="card h-100 border-0 shadow-sm hover-card">
-              <img :src="entidad.imagen || 'https://via.placeholder.com/400x250?text=Gastronomía'" 
-                   class="card-img-top object-fit-cover" 
-                   style="height: 200px;" 
-                   :alt="entidad.nombre">
+              <img :src="imagen(entidad)"
+                   class="card-img-top object-fit-cover"
+                   style="height: 200px;"
+                   :alt="entidad.nombre_comercial">
               <div class="card-body">
-                <h5 class="fw-bold mb-1">{{ entidad.nombre }}</h5>
+                <h5 class="fw-bold mb-1">{{ entidad.nombre_comercial }}</h5>
                 <p class="text-muted small mb-2">
-                  <i class="bi bi-clock me-1"></i>{{ entidad.horario }}
+                  <i class="bi bi-clock me-1"></i>{{ entidad.hora_atencion }}
                 </p>
                 <div class="d-flex justify-content-between align-items-center mt-3">
-                  <span class="badge bg-secondary-subtle text-dark fw-normal">{{ entidad.subtipoNombre }}</span>
+                  <span class="badge bg-secondary-subtle text-dark fw-normal">{{ formatNombre(subtipo(entidad)) }}</span>
                   <a :href="'tel:' + entidad.telefono" class="btn btn-outline-success btn-sm rounded-circle">
                     <i class="bi bi-telephone"></i>
                   </a>
@@ -80,11 +80,11 @@
 
       <!-- PAGINACIÓN -->
       <div class="d-flex justify-content-center align-items-center mt-5 pt-4">
-        <button class="btn btn-link text-dark p-0 mx-4" :disabled="paginaActual === 1" @click="paginaActual--">
+        <button class="btn btn-link text-dark p-0 mx-4" :disabled="paginaActual === 1" @click="irAnterior">
           <i class="bi bi-chevron-left fs-4"></i>
         </button>
         <span class="fw-bold h5 mb-0">{{ paginaActual }} de {{ totalPaginas }}</span>
-        <button class="btn btn-link text-dark p-0 mx-4" :disabled="paginaActual === totalPaginas" @click="paginaActual++">
+        <button class="btn btn-link text-dark p-0 mx-4" :disabled="paginaActual === totalPaginas" @click="irSiguiente">
           <i class="bi bi-chevron-right fs-4"></i>
         </button>
       </div>
@@ -93,61 +93,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
+import { useEntidades } from '@/composables/useEntidades'
 
-// --- ESTADO ---
-const cargando = ref(true)
-const paginaActual = ref(1)
-const totalPaginas = ref(1)
-const filtrosSeleccionados = ref([])
+const { entidades, subtipos, filtros, cargando, pagina, totalPaginas, init, irAnterior, irSiguiente } = useEntidades('gastronomia')
 
-// --- DATA MOCK (Se reemplazará por Axios/Laravel) ---
-const subtipos = ref([
-  { id: 1, nombre: 'restaurante' },
-  { id: 2, nombre: 'cafe_bar' },
-  { id: 3, nombre: 'comidas_rapidas' },
-  { id: 4, nombre: 'panaderia' }
-])
+const filtrosSeleccionados = filtros
+const paginaActual         = pagina
+const entidadesFiltradas   = computed(() => entidades.value)
 
-const entidades = ref([
-  { 
-    id: 1, 
-    nombre: 'Sabor Sanluisano', 
-    subtipoId: 1, 
-    subtipoNombre: 'Restaurante', 
-    horario: '11:00 AM - 9:00 PM',
-    telefono: '3100000000',
-    imagen: null 
-  },
-  { 
-    id: 2, 
-    nombre: 'Café de la Montaña', 
-    subtipoId: 2, 
-    subtipoNombre: 'Café Bar', 
-    horario: '3:00 PM - 11:00 PM',
-    telefono: '3200000000',
-    imagen: null 
-  }
-])
+onMounted(init)
 
-// --- MÉTODOS Y COMPUTADAS ---
-onMounted(() => {
-  // Por defecto seleccionamos todos los filtros
-  filtrosSeleccionados.value = subtipos.value.map(s => s.id)
-  
-  // Simulación de carga
-  setTimeout(() => {
-    cargando.value = false
-  }, 600)
-})
-
-const formatNombre = (txt) => {
-  return txt.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-}
-
-const entidadesFiltradas = computed(() => {
-  return entidades.value.filter(e => filtrosSeleccionados.value.includes(e.subtipoId))
-})
+const imagen = (e) => e.imagenes?.[0]?.url_completa ?? 'https://via.placeholder.com/400x250?text=Sin+imagen'
+const subtipo = (e) => e.subtipos?.[0]?.nombre ?? ''
+const formatNombre = (txt) => txt.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
 </script>
 
 <style scoped>
