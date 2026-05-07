@@ -162,17 +162,14 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.store'
 
-const route  = useRoute()
-const router = useRouter()
+const route     = useRoute()
+const router    = useRouter()
+const authStore = useAuthStore()
 
-// Nombre del usuario desde localStorage (lo guarda el login)
-const userName = computed(() => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}')
-  return user.nombre ?? 'Usuario'
-})
+const userName = computed(() => authStore.usuario?.nombre ?? 'Administrador')
 
-// Título dinámico según ruta activa
 const pageTitle = computed(() => {
   const titles = {
     '/admin':               'Panel Principal',
@@ -190,9 +187,8 @@ const pageTitle = computed(() => {
   return titles[route.path] ?? 'Administración'
 })
 
-function logout() {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
+async function logout() {
+  await authStore.logout()
   router.push('/login')
 }
 </script>

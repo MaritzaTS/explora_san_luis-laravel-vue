@@ -78,12 +78,7 @@
               </option>
             </select>
           </div>
-          <div class="col-md-3 text-end">
-            <button class="btn btn-dark border-0 rounded-3 py-2 px-4 fw-bold shadow-none"
-              @click="abrirModalAgregar">
-              <i class="bi bi-person-plus me-1"></i> Nuevo Usuario
-            </button>
-          </div>
+          <div class="col-md-3 text-end"></div>
         </div>
 
         <!-- TABLA -->
@@ -127,11 +122,11 @@
                 <td class="text-muted small">{{ user.email }}</td>
                 <td>
                   <span class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill px-3 py-2">
-                    {{ obtenerNombreRol(user.rol_id) }}
+                    {{ obtenerNombreRol(user) }}
                   </span>
                 </td>
                 <td>
-                  <span v-if="user.verificado == 1"
+                  <span v-if="user.verificado"
                     class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">
                     <i class="bi bi-patch-check-fill me-1"></i>Sí
                   </span>
@@ -141,7 +136,7 @@
                   </span>
                 </td>
                 <td>
-                  <span v-if="user.estado == 1"
+                  <span v-if="user.estado"
                     class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
                     Activo
                   </span>
@@ -158,18 +153,13 @@
                       @click="verDetalle(user)">
                       <i class="bi bi-eye"></i>
                     </button>
-                    <button class="btn btn-sm btn-light border shadow-none"
-                      title="Editar"
-                      @click="abrirModalEditar(user)">
-                      <i class="bi bi-pencil"></i>
-                    </button>
                     <button
-                      :class="user.estado == 1
+                      :class="user.estado
                         ? 'btn btn-sm btn-light border text-danger shadow-none'
                         : 'btn btn-sm btn-light border text-success shadow-none'"
-                      :title="user.estado == 1 ? 'Desactivar' : 'Activar'"
+                      :title="user.estado ? 'Desactivar' : 'Activar'"
                       @click="toggleEstado(user)">
-                      <i :class="user.estado == 1 ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                      <i :class="user.estado ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
                     </button>
                   </div>
                 </td>
@@ -178,80 +168,6 @@
           </table>
         </div>
 
-      </div>
-    </div>
-
-    <!-- ===== MODAL AGREGAR ===== -->
-    <div class="modal fade" id="modalAgregarUsuario" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 rounded-4 shadow-lg">
-          <div class="modal-header border-0 pb-0">
-            <h5 class="modal-title fw-bold d-flex align-items-center">
-              <i class="bi bi-person-plus fs-4 me-2"></i> Nuevo Usuario
-            </h5>
-            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body p-4">
-            <form @submit.prevent="guardarUsuario">
-              <div class="row g-4">
-                <div class="col-md-12">
-                  <label class="form-label fw-bold mb-0">Nombre Completo *</label>
-                  <input v-model="formNuevo.nombre" type="text"
-                    class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
-                    placeholder="Ej: Juan Pérez García" required />
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold mb-0">Correo Electrónico *</label>
-                  <input v-model="formNuevo.email" type="email"
-                    class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
-                    placeholder="usuario@ejemplo.com" required />
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold mb-0">Contraseña *</label>
-                  <input v-model="formNuevo.contrasena" type="password"
-                    class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
-                    placeholder="Mínimo 8 caracteres" required minlength="8" />
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold mb-0">Rol *</label>
-                  <select v-model="formNuevo.rol_id"
-                    class="form-select border-0 border-bottom border-dark rounded-0 px-0 shadow-none" required>
-                    <option value="" disabled>Seleccione un rol</option>
-                    <option v-for="rol in roles" :key="rol.id" :value="rol.id">
-                      {{ capitalizar(rol.nombre) }}
-                    </option>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold mb-0">Estado Inicial *</label>
-                  <select v-model="formNuevo.estado"
-                    class="form-select border-0 border-bottom border-dark rounded-0 px-0 shadow-none">
-                    <option value="1">Activo</option>
-                    <option value="0">Inactivo</option>
-                  </select>
-                </div>
-                <div class="col-12">
-                  <div class="form-check">
-                    <input v-model="formNuevo.verificado" type="checkbox"
-                      class="form-check-input"
-                      id="checkVerificado"
-                      :true-value="1" :false-value="0" />
-                    <label class="form-check-label fw-semibold" for="checkVerificado">
-                      Marcar correo como verificado (omitir verificación)
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div class="d-flex justify-content-center gap-3 mt-5">
-                <button type="button" class="btn btn-outline-dark px-4 py-2 fw-bold rounded-3 shadow-none"
-                  data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-dark px-4 py-2 fw-bold rounded-3 shadow-none">
-                  Crear Usuario
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -276,10 +192,10 @@
                 </div>
                 <div class="p-3 rounded-4 border bg-light">
                   <span class="d-block small text-muted mb-1">Estado actual</span>
-                  <span :class="detalle.estado == 1
+                  <span :class="detalle.estado
                     ? 'badge bg-success rounded-pill px-3 py-2 w-100'
                     : 'badge bg-danger rounded-pill px-3 py-2 w-100'">
-                    {{ detalle.estado == 1 ? 'Activo' : 'Inactivo' }}
+                    {{ detalle.estado ? 'Activo' : 'Inactivo' }}
                   </span>
                 </div>
               </div>
@@ -294,13 +210,13 @@
                   <div class="col-md-6">
                     <label class="fw-bold mb-0 small text-muted text-uppercase" style="font-size:0.7rem">Rol</label>
                     <p class="border-bottom pb-2 fw-medium text-dark small">
-                      {{ obtenerNombreRol(detalle.rol_id) }}
+                      {{ obtenerNombreRol(detalle) }}
                     </p>
                   </div>
                   <div class="col-md-6">
                     <label class="fw-bold mb-0 small text-muted text-uppercase" style="font-size:0.7rem">Verificado</label>
                     <p class="border-bottom pb-2 fw-medium text-dark small">
-                      {{ detalle.verificado == 1 ? 'Sí ✓' : 'Pendiente' }}
+                      {{ detalle.verificado ? 'Sí ✓' : 'Pendiente' }}
                     </p>
                   </div>
                   <div class="col-md-6">
@@ -333,144 +249,63 @@
       </div>
     </div>
 
-    <!-- ===== MODAL EDITAR ===== -->
-    <div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 rounded-4 shadow-lg">
-          <div class="modal-header border-0 pb-0">
-            <h5 class="modal-title fw-bold">
-              <i class="bi bi-pencil-fill me-2"></i> Editar Usuario
-            </h5>
-            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body p-4" v-if="formEditar">
-            <form @submit.prevent="guardarEdicion">
-              <div class="row g-4">
-                <div class="col-12">
-                  <label class="fw-bold mb-0 small text-muted text-uppercase" style="font-size:0.7rem">Nombre Completo</label>
-                  <input v-model="formEditar.nombre" type="text"
-                    class="form-control form-control-lg border-0 border-bottom rounded-0 px-0 fw-bold shadow-none" required />
-                </div>
-                <div class="col-md-6">
-                  <label class="fw-bold mb-0 small text-muted text-uppercase" style="font-size:0.7rem">Correo Electrónico</label>
-                  <input v-model="formEditar.email" type="email"
-                    class="form-control border-0 border-bottom rounded-0 px-0 shadow-none small" required />
-                </div>
-                <div class="col-md-6">
-                  <label class="fw-bold mb-0 small text-muted text-uppercase" style="font-size:0.7rem">Rol</label>
-                  <select v-model="formEditar.rol_id"
-                    class="form-select border-0 border-bottom rounded-0 px-0 shadow-none small" required>
-                    <option v-for="rol in roles" :key="rol.id" :value="rol.id">
-                      {{ capitalizar(rol.nombre) }}
-                    </option>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="fw-bold mb-0 small text-muted text-uppercase" style="font-size:0.7rem">Estado</label>
-                  <select v-model="formEditar.estado"
-                    class="form-select border-0 border-bottom rounded-0 px-0 shadow-none small">
-                    <option value="1">🟢 Activo</option>
-                    <option value="0">🔴 Inactivo</option>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="fw-bold mb-0 small text-muted text-uppercase" style="font-size:0.7rem">Verificación</label>
-                  <select v-model="formEditar.verificado"
-                    class="form-select border-0 border-bottom rounded-0 px-0 shadow-none small">
-                    <option value="1">Verificado</option>
-                    <option value="0">Pendiente</option>
-                  </select>
-                </div>
-                <div class="col-12">
-                  <hr class="my-2">
-                  <label class="fw-bold mb-0 small text-muted text-uppercase" style="font-size:0.7rem">
-                    Cambiar Contraseña (opcional)
-                  </label>
-                  <input v-model="formEditar.contrasena" type="password"
-                    class="form-control border-0 border-bottom rounded-0 px-0 shadow-none small"
-                    placeholder="Dejar vacío para mantener la actual" />
-                  <small class="text-muted">Solo completa este campo si deseas cambiar la contraseña.</small>
-                </div>
-              </div>
-              <div class="modal-footer border-0 pt-4 d-flex justify-content-center">
-                <button type="button" class="btn btn-light border px-4 rounded-3 fw-bold"
-                  data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-dark px-5 rounded-3 fw-bold shadow-sm">
-                  <i class="bi bi-save me-2"></i>Actualizar Usuario
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import { Modal } from 'bootstrap'
+import api from '@/api/axios'
+import { ADMIN } from '@/api/endpoints'
 
-// ── Estado ────────────────────────────────────────────────
-const usuarios   = ref([])
-const roles      = ref([])
-const cargando   = ref(true)
-const busqueda   = ref('')
-const filtroRol  = ref('')
-const detalle    = ref(null)
-const formEditar = ref(null)
-const alerta     = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
+const usuarios  = ref([])
+const cargando  = ref(true)
+const busqueda  = ref('')
+const filtroRol = ref('')
+const detalle   = ref(null)
+const alerta    = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
 
-const formNuevo = ref({
-  nombre: '', email: '', contrasena: '', rol_id: '', estado: 1, verificado: 0
-})
-
-// ── Computed ──────────────────────────────────────────────
 const totalUsuarios = computed(() => usuarios.value.length)
-const activos       = computed(() => usuarios.value.filter(u => u.estado == 1).length)
-const inactivos     = computed(() => usuarios.value.filter(u => u.estado == 0).length)
-const verificados   = computed(() => usuarios.value.filter(u => u.verificado == 1).length)
+const activos       = computed(() => usuarios.value.filter(u => u.estado).length)
+const inactivos     = computed(() => usuarios.value.filter(u => !u.estado).length)
+const verificados   = computed(() => usuarios.value.filter(u => u.verificado).length)
 
 const usuariosFiltrados = computed(() =>
   usuarios.value.filter(u => {
     const q = busqueda.value.toLowerCase()
-    const coincideBusqueda = u.nombre.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-    const coincideRol      = filtroRol.value === '' || u.rol_id == filtroRol.value
-    return coincideBusqueda && coincideRol
+    const okBusqueda = !q || u.nombre.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    const okRol = !filtroRol.value || u.rol?.id == filtroRol.value
+    return okBusqueda && okRol
   })
 )
 
-// ── Carga inicial ─────────────────────────────────────────
-onMounted(async () => {
-  await cargarRoles()
-  await cargarUsuarios()
-})
+onMounted(cargarUsuarios)
 
 async function cargarUsuarios() {
+  cargando.value = true
   try {
-    cargando.value = true
-    const { data } = await axios.get('/api/admin/usuarios')
-    usuarios.value = data
-  } catch {
-    mostrarAlerta('danger', '¡Error!', 'No se pudieron cargar los usuarios.')
-  } finally {
-    cargando.value = false
-  }
+    const { data } = await api.get(ADMIN.USUARIOS)
+    const payload = data.data
+    usuarios.value = payload?.data ?? (Array.isArray(payload) ? payload : [])
+  } finally { cargando.value = false }
 }
 
-async function cargarRoles() {
+async function toggleEstado(user) {
+  const accion = user.estado ? 'desactivar' : 'activar'
+  if (!confirm(`¿Deseas ${accion} la cuenta de "${user.nombre}"?`)) return
   try {
-    const { data } = await axios.get('/api/admin/roles')
-    roles.value = data
-  } catch {}
+    await api.patch(ADMIN.USUARIO_ESTADO(user.id), { estado: !user.estado })
+    user.estado = !user.estado
+    mostrarAlerta('success', '¡Listo!', `Usuario ${user.estado ? 'activado' : 'desactivado'}.`)
+  } catch { mostrarAlerta('danger', '¡Error!', 'No se pudo cambiar el estado.') }
 }
 
-// ── Helpers ───────────────────────────────────────────────
-function capitalizar(texto) {
-  if (!texto) return ''
-  return texto.charAt(0).toUpperCase() + texto.slice(1)
+function verDetalle(user) {
+  detalle.value = user
+  new Modal(document.getElementById('modalDetalleUsuario')).show()
 }
+
+function capitalizar(texto) { return texto ? texto.charAt(0).toUpperCase() + texto.slice(1) : '' }
 
 function formatFecha(fecha) {
   if (!fecha) return '—'
@@ -479,69 +314,8 @@ function formatFecha(fecha) {
   return `${d.getDate().toString().padStart(2,'0')} ${meses[d.getMonth()]} ${d.getFullYear()}`
 }
 
-function obtenerNombreRol(rol_id) {
-  const rol = roles.value.find(r => r.id == rol_id)
-  return rol ? capitalizar(rol.nombre) : 'Sin rol'
-}
+function obtenerNombreRol(user) { return capitalizar(user.rol?.nombre ?? 'Sin rol') }
 
-// ── Toggle estado ─────────────────────────────────────────
-async function toggleEstado(user) {
-  const nuevoEstado = user.estado == 1 ? 0 : 1
-  const accion = nuevoEstado == 1 ? 'activar' : 'desactivar'
-  if (!confirm(`¿Deseas ${accion} la cuenta de "${user.nombre}"?`)) return
-  try {
-    await axios.patch(`/api/admin/usuarios/${user.id}/estado`, { estado: nuevoEstado })
-    user.estado = nuevoEstado
-    mostrarAlerta('success', '¡Listo!', `Usuario ${accion === 'activar' ? 'activado' : 'desactivado'} correctamente.`)
-  } catch {
-    mostrarAlerta('danger', '¡Error!', 'No se pudo cambiar el estado.')
-  }
-}
-
-// ── Ver detalle ───────────────────────────────────────────
-function verDetalle(user) {
-  detalle.value = user
-  new bootstrap.Modal(document.getElementById('modalDetalleUsuario')).show()
-}
-
-// ── Agregar ───────────────────────────────────────────────
-function abrirModalAgregar() {
-  formNuevo.value = { nombre: '', email: '', contrasena: '', rol_id: '', estado: 1, verificado: 0 }
-  new bootstrap.Modal(document.getElementById('modalAgregarUsuario')).show()
-}
-
-async function guardarUsuario() {
-  try {
-    await axios.post('/api/admin/usuarios', formNuevo.value)
-    bootstrap.Modal.getInstance(document.getElementById('modalAgregarUsuario')).hide()
-    mostrarAlerta('success', '¡Creado!', 'Usuario registrado correctamente.')
-    await cargarUsuarios()
-  } catch (err) {
-    const msg = err.response?.data?.message || 'No se pudo crear el usuario.'
-    mostrarAlerta('danger', '¡Error!', msg)
-  }
-}
-
-// ── Editar ────────────────────────────────────────────────
-function abrirModalEditar(user) {
-  formEditar.value = { ...user, contrasena: '' }
-  new bootstrap.Modal(document.getElementById('modalEditarUsuario')).show()
-}
-
-async function guardarEdicion() {
-  try {
-    const datos = { ...formEditar.value }
-    if (!datos.contrasena) delete datos.contrasena
-    await axios.put(`/api/admin/usuarios/${formEditar.value.id}`, datos)
-    bootstrap.Modal.getInstance(document.getElementById('modalEditarUsuario')).hide()
-    mostrarAlerta('success', '¡Actualizado!', 'Usuario editado correctamente.')
-    await cargarUsuarios()
-  } catch {
-    mostrarAlerta('danger', '¡Error!', 'No se pudo actualizar el usuario.')
-  }
-}
-
-// ── Alerta ────────────────────────────────────────────────
 function mostrarAlerta(tipo, titulo, mensaje) {
   alerta.value = { visible: true, tipo, titulo, mensaje }
   setTimeout(() => alerta.value.visible = false, 4000)

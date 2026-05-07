@@ -73,7 +73,7 @@
                   No hay eventos registrados.
                 </td>
               </tr>
-              <tr v-for="ev in eventos" :key="ev.id_evento">
+              <tr v-for="ev in eventos" :key="ev.id">
                 <td>
                   <div class="fw-bold text-dark">{{ ev.nombre }}</div>
                   <small class="text-muted text-truncate d-inline-block" style="max-width: 200px;">
@@ -82,13 +82,13 @@
                 </td>
                 <td>
                   <span class="badge btn-outline-dark border text-dark fw-medium">
-                    {{ ev.nombre_lugar }}
+                    {{ ev.lugar?.nombre }}
                   </span>
                 </td>
                 <td>{{ formatFecha(ev.fecha_inicio) }}</td>
                 <td>{{ ev.fecha_fin ? formatFecha(ev.fecha_fin) : '---' }}</td>
                 <td>
-                  <span v-if="ev.estado == 1"
+                  <span v-if="ev.estado"
                     class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">
                     Activo
                   </span>
@@ -101,10 +101,6 @@
                   <button class="btn btn-sm btn-light border shadow-none"
                     @click="abrirModalEditar(ev)">
                     <i class="bi bi-pencil"></i>
-                  </button>
-                  <button class="btn btn-sm btn-light border text-danger shadow-none"
-                    @click="eliminarEvento(ev)">
-                    <i class="bi bi-trash"></i>
                   </button>
                 </td>
               </tr>
@@ -141,22 +137,16 @@
                   <input v-model="formNuevo.fecha_fin" type="date" class="form-control" />
                 </div>
                 <div class="col-12">
-                  <label class="form-label fw-bold">Lugar del Evento</label>
-                  <select v-model="formNuevo.id_lugar" class="form-select" required>
-                    <option value="" disabled>Seleccione un lugar de la lista...</option>
-                    <option v-for="lug in lugares" :key="lug.id_lugar" :value="lug.id_lugar">
-                      {{ lug.nombre }}
-                    </option>
-                  </select>
-                </div>
-                <div class="col-12">
                   <label class="form-label fw-bold">Descripción</label>
                   <textarea v-model="formNuevo.descripcion" class="form-control" rows="3"></textarea>
                 </div>
               </div>
               <div class="text-end mt-4 d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cerrar</button>
-                <button type="submit" class="btn btn-dark px-4">Guardar Evento</button>
+                <button type="submit" class="btn btn-dark px-4" :disabled="guardando">
+                  <span v-if="guardando" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  Guardar Evento
+                </button>
               </div>
             </form>
           </div>
@@ -190,18 +180,10 @@
                   <input v-model="formEditar.fecha_fin" type="date" class="form-control" />
                 </div>
                 <div class="col-12">
-                  <label class="form-label fw-bold">Lugar del Evento</label>
-                  <select v-model="formEditar.id_lugar" class="form-select" required>
-                    <option v-for="lug in lugares" :key="lug.id_lugar" :value="lug.id_lugar">
-                      {{ lug.nombre }}
-                    </option>
-                  </select>
-                </div>
-                <div class="col-12">
                   <label class="form-label fw-bold">Estado</label>
                   <select v-model="formEditar.estado" class="form-select">
-                    <option value="1">🟢 Activo</option>
-                    <option value="0">🔴 Inactivo</option>
+                    <option :value="true">Activo</option>
+                    <option :value="false">Inactivo</option>
                   </select>
                 </div>
                 <div class="col-12">
@@ -211,8 +193,9 @@
               </div>
               <div class="text-end mt-4 d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cerrar</button>
-                <button type="submit" class="btn btn-dark px-4">
-                  <i class="bi bi-save me-1"></i>Actualizar Evento
+                <button type="submit" class="btn btn-dark px-4" :disabled="guardando">
+                  <span v-if="guardando" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  <i v-else class="bi bi-save me-1"></i>Actualizar Evento
                 </button>
               </div>
             </form>
@@ -226,104 +209,74 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import { Modal } from 'bootstrap'
+import api from '@/api/axios'
+import { ADMIN } from '@/api/endpoints'
 
-// ── Estado ───────────────────────────────────────────────
-const eventos  = ref([])
-const lugares  = ref([])
-const cargando = ref(true)
-const detalle  = ref(null)
+const eventos   = ref([])
+const cargando  = ref(true)
+const guardando = ref(false)
 const formEditar = ref(null)
-const alerta   = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
+const alerta    = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
 
-const formNuevo = ref({
-  nombre: '', fecha_inicio: '', fecha_fin: '', id_lugar: '', descripcion: '', estado: 1
-})
+const formNuevo = ref({ nombre: '', fecha_inicio: '', fecha_fin: '', descripcion: '', estado: true })
 
-// ── Computed ─────────────────────────────────────────────
 const totalEventos = computed(() => eventos.value.length)
-const activos      = computed(() => eventos.value.filter(e => e.estado == 1).length)
-const inactivos    = computed(() => eventos.value.filter(e => e.estado == 0).length)
+const activos      = computed(() => eventos.value.filter(e => e.estado).length)
+const inactivos    = computed(() => eventos.value.filter(e => !e.estado).length)
 
-// ── Carga inicial ─────────────────────────────────────────
-onMounted(async () => {
-  await cargarEventos()
-  await cargarLugares()
-})
+onMounted(cargarEventos)
 
 async function cargarEventos() {
+  cargando.value = true
   try {
-    cargando.value = true
-    const { data } = await axios.get('/api/admin/eventos')
-    eventos.value = data
-  } catch {
-    mostrarAlerta('danger', '¡Error!', 'No se pudieron cargar los eventos.')
-  } finally {
-    cargando.value = false
-  }
+    const { data } = await api.get(ADMIN.EVENTOS)
+    const payload = data.data
+    eventos.value = payload?.data ?? (Array.isArray(payload) ? payload : [])
+  } finally { cargando.value = false }
 }
 
-async function cargarLugares() {
-  try {
-    const { data } = await axios.get('/api/admin/lugares')
-    lugares.value = data
-  } catch {}
-}
-
-// ── Formato fecha ─────────────────────────────────────────
 function formatFecha(fecha) {
   if (!fecha) return '---'
   const [y, m, d] = fecha.split('-')
   return `${d}/${m}/${y}`
 }
 
-// ── Agregar ───────────────────────────────────────────────
 function abrirModalAgregar() {
-  formNuevo.value = { nombre: '', fecha_inicio: '', fecha_fin: '', id_lugar: '', descripcion: '', estado: 1 }
-  new bootstrap.Modal(document.getElementById('modalEventoAgregar')).show()
+  formNuevo.value = { nombre: '', fecha_inicio: '', fecha_fin: '', descripcion: '', estado: true }
+  new Modal(document.getElementById('modalEventoAgregar')).show()
 }
 
 async function guardarEvento() {
+  guardando.value = true
   try {
-    await axios.post('/api/admin/eventos', formNuevo.value)
-    bootstrap.Modal.getInstance(document.getElementById('modalEventoAgregar')).hide()
-    mostrarAlerta('success', '¡Guardado!', 'Evento creado correctamente.')
+    await api.post(ADMIN.EVENTOS, { ...formNuevo.value, lugar_id: 1 })
+    Modal.getInstance(document.getElementById('modalEventoAgregar')).hide()
+    mostrarAlerta('success', '¡Guardado!', 'Evento creado.')
     await cargarEventos()
-  } catch {
-    mostrarAlerta('danger', '¡Error!', 'No se pudo guardar el evento.')
-  }
+  } catch (err) {
+    mostrarAlerta('danger', '¡Error!', err.response?.data?.message ?? 'No se pudo guardar.')
+  } finally { guardando.value = false }
 }
 
-// ── Editar ────────────────────────────────────────────────
 function abrirModalEditar(ev) {
-  formEditar.value = { ...ev }
-  new bootstrap.Modal(document.getElementById('modalEventoEditar')).show()
+  formEditar.value = { ...ev, lugar_id: ev.lugar?.id ?? 1 }
+  new Modal(document.getElementById('modalEventoEditar')).show()
 }
 
 async function guardarEdicion() {
+  guardando.value = true
   try {
-    await axios.put(`/api/admin/eventos/${formEditar.value.id_evento}`, formEditar.value)
-    bootstrap.Modal.getInstance(document.getElementById('modalEventoEditar')).hide()
-    mostrarAlerta('success', '¡Actualizado!', 'Evento editado correctamente.')
+    const { nombre, fecha_inicio, fecha_fin, descripcion, estado, lugar_id } = formEditar.value
+    await api.put(ADMIN.EVENTO(formEditar.value.id), { nombre, fecha_inicio, fecha_fin, descripcion, estado, lugar_id })
+    Modal.getInstance(document.getElementById('modalEventoEditar')).hide()
+    mostrarAlerta('success', '¡Actualizado!', 'Evento editado.')
     await cargarEventos()
-  } catch {
-    mostrarAlerta('danger', '¡Error!', 'No se pudo actualizar el evento.')
-  }
+  } catch (err) {
+    mostrarAlerta('danger', '¡Error!', err.response?.data?.message ?? 'No se pudo actualizar.')
+  } finally { guardando.value = false }
 }
 
-// ── Eliminar ──────────────────────────────────────────────
-async function eliminarEvento(ev) {
-  if (!confirm(`¿Estás seguro de eliminar el evento "${ev.nombre}"?`)) return
-  try {
-    await axios.delete(`/api/admin/eventos/${ev.id_evento}`)
-    mostrarAlerta('success', '¡Eliminado!', 'Evento eliminado correctamente.')
-    await cargarEventos()
-  } catch {
-    mostrarAlerta('danger', '¡Error!', 'No se pudo eliminar el evento.')
-  }
-}
-
-// ── Alerta ────────────────────────────────────────────────
 function mostrarAlerta(tipo, titulo, mensaje) {
   alerta.value = { visible: true, tipo, titulo, mensaje }
   setTimeout(() => alerta.value.visible = false, 4000)
