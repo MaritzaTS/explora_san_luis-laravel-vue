@@ -2,7 +2,7 @@
   <!-- ==========================================
        SECCIÓN 1: CAROUSEL PRINCIPAL
   =========================================== -->
- 
+
 
 
   <!-- ==========================================
@@ -229,7 +229,7 @@ import imgEconomia  from '@/assets/img/home/economia.webp'
 // ── Categorías ──────────────────────────────────
 import imgHospedaje        from '@/assets/img/principal/Hospedaje.webp'
 import imgPiscina          from '@/assets/img/piscina.webp'
-import imgTransporte       from '@/assets/img/transporte.webp'
+import imgTransporte       from '@/assets/img/principal/transporte.webp'
 import imgGastronomia      from '@/assets/img/principal/gastronomia.webp'
 import imgAgenciaTuristica from '@/assets/img/principal/agencia_turistica.webp'
 
@@ -264,7 +264,7 @@ onMounted(async () => {
     lugares.forEach(lugar => {
       const idCarrusel = 'galeria-' + lugar.id;
       const elemento = document.getElementById(idCarrusel);
-      
+
       if (elemento) {
         new Carousel(elemento, {
           interval: 4500,
