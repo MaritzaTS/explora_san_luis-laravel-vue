@@ -50,43 +50,23 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { useAuthStore } from '@/stores/auth.store'
 
-const router       = useRouter()
+const router    = useRouter()
+const authStore = useAuthStore()
+
 const showPassword = ref(false)
 const loading      = ref(false)
 const error        = ref(null)
 
-const form = ref({
-  email:    '',
-  password: ''
-})
+const form = ref({ email: '', password: '' })
 
 async function handleLogin() {
   loading.value = true
   error.value   = null
-
   try {
-    const { data } = await axios.post('/api/auth/login', {
-      email:    form.value.email,
-      password: form.value.password
-    })
-
-    // El backend devuelve data.data.usuario y data.data.token
-    const usuario = data.data.usuario
-    const token   = data.data.token
-
-    // Guardamos en localStorage
-    localStorage.setItem('token', token)
-    localStorage.setItem('user',  JSON.stringify(usuario))
-
-    // Redirigimos según rol — id 1 = admin
-    if (usuario.rol?.id === 1) {
-      router.push('/admin')
-    } else {
-      router.push('/home')
-    }
-
+    await authStore.login(form.value.email, form.value.password)
+    authStore.isAdmin ? router.push('/admin') : router.push('/home')
   } catch (e) {
     if (e.response?.status === 401) {
       error.value = 'Correo o contraseña incorrectos'
