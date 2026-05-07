@@ -286,7 +286,7 @@ async function cargarUsuarios() {
   try {
     const { data } = await api.get(ADMIN.USUARIOS)
     const payload = data.data
-    usuarios.value = payload?.data ?? (Array.isArray(payload) ? payload : [])
+    usuarios.value = payload?.usuarios ?? (Array.isArray(payload) ? payload : [])
   } finally { cargando.value = false }
 }
 

@@ -161,6 +161,13 @@
                   <p class="text-muted small mb-0 mt-1">
                     <i class="bi bi-geo-alt me-1"></i>{{ entidad.direccion }}
                   </p>
+                  <div v-if="entidad.subtipos?.length" class="d-flex flex-wrap gap-1 mt-1">
+                    <span v-for="s in entidad.subtipos" :key="s.id"
+                      class="badge rounded-pill border text-dark fw-normal"
+                      style="font-size: 0.68rem; background: #f1f5f9;">
+                      {{ formatNombre(s.nombre) }}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -263,6 +270,18 @@
                     class="form-control border-0 border-bottom border-dark rounded-0 px-0 shadow-none"
                     rows="2" placeholder="Describe brevemente los servicios..."></textarea>
                 </div>
+                <div v-if="subtipos.length" class="col-12">
+                  <label class="form-label fw-bold mb-2">Categoría específica</label>
+                  <div class="d-flex flex-wrap gap-2">
+                    <div v-for="s in subtipos" :key="s.id" class="form-check form-check-inline m-0">
+                      <input class="form-check-input shadow-none" type="checkbox"
+                        :id="'nuevo-sub-' + s.id" :value="s.id" v-model="formNueva.subtipos_ids" />
+                      <label class="form-check-label small fw-semibold" :for="'nuevo-sub-' + s.id">
+                        {{ formatNombre(s.nombre) }}
+                      </label>
+                    </div>
+                  </div>
+                </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold mb-1">
                     <i class="bi bi-person-badge me-1"></i> Logo del Comercio *
@@ -296,67 +315,92 @@
           </div>
           <div class="modal-body p-4" v-if="detalle">
             <div class="row g-4 align-items-start">
+
+              <!-- COLUMNA IZQUIERDA -->
               <div class="col-md-4 text-center">
-                <div class="p-4 rounded-4 border bg-white shadow-sm mb-3">
-                  <img :src="detalle.imagenes?.[0]?.url_completa || 'https://via.placeholder.com/150'"
-                    class="img-fluid rounded-4 mb-3 border"
-                    style="width: 150px; height: 150px; object-fit: cover;" />
-                  <h6 class="fw-bold mb-1 small">Identidad Visual</h6>
-                  <p class="text-muted small mb-0">Logo registrado</p>
-                </div>
-                <div class="p-3 rounded-4 border bg-light">
-                  <span class="d-block small text-muted mb-1">Estado actual</span>
-                  <span :class="detalle.estado
-                    ? 'badge bg-success rounded-pill px-3 py-2 w-100'
-                    : 'badge bg-danger rounded-pill px-3 py-2 w-100'">
-                    {{ detalle.estado ? 'Activo' : 'Inactivo' }}
+                <img :src="detalle.imagenes?.[0]?.url_completa || detalle.imagen || 'https://via.placeholder.com/150'"
+                  class="rounded-4 border shadow-sm mb-3"
+                  style="width: 150px; height: 150px; object-fit: cover;" />
+
+                <span :class="detalle.estado
+                  ? 'badge bg-success rounded-pill px-3 py-2 d-block mb-3'
+                  : 'badge bg-danger rounded-pill px-3 py-2 d-block mb-3'">
+                  {{ detalle.estado ? '● Activo' : '● Inactivo' }}
+                </span>
+
+                <div v-if="detalle.subtipos?.length" class="d-flex flex-wrap gap-1 justify-content-center mb-3">
+                  <span v-for="s in detalle.subtipos" :key="s.id"
+                    class="badge rounded-pill border text-dark fw-normal"
+                    style="font-size: 0.7rem; background: #f1f5f9;">
+                    {{ formatNombre(s.nombre) }}
                   </span>
                 </div>
-              </div>
-              <div class="col-md-8">
-                <h3 class="fw-bold text-dark mb-1">{{ detalle.nombre_comercial }}</h3>
-                <p class="text-primary fw-semibold mb-3 small">
-                  <i class="bi bi-tag-fill me-1"></i> Establecimiento Verificado
+
+                <p class="text-muted small mb-1">
+                  <i class="bi bi-calendar3 me-1"></i> Registrado: {{ detalle.created_at }}
                 </p>
+              </div>
+
+              <!-- COLUMNA DERECHA -->
+              <div class="col-md-8">
+                <h3 class="fw-bold text-dark mb-0">{{ detalle.nombre_comercial }}</h3>
+                <p class="text-muted small mb-4">{{ detalle.razon_social }}</p>
+
                 <div class="row g-3">
                   <div class="col-md-6">
-                    <label class="fw-bold mb-0 small text-muted text-uppercase" style="font-size:0.7rem">Razón Social</label>
-                    <p class="border-bottom pb-2 fw-medium text-dark small">{{ detalle.razon_social }}</p>
+                    <p class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase; font-weight:700;">NIT / RUT</p>
+                    <p class="border-bottom pb-2 small mb-0">{{ detalle.rut || '—' }}</p>
                   </div>
+
                   <div class="col-md-6">
-                    <label class="fw-bold mb-0 small text-muted text-uppercase" style="font-size:0.7rem">NIT / RUT</label>
-                    <p class="border-bottom pb-2 fw-medium text-dark small">{{ detalle.rut || '—' }}</p>
+                    <p class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase; font-weight:700;">Horario</p>
+                    <p class="border-bottom pb-2 small mb-0">
+                      <i class="bi bi-clock me-1"></i>{{ detalle.hora_atencion }}
+                    </p>
                   </div>
+
                   <div class="col-md-6">
-                    <label class="fw-bold mb-0 small text-muted text-uppercase" style="font-size:0.7rem">WhatsApp / Tel</label>
-                    <p class="border-bottom pb-2 fw-medium text-dark small">{{ detalle.telefono }}</p>
+                    <p class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase; font-weight:700;">Teléfono / WhatsApp</p>
+                    <p class="border-bottom pb-2 small mb-0">
+                      <a :href="'tel:' + detalle.telefono" class="text-dark text-decoration-none">
+                        <i class="bi bi-telephone me-1"></i>{{ detalle.telefono }}
+                      </a>
+                    </p>
                   </div>
+
                   <div class="col-md-6">
-                    <label class="fw-bold mb-0 small text-muted text-uppercase" style="font-size:0.7rem">Horario</label>
-                    <p class="border-bottom pb-2 fw-medium text-dark small">{{ detalle.hora_atencion }}</p>
+                    <p class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase; font-weight:700;">Sitio Web / Redes</p>
+                    <p class="border-bottom pb-2 small mb-0">
+                      <a v-if="detalle.sitio_web" :href="detalle.sitio_web" target="_blank"
+                        class="text-dark text-decoration-none text-truncate d-block">
+                        <i class="bi bi-globe me-1"></i>{{ detalle.sitio_web }}
+                      </a>
+                      <span v-else class="text-muted">—</span>
+                    </p>
                   </div>
+
                   <div class="col-12">
-                    <label class="fw-bold mb-0 small text-muted text-uppercase" style="font-size:0.7rem">Dirección</label>
-                    <p class="border-bottom pb-2 fw-medium text-dark small">{{ detalle.direccion }}</p>
+                    <p class="text-muted mb-0" style="font-size:0.7rem; text-transform:uppercase; font-weight:700;">Dirección</p>
+                    <p class="border-bottom pb-2 small mb-0">
+                      <i class="bi bi-geo-alt me-1"></i>{{ detalle.direccion }}
+                    </p>
                   </div>
-                  <div class="col-12">
-                    <div class="p-3 rounded-4 border bg-white shadow-sm">
-                      <label class="fw-bold mb-1 small text-muted text-uppercase" style="font-size:0.7rem">Descripción</label>
-                      <p class="small text-secondary mb-0">{{ detalle.descripcion }}</p>
-                    </div>
-                  </div>
-                  <div class="col-12" v-if="detalle.sitio_web">
-                    <a :href="detalle.sitio_web" target="_blank"
-                      class="btn btn-dark btn-sm rounded-pill px-4 shadow-sm fw-bold">
-                      <i class="bi bi-globe me-2"></i>Visitar Sitio Web
-                    </a>
+
+                  <div class="col-12" v-if="detalle.descripcion">
+                    <p class="text-muted mb-1" style="font-size:0.7rem; text-transform:uppercase; font-weight:700;">Descripción</p>
+                    <div class="bg-light rounded-3 p-3 small text-secondary">{{ detalle.descripcion }}</div>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
-          <div class="modal-footer border-0 pt-0 d-flex justify-content-center pb-4">
+          <div class="modal-footer border-0 pt-2 d-flex justify-content-center pb-4">
             <button type="button" class="btn btn-light border px-5 rounded-3 fw-bold" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-dark px-5 rounded-3 fw-bold" data-bs-dismiss="modal"
+              @click="abrirModalEditar(detalle)">
+              <i class="bi bi-pencil me-2"></i>Editar
+            </button>
           </div>
         </div>
       </div>
@@ -432,6 +476,18 @@
                       <input v-model="formEditar.sitio_web" type="text"
                         class="form-control border-0 border-bottom rounded-0 px-0 shadow-none small" />
                     </div>
+                    <div v-if="subtipos.length" class="col-12">
+                      <label class="fw-bold mb-1 small text-muted text-uppercase" style="font-size:0.7rem">Categoría específica</label>
+                      <div class="d-flex flex-wrap gap-2 mt-1">
+                        <div v-for="s in subtipos" :key="s.id" class="form-check form-check-inline m-0">
+                          <input class="form-check-input shadow-none" type="checkbox"
+                            :id="'editar-sub-' + s.id" :value="s.id" v-model="formEditar.subtipos_ids" />
+                          <label class="form-check-label small fw-semibold" :for="'editar-sub-' + s.id">
+                            {{ formatNombre(s.nombre) }}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -484,7 +540,8 @@ const alerta = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
 
 const formNueva = ref({
   nombre_comercial: '', razon_social: '', rut: '', telefono: '',
-  hora_atencion: '', sitio_web: '', estado: true, direccion: '', descripcion: ''
+  hora_atencion: '', sitio_web: '', estado: true, direccion: '', descripcion: '',
+  subtipos_ids: []
 })
 
 const subtipos = computed(() => tipoData.value?.tipos_especificos ?? [])
@@ -586,7 +643,8 @@ function verDetalle(e) {
 function abrirModalAgregar() {
   formNueva.value = {
     nombre_comercial: '', razon_social: '', rut: '', telefono: '',
-    hora_atencion: '', sitio_web: '', estado: true, direccion: '', descripcion: ''
+    hora_atencion: '', sitio_web: '', estado: true, direccion: '', descripcion: '',
+    subtipos_ids: []
   }
   logoNuevaFile.value = null
   inputLogoNuevaComp.value?.reset()
@@ -600,6 +658,7 @@ async function guardarNueva() {
     Object.entries(formNueva.value).forEach(([k, v]) => fd.append(k, v))
     fd.append('lugar_id', 1)
     if (tipoData.value) fd.append('tipo_entidad_id', tipoData.value.id)
+    formNueva.value.subtipos_ids.forEach(id => fd.append('subtipos_ids[]', id))
     if (logoNuevaFile.value) fd.append('logo', logoNuevaFile.value)
     await api.post(ADMIN.ENTIDADES, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
     Modal.getInstance(document.getElementById('modalAgregar')).hide()
@@ -613,7 +672,7 @@ async function guardarNueva() {
 }
 
 function abrirModalEditar(e) {
-  formEditar.value   = { ...e }
+  formEditar.value   = { ...e, subtipos_ids: e.subtipos?.map(s => s.id) ?? [] }
   logoPreview.value  = e.imagenes?.[0]?.url_completa ?? e.imagen ?? null
   logoEditarFile.value = null
   inputLogoEditarComp.value?.reset()
@@ -633,6 +692,7 @@ async function guardarEdicion() {
     campos.forEach(k => fd.append(k, formEditar.value[k] ?? ''))
     fd.append('lugar_id', formEditar.value.lugar?.id ?? 1)
     fd.append('_method', 'PUT')
+    ;(formEditar.value.subtipos_ids ?? []).forEach(id => fd.append('subtipos_ids[]', id))
     if (logoEditarFile.value) fd.append('logo', logoEditarFile.value)
     await api.post(ADMIN.ENTIDAD(formEditar.value.id), fd, { headers: { 'Content-Type': 'multipart/form-data' } })
     Modal.getInstance(document.getElementById('modalEditar')).hide()
@@ -648,6 +708,10 @@ async function guardarEdicion() {
 function capitalizar(texto) {
   if (!texto) return ''
   return texto.charAt(0).toUpperCase() + texto.slice(1)
+}
+
+function formatNombre(txt) {
+  return String(txt).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 }
 
 function mostrarAlerta(tipo, titulo, mensaje) {

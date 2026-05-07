@@ -82,7 +82,7 @@
 
               <!-- INFO -->
               <div class="d-flex align-items-center">
-                <img :src="item.url_imagen_1 || '/assets/img/placeholder.png'"
+                <img :src="item.imagenes?.[0] || '/assets/img/placeholder.png'"
                   class="rounded-3 border border-dark-subtle me-3 shadow-sm"
                   style="width: 75px; height: 75px; object-fit: cover;" />
                 <div>
@@ -97,7 +97,7 @@
                     </span>
                   </div>
                   <p class="text-muted small mb-0 mt-1">
-                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ item.lugar?.nombre }}
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ item.lugar }}
                   </p>
                   <p class="text-secondary small mb-0 text-truncate" style="max-width: 350px;">
                     {{ item.descripcion }}
@@ -176,18 +176,19 @@
                 <div class="col-12">
                   <hr class="my-2" />
                   <h6 class="fw-bold mb-3">
-                    <i class="bi bi-images me-2"></i>Galería de Imágenes (Mínimo 1 obligatoria)
+                    <i class="bi bi-images me-2"></i>Galería de Imágenes <span class="text-danger">*</span>
+                    <small class="text-muted fw-normal ms-1">(las 3 son obligatorias)</small>
                   </h6>
                   <div class="row g-3">
                     <div class="col-md-4" v-for="n in 3" :key="n">
                       <label class="form-label small fw-bold mb-1">
-                        {{ n === 1 ? 'Imagen Principal *' : `Imagen ${n}` }}
+                        Imagen {{ n }} <span class="text-danger">*</span>
                       </label>
                       <img v-if="previews[n-1]" :src="previews[n-1]"
                         class="img-thumbnail rounded-3 w-100 mb-2"
                         style="height: 120px; object-fit: cover;" />
                       <ImagenInput
-                        :required="n === 1"
+                        :required="true"
                         @change="file => onImagenNueva(file, n-1)" />
                     </div>
                   </div>
@@ -222,15 +223,15 @@
             <!-- GALERÍA -->
             <div class="row g-2 mb-4">
               <div class="col-8">
-                <img :src="detalle.url_imagen_1 || '/assets/img/placeholder.png'"
+                <img :src="detalle.imagenes?.[0] || '/assets/img/placeholder.png'"
                   class="rounded-3 w-100 shadow-sm"
                   style="height: 300px; object-fit: cover;" />
               </div>
               <div class="col-4 d-flex flex-column gap-2">
-                <img v-if="detalle.url_imagen_2" :src="detalle.url_imagen_2"
+                <img v-if="detalle.imagenes?.[1]" :src="detalle.imagenes[1]"
                   class="rounded-3 w-100 shadow-sm flex-grow-1"
                   style="height: 146px; object-fit: cover;" />
-                <img v-if="detalle.url_imagen_3" :src="detalle.url_imagen_3"
+                <img v-if="detalle.imagenes?.[2]" :src="detalle.imagenes[2]"
                   class="rounded-3 w-100 shadow-sm flex-grow-1"
                   style="height: 146px; object-fit: cover;" />
               </div>
@@ -240,7 +241,7 @@
               <div class="col-12">
                 <p class="text-muted mb-2">
                   <i class="bi bi-geo-alt-fill text-danger me-1"></i>
-                  <span class="fw-bold text-dark">{{ detalle.lugar?.nombre }}</span>
+                  <span class="fw-bold text-dark">{{ detalle.lugar }}</span>
                 </p>
                 <hr class="my-3 border-secondary-subtle" />
                 <h6 class="fw-bold">Descripción</h6>
@@ -307,7 +308,7 @@
                       <label class="form-label small fw-bold d-block">
                         {{ n === 1 ? 'Imagen Principal (1)' : `Imagen ${n}` }}
                       </label>
-                      <img :src="previewsEditar[n-1] || formEditar[`url_imagen_${n}`] || '/assets/img/placeholder.png'"
+                      <img :src="previewsEditar[n-1] || formEditar.imagenes?.[n-1] || '/assets/img/placeholder.png'"
                         class="rounded-3 border shadow-sm w-100 mb-2"
                         style="height: 100px; object-fit: cover;" />
                       <ImagenInput @change="file => onImagenEditar(file, n-1)" />
@@ -376,7 +377,7 @@ async function cargarSitios() {
   try {
     const { data } = await api.get(ADMIN.SITIOS)
     const payload = data.data
-    sitios.value = payload?.data ?? (Array.isArray(payload) ? payload : [])
+    sitios.value = payload?.sitios ?? (Array.isArray(payload) ? payload : [])
   } finally { cargando.value = false }
 }
 
@@ -415,7 +416,7 @@ async function guardarSitio() {
     const fd = new FormData()
     fd.append('nombre', formNuevo.value.nombre)
     fd.append('descripcion', formNuevo.value.descripcion)
-    fd.append('estado', formNuevo.value.estado)
+    fd.append('estado', formNuevo.value.estado ? 1 : 0)
     fd.append('lugar_id', 1)
     archivosNuevo.value.forEach((file, i) => { if (file) fd.append(`url_imagen_${i + 1}`, file) })
     await api.post(ADMIN.SITIOS, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
@@ -423,7 +424,9 @@ async function guardarSitio() {
     mostrarAlerta('success', '¡Publicado!', 'Sitio registrado.')
     await cargarSitios()
   } catch (err) {
-    mostrarAlerta('danger', '¡Error!', err.response?.data?.message ?? 'No se pudo guardar.')
+    const errors = err.response?.data?.errors
+    const detalle = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo guardar.')
+    mostrarAlerta('danger', '¡Error de validación!', detalle)
   } finally { guardando.value = false }
 }
 
@@ -438,7 +441,7 @@ async function guardarEdicion() {
     const fd = new FormData()
     fd.append('nombre', formEditar.value.nombre)
     fd.append('descripcion', formEditar.value.descripcion)
-    fd.append('estado', formEditar.value.estado)
+    fd.append('estado', formEditar.value.estado ? 1 : 0)
     fd.append('lugar_id', formEditar.value.lugar?.id ?? 1)
     fd.append('_method', 'PUT')
     archivosEditar.value.forEach((file, i) => { if (file) fd.append(`url_imagen_${i + 1}`, file) })
@@ -447,7 +450,9 @@ async function guardarEdicion() {
     mostrarAlerta('success', '¡Actualizado!', 'Sitio editado.')
     await cargarSitios()
   } catch (err) {
-    mostrarAlerta('danger', '¡Error!', err.response?.data?.message ?? 'No se pudo actualizar.')
+    const errors = err.response?.data?.errors
+    const detalle = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo actualizar.')
+    mostrarAlerta('danger', '¡Error de validación!', detalle)
   } finally { guardando.value = false }
 }
 

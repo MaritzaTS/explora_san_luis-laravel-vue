@@ -21,25 +21,25 @@
           <div class="col-md-6 col-lg-4" v-for="sitio in sitios" :key="sitio.id">
             <div class="card h-100 border-0 shadow-lg overflow-hidden place-card">
               <div class="position-relative overflow-hidden">
-                <img :src="sitio.url_imagen_1 || sitio.url_imagen_2 || 'https://via.placeholder.com/600x400?text=Sitio+Turístico'"
+                <img :src="sitio.imagenes?.[0] || sitio.imagenes?.[1] || 'https://via.placeholder.com/600x400?text=Sitio+Turístico'"
                      class="card-img-top hover-zoom"
                      :alt="sitio.nombre">
                 <div class="overlay-gradient"></div>
                 <span class="position-absolute bottom-0 start-0 m-3 badge bg-success py-2 px-3 rounded-pill shadow">
-                  <i class="bi bi-geo-alt-fill me-1"></i>{{ sitio.lugar?.nombre ?? 'San Luis' }}
+                  <i class="bi bi-geo-alt-fill me-1"></i>{{ sitio.lugar ?? 'San Luis' }}
                 </span>
               </div>
               <div class="card-body p-4">
                 <h4 class="fw-bold mb-2">{{ sitio.nombre }}</h4>
                 <p class="text-muted small mb-4 lh-lg">{{ sitio.descripcion }}</p>
                 <div v-if="sitio.url_imagen_2 || sitio.url_imagen_3" class="d-flex gap-2">
-                  <img v-if="sitio.url_imagen_2"
-                       :src="sitio.url_imagen_2"
+                  <img v-if="sitio.imagenes?.[1]"
+                       :src="sitio.imagenes[1]"
                        class="rounded-2 object-fit-cover"
                        width="70" height="55"
                        alt="foto">
-                  <img v-if="sitio.url_imagen_3"
-                       :src="sitio.url_imagen_3"
+                  <img v-if="sitio.imagenes?.[2]"
+                       :src="sitio.imagenes[2]"
                        class="rounded-2 object-fit-cover"
                        width="70" height="55"
                        alt="foto">

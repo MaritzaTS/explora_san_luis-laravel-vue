@@ -232,7 +232,7 @@ async function cargarEventos() {
   try {
     const { data } = await api.get(ADMIN.EVENTOS)
     const payload = data.data
-    eventos.value = payload?.data ?? (Array.isArray(payload) ? payload : [])
+    eventos.value = payload?.eventos ?? (Array.isArray(payload) ? payload : [])
   } finally { cargando.value = false }
 }
 
