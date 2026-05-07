@@ -32,5 +32,8 @@ export const ADMIN = {
   USUARIOS:         '/admin/usuarios',
   USUARIO_ESTADO:   (id) => `/admin/usuarios/${id}/estado`,
 
+  RESENAS:          '/admin/resenas',
+  RESENA_ESTADO:    (id) => `/admin/resenas/${id}/estado`,
+
   TIPO_IMAGEN:      (id) => `/admin/tipos/${id}/imagen`,
 }
