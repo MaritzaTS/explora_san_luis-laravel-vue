@@ -179,7 +179,7 @@
         :key="evento.nombre">
         <div class="card h-100 border-0 shadow-sm text-center overflow-hidden evento-card">
           <img
-            :src="evento.imagen"
+            :src="evento.url_poster"
             class="card-img-top evento-card-img"
             :alt="evento.nombre">
           <div class="card-body py-3">
