@@ -655,7 +655,9 @@ async function guardarNueva() {
   guardando.value = true
   try {
     const fd = new FormData()
-    Object.entries(formNueva.value).forEach(([k, v]) => fd.append(k, v))
+    const camposTexto = ['nombre_comercial', 'razon_social', 'rut', 'telefono', 'hora_atencion', 'sitio_web', 'direccion', 'descripcion']
+    camposTexto.forEach(k => fd.append(k, formNueva.value[k] ?? ''))
+    fd.append('estado', formNueva.value.estado ? 1 : 0)
     fd.append('lugar_id', 1)
     if (tipoData.value) fd.append('tipo_entidad_id', tipoData.value.id)
     formNueva.value.subtipos_ids.forEach(id => fd.append('subtipos_ids[]', id))
@@ -672,7 +674,7 @@ async function guardarNueva() {
 }
 
 function abrirModalEditar(e) {
-  formEditar.value   = { ...e, subtipos_ids: e.subtipos?.map(s => s.id) ?? [] }
+  formEditar.value   = { ...e, subtipos_ids: e.subtipos?.map(s => s.id) ?? [], lugar_id: e.lugar_id ?? 1 }
   logoPreview.value  = e.imagenes?.[0]?.url_completa ?? e.imagen ?? null
   logoEditarFile.value = null
   inputLogoEditarComp.value?.reset()
@@ -688,9 +690,10 @@ async function guardarEdicion() {
   guardando.value = true
   try {
     const fd = new FormData()
-    const campos = ['nombre_comercial', 'razon_social', 'rut', 'telefono', 'hora_atencion', 'sitio_web', 'estado', 'direccion', 'descripcion']
-    campos.forEach(k => fd.append(k, formEditar.value[k] ?? ''))
-    fd.append('lugar_id', formEditar.value.lugar?.id ?? 1)
+    const camposTexto = ['nombre_comercial', 'razon_social', 'rut', 'telefono', 'hora_atencion', 'sitio_web', 'direccion', 'descripcion']
+    camposTexto.forEach(k => fd.append(k, formEditar.value[k] ?? ''))
+    fd.append('estado', formEditar.value.estado ? 1 : 0)
+    fd.append('lugar_id', formEditar.value.lugar_id ?? 1)
     fd.append('_method', 'PUT')
     ;(formEditar.value.subtipos_ids ?? []).forEach(id => fd.append('subtipos_ids[]', id))
     if (logoEditarFile.value) fd.append('logo', logoEditarFile.value)

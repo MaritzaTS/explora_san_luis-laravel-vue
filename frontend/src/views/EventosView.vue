@@ -16,7 +16,7 @@
           <div class="card border-0 shadow-sm h-100 overflow-hidden hover-effect">
             <div class="row g-0 h-100">
               <div class="col-4">
-                <img :src="evento.url_poster_completa || 'https://via.placeholder.com/200x150?text=Evento'"
+                <img :src="evento.url_poster || 'https://via.placeholder.com/200x150?text=Evento'"
                      class="img-fluid h-100 w-100 object-fit-cover"
                      :alt="evento.nombre">
               </div>
@@ -29,7 +29,7 @@
                     <span v-if="evento.fecha_fin"> — {{ formatFecha(evento.fecha_fin) }}</span>
                   </p>
                   <p class="small mb-1" v-if="evento.lugar">
-                    <i class="bi bi-geo-alt me-1 text-success"></i>{{ evento.lugar.nombre }}
+                    <i class="bi bi-geo-alt me-1 text-success"></i>{{ evento.lugar }}
                   </p>
                   <p class="small mb-0 text-secondary">{{ evento.descripcion }}</p>
                 </div>
