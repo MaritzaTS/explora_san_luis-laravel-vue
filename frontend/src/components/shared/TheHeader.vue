@@ -1,8 +1,6 @@
 <template>
-  <!-- navbar-light y bg-white mantienen el estilo limpio de Explora San Luis -->
   <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top py-0">
     <div class="container">
-      <!-- router-link reemplaza a <a> para navegación SPA (sin recargar) -->
       <router-link class="navbar-brand d-flex align-items-center" to="/">
         <img src="@/assets/img/logo(2).svg" alt="Explora San Luis">
       </router-link>
@@ -19,7 +17,7 @@
           <li class="nav-item">
             <router-link class="nav-link px-3" to="/home">Inicio</router-link>
           </li>
-          <!-- Dropdown Categorías -->
+
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle px-3" href="#" role="button" data-bs-toggle="dropdown">
               Categorías
@@ -29,32 +27,47 @@
               <li><router-link class="dropdown-item" to="/recreacion">Recreación</router-link></li>
               <li><router-link class="dropdown-item" to="/alojamientos">Alojamiento</router-link></li>
               <li><router-link class="dropdown-item" to="/transportes">Transporte</router-link></li>
-              <li><router-link class="dropdown-item" to="/sitios-turisticos">Sitios turisticos</router-link></li>
-              <li><router-link class="dropdown-item" to="/agencias-turisticas">Agencias Turisticas</router-link></li>
+              <li><router-link class="dropdown-item" to="/sitios-turisticos">Sitios turísticos</router-link></li>
+              <li><router-link class="dropdown-item" to="/agencias-turisticas">Agencias turísticas</router-link></li>
               <li><router-link class="dropdown-item" to="/eventos">Eventos</router-link></li>
             </ul>
           </li>
 
-          <!-- Lógica de Usuario con Vue -->
+          <!-- Usuario autenticado -->
           <li class="nav-item ms-lg-3 dropdown">
-            <!-- v-if verifica si hay un usuario autenticado (deberás conectar esto a tu store) -->
-            <template v-if="user">
-              <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
-                <span class="d-none d-md-inline text-dark fw-medium small">
-                  Hola, {{ user.firstName }}
+            <template v-if="authStore.isAuthenticated">
+              <a class="nav-link dropdown-toggle d-flex align-items-center gap-2"
+                 href="#" role="button" data-bs-toggle="dropdown">
+                <div class="user-avatar">
+                  {{ iniciales }}
+                </div>
+                <span class="d-none d-md-inline text-dark fw-semibold small">
+                  Hola, {{ primerNombre }}
                 </span>
-                <i class="bi bi-person-circle fs-4 text-success"></i>
               </a>
-              <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                <li><router-link class="dropdown-item small" to="/perfil">Mi Perfil</router-link></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><button @click="logout" class="dropdown-item small text-danger">Cerrar Sesión</button></li>
+              <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2">
+                <li class="px-3 pb-2 border-bottom mb-1">
+                  <p class="mb-0 fw-semibold small text-dark">{{ authStore.usuario?.nombre }}</p>
+                  <p class="mb-0 text-muted" style="font-size:12px;">{{ authStore.usuario?.email }}</p>
+                </li>
+                <li v-if="authStore.isAdmin">
+                  <router-link class="dropdown-item small" to="/admin">
+                    <i class="bi bi-speedometer2 me-2"></i>Panel de administración
+                  </router-link>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                  <button @click="cerrarSesion" class="dropdown-item small text-danger">
+                    <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión
+                  </button>
+                </li>
               </ul>
             </template>
-            
-            <!-- v-else se muestra si no hay sesión iniciada -->
+
+            <!-- Sin sesión -->
             <template v-else>
-              <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
+              <a class="nav-link px-2" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"
+                 title="Iniciar sesión">
                 <i class="bi bi-person-circle fs-4"></i>
               </a>
             </template>
@@ -66,23 +79,31 @@
 </template>
 
 <script setup>
-// Aquí importarías tu lógica de autenticación (ej. Pinia o un composable)
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.store'
 
-// Ejemplo de estado de usuario (esto vendrá de tu base de datos/API más adelante)
-const user = ref(null) 
+const router    = useRouter()
+const authStore = useAuthStore()
 
-const logout = () => {
-  console.log('Cerrando sesión...')
-  // Aquí limpiarías los tokens y redireccionarías
+const primerNombre = computed(() => {
+  const nombre = authStore.usuario?.nombre ?? ''
+  return nombre.split(' ')[0]
+})
+
+const iniciales = computed(() => {
+  const nombre = authStore.usuario?.nombre ?? ''
+  return nombre.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase() || '?'
+})
+
+async function cerrarSesion() {
+  await authStore.logout()
+  router.push('/')
 }
 </script>
 
 <style scoped>
-/* Estilos específicos para este componente (no afectan al resto) */
-.navbar {
-  padding: 0 !important;
-}
+.navbar { padding: 0 !important; }
 
 .navbar-brand img {
   display: block;
@@ -96,20 +117,22 @@ const logout = () => {
   font-weight: 600;
   color: #1a1a1a !important;
 }
+.navbar-nav .nav-link:hover { color: #198754 !important; }
 
-.navbar-nav .nav-link:hover {
-  color: #198754 !important;
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #1e293b;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-
-/* Asegura que el menú desplegable siempre esté por encima de todo */
-.dropdown-menu {
-  z-index: 2000 !important;
-}
-
-/* Mejora la visibilidad al pasar el mouse (opcional) */
-.nav-item.dropdown:hover .dropdown-menu {
-  display: block;
-  margin-top: 0; 
-}
+.dropdown-menu { z-index: 2000 !important; }
+.nav-item.dropdown:hover .dropdown-menu { display: block; margin-top: 0; }
 </style>

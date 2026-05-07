@@ -40,5 +40,19 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('user')
   }
 
-  return { token, usuario, isAuthenticated, isAdmin, login, logout, fetchMe }
+  async function loginWithToken(newToken) {
+    token.value = newToken
+    localStorage.setItem('token', newToken)
+    try {
+      const { data } = await api.get(AUTH.ME)
+      usuario.value = data.data
+      localStorage.setItem('user', JSON.stringify(data.data))
+    } catch (e) {
+      token.value = null
+      localStorage.removeItem('token')
+      throw e
+    }
+  }
+
+  return { token, usuario, isAuthenticated, isAdmin, login, logout, fetchMe, loginWithToken }
 })

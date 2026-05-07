@@ -28,6 +28,11 @@ const router = createRouter({
       name: 'login',
       component: () => import('@/views/LoginView.vue')
     },
+    {
+      path: '/auth/google/callback',
+      name: 'google-callback',
+      component: () => import('@/views/GoogleCallbackView.vue')
+    },
 
     // ─── RUTAS ADMIN ─────────────────────────────────────
     {

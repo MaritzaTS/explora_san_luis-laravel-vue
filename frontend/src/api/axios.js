@@ -14,13 +14,17 @@ api.interceptors.request.use((config) => {
 })
 
 // Redirige al login cuando el token expira o es inválido
+// No redirige durante el callback de Google (el callback maneja sus propios errores)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      window.location.href = '/login'
+      const onAuthCallback = window.location.pathname.startsWith('/auth/')
+      if (!onAuthCallback) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }
