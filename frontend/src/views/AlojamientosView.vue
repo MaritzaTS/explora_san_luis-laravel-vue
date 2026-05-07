@@ -1,182 +1,109 @@
 <template>
-    
-
   <section class="container my-5">
-      
-      
-      <!-- Título -->
-      <div class="text-center mb-5">  
-        <h1 class="display-4 fw-bold">Alojamiento</h1>
-        <hr class="opacity-100 text-secondary" style="height: 1px;">
-      </div>
 
-      <!-- 2. Filtros (Reactivos con v-model) -->
-      <div class="position-relative mt-5 mb-5">
-        <div class="position-absolute top-0 start-0 translate-middle-y ms-4 border border-secondary-subtle bg-secondary-subtle px-3 py-1 fw-bold small shadow-sm tag-title">
-          Tipo de establecimiento
-        </div>
-        
-        <div class="border border-secondary-subtle bg-light p-5 pt-5 shadow-sm rounded-1">
-          <div class="row g-3">
-            <!-- Agregué la opción "Todos" para mejor UX -->
-            <div class="col-6 col-md-2" v-for="opcion in opcionesFiltro" :key="opcion">
-              <div class="form-check d-flex align-items-center p-0">
-                <input class="form-check-input rounded-0 m-0 border-secondary-subtle shadow-none radio-custom" 
-                       type="radio" 
-                       name="tipoFiltro" 
-                       :id="'radio-' + opcion" 
-                       :value="opcion"
-                       v-model="filtroActual">
-                <label class="form-check-label ms-2 small cursor-pointer" 
-                       :class="{ 'fw-bold': filtroActual === opcion }" 
-                       :for="'radio-' + opcion">
-                  {{ opcion }}
-                </label>
-              </div>
+    <div class="text-center mb-5">
+      <h1 class="display-4 fw-bold">Alojamiento</h1>
+      <hr class="opacity-100 text-secondary" style="height: 1px;">
+    </div>
+
+    <!-- Filtros -->
+    <div v-if="subtipos.length" class="position-relative mt-5 mb-5">
+      <div class="position-absolute top-0 start-0 translate-middle-y ms-4 border border-secondary-subtle bg-secondary-subtle px-3 py-1 fw-bold small shadow-sm tag-title">
+        Tipo de establecimiento
+      </div>
+      <div class="border border-secondary-subtle bg-light p-5 pt-5 shadow-sm rounded-1">
+        <div class="row g-3">
+          <div class="col-6 col-md-3" v-for="subtipo in subtipos" :key="subtipo.id">
+            <div class="form-check d-flex align-items-center p-0">
+              <input class="form-check-input rounded-0 m-0 border-secondary-subtle shadow-none check-custom"
+                     type="checkbox"
+                     :id="'check-' + subtipo.id"
+                     :value="subtipo.id"
+                     v-model="filtros">
+              <label class="form-check-label ms-2 small cursor-pointer" :for="'check-' + subtipo.id">
+                {{ formatNombre(subtipo.nombre) }}
+              </label>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- 3. Lista de Alojamientos (v-for dinámico) -->
-      <div class="row g-5">
-        <!-- Mostramos un mensaje si no hay resultados para el filtro -->
-        <div v-if="alojamientosFiltrados.length === 0" class="col-12 text-center text-muted py-5">
-          <i class="bi bi-search fs-1"></i>
-          <p class="mt-3">No se encontraron alojamientos de este tipo.</p>
-        </div>
+    <!-- Lista -->
+    <div class="row g-4" style="min-height: 400px;">
+      <div v-if="cargando" class="col-12 text-center py-5 text-muted">
+        <div class="spinner-border text-success" role="status"></div>
+        <p class="mt-3">Cargando alojamientos...</p>
+      </div>
 
-        <div class="col-md-6" v-for="lugar in alojamientosFiltrados" :key="lugar.id">
-          <div class="d-flex align-items-start border-0">
-            <div class="flex-shrink-0 position-relative">
-              <img :src="lugar.imagen" class="rounded-4 shadow-sm object-fit-cover" width="140" height="140" :alt="lugar.nombre">
-              <div class="position-absolute bottom-0 start-50 translate-middle-x mb-2 d-flex gap-1">
-                <div class="bg-white rounded-circle indicator-small-active"></div>
-                <div class="bg-white rounded-circle opacity-50 indicator-small"></div>
-                <div class="bg-white rounded-circle opacity-50 indicator-small"></div>
-              </div>
-            </div>
+      <template v-else>
+        <div class="col-md-6" v-for="entidad in entidades" :key="entidad.id">
+          <div class="d-flex align-items-start border rounded-3 p-3 shadow-sm h-100 hover-card">
+            <img :src="imagen(entidad)"
+                 class="rounded-3 object-fit-cover flex-shrink-0"
+                 width="130" height="130"
+                 :alt="entidad.nombre_comercial">
             <div class="ms-4">
-              <h5 class="fw-bold mb-1">{{ lugar.nombre }}</h5>
-              <p class="text-muted small mb-0">{{ lugar.tipo }}</p>
-              <p class="text-muted small mb-0">Horario - {{ lugar.horario }}</p>
+              <h5 class="fw-bold mb-1">{{ entidad.nombre_comercial }}</h5>
+              <p class="text-muted small mb-1">
+                <i class="bi bi-tag me-1"></i>{{ formatNombre(subtipo(entidad)) }}
+              </p>
+              <p class="text-muted small mb-0">
+                <i class="bi bi-clock me-1"></i>{{ entidad.hora_atencion }}
+              </p>
+              <p v-if="entidad.direccion" class="text-muted small mb-0">
+                <i class="bi bi-geo-alt me-1"></i>{{ entidad.direccion }}
+              </p>
               <div class="mt-2 d-flex gap-3">
-                <a :href="lugar.link" target="_blank" class="text-dark small fw-bold text-decoration-underline">Link <i class="bi bi-box-arrow-up-right ms-1"></i></a>
-                <a :href="'https://wa.me/' + lugar.whatsapp" target="_blank" class="text-success small fw-bold text-decoration-underline"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+                <a v-if="entidad.sitio_web" :href="entidad.sitio_web" target="_blank" class="text-dark small fw-bold text-decoration-underline">
+                  Sitio web <i class="bi bi-box-arrow-up-right ms-1"></i>
+                </a>
+                <a v-if="entidad.telefono" :href="'tel:' + entidad.telefono" class="text-success small fw-bold text-decoration-underline">
+                  <i class="bi bi-telephone me-1"></i>{{ entidad.telefono }}
+                </a>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- 4. Paginación -->
-      <div class="d-flex justify-content-center align-items-center mt-5 pt-4">
-        <button class="btn btn-link text-dark p-0 mx-4"><i class="bi bi-chevron-left fs-4"></i></button>
-        <span class="fw-bold h5 mb-0">1 de 6</span>
-        <button class="btn btn-link text-dark p-0 mx-4"><i class="bi bi-chevron-right fs-4"></i></button>
-      </div>
+        <div v-if="!entidades.length" class="col-12 text-center py-5 text-muted">
+          <i class="bi bi-search fs-1"></i>
+          <p class="mt-3">No se encontraron alojamientos con los filtros seleccionados.</p>
+        </div>
+      </template>
+    </div>
+
+    <!-- Paginación -->
+    <div class="d-flex justify-content-center align-items-center mt-5 pt-4">
+      <button class="btn btn-link text-dark p-0 mx-4" :disabled="pagina === 1" @click="irAnterior">
+        <i class="bi bi-chevron-left fs-4"></i>
+      </button>
+      <span class="fw-bold h5 mb-0">{{ pagina }} de {{ totalPaginas }}</span>
+      <button class="btn btn-link text-dark p-0 mx-4" :disabled="pagina === totalPaginas" @click="irSiguiente">
+        <i class="bi bi-chevron-right fs-4"></i>
+      </button>
+    </div>
   </section>
-  
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { onMounted } from 'vue'
+import { useEntidades } from '@/composables/useEntidades'
 
+const { entidades, subtipos, filtros, cargando, pagina, totalPaginas, init, irAnterior, irSiguiente } = useEntidades('alojamientos')
 
-// 1. Importas el componente reutilizable
+onMounted(init)
 
-
-// 2. Importas la imagen específica para esta vista
-
-
-// ... resto de tu lógica (ref, computed, etc.) ...
-
-
-// Opciones disponibles para los radio buttons
-const opcionesFiltro = ['Todos', 'Hotel', 'Hostal', 'Glamping', 'Finca Hotel', 'Casa Amoblada']
-
-// Por defecto, mostramos todos (puedes cambiarlo a 'Hostal' si lo prefieres)
-const filtroActual = ref('Todos')
-
-// DATA MOCK: Esta es la data que luego te enviará Laravel desde el Controller (Base de datos)
-const alojamientos = ref([
-  { 
-    id: 1, 
-    nombre: 'La Estrella', 
-    tipo: 'Hotel', 
-    horario: '4:00 pm - 11:59 pm', 
-    whatsapp: '573000000000',
-    link: '#',
-    imagen: 'https://via.placeholder.com/150' 
-  },
-  { 
-    id: 2, 
-    nombre: 'El Mirador', 
-    tipo: 'Hostal', 
-    horario: 'Abierto 24h', 
-    whatsapp: '573000000000',
-    link: '#',
-    imagen: 'https://via.placeholder.com/150' 
-  },
-  { 
-    id: 3, 
-    nombre: 'Bosque Adentro', 
-    tipo: 'Glamping', 
-    horario: 'Check-in 3:00 pm', 
-    whatsapp: '573000000000',
-    link: '#',
-    imagen: 'https://via.placeholder.com/150' 
-  },
-  { 
-    id: 4, 
-    nombre: 'Descanso Paisa', 
-    tipo: 'Finca Hotel', 
-    horario: '6:00 am - 10:00 pm', 
-    whatsapp: '573000000000',
-    link: '#',
-    imagen: 'https://via.placeholder.com/150' 
-  }
-])
-
-// PROPIEDAD COMPUTADA: Esto hace la magia del filtro en tiempo real
-const alojamientosFiltrados = computed(() => {
-  if (filtroActual.value === 'Todos') {
-    return alojamientos.value
-  }
-  return alojamientos.value.filter(lugar => lugar.tipo === filtroActual.value)
-})
+const imagen    = (e) => e.imagenes?.[0]?.url_completa ?? 'https://via.placeholder.com/130x130?text=Sin+imagen'
+const subtipo   = (e) => e.subtipos?.[0]?.nombre ?? ''
+const formatNombre = (txt) => txt.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
 </script>
 
 <style scoped>
-.hero-img {
-  height: 450px;
-  object-fit: cover;
-}
-
-.tag-title {
-  z-index: 1;
-  margin-top: -1px;
-}
-
-.radio-custom {
-  width: 22px;
-  height: 22px;
-  cursor: pointer;
-}
-
-.cursor-pointer {
-  cursor: pointer;
-}
-
-/* Bolitas del Hero */
-.dot-indicator { width: 10px; height: 10px; }
-.dot-indicator-active { width: 10px; height: 10px; }
-
-/* Bolitas de las imágenes pequeñas */
-.indicator-small { width: 6px; height: 6px; }
-.indicator-small-active { width: 6px; height: 6px; }
-
-.object-fit-cover {
-  object-fit: cover;
-}
+.tag-title { z-index: 1; margin-top: -1px; }
+.check-custom { width: 22px; height: 22px; cursor: pointer; }
+.cursor-pointer { cursor: pointer; }
+.object-fit-cover { object-fit: cover; }
+.hover-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.hover-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important; }
 </style>

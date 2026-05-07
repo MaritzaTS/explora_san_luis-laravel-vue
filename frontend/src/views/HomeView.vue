@@ -209,177 +209,74 @@
 
 
 <script setup>
-// ================================================
-// IMPORTACIÓN DE IMÁGENES
-// Vite procesa y hashea cada imagen correctamente.
-// Cuando Laravel tenga los endpoints listos,
-// estos arrays se reemplazarán por llamadas a la API.
-// ================================================
-
-// ── Carousel principal ──────────────────────────
-// import imgSlide1 from '@/assets/img/principal/planta.webp'
-//import imgSlide2 from '@/assets/img/principal/San_Luis2.webp'
-//import imgSlide3 from '@/assets/img/principal/parque.webp'
-
-// ── Historia ────────────────────────────────────
-import imgFundacion from '@/assets/img/home/fundacion.webp'
-import imgCultura   from '@/assets/img/home/cultura.webp'
-import imgEconomia  from '@/assets/img/home/economia.webp'
-
-// ── Categorías ──────────────────────────────────
-import imgHospedaje        from '@/assets/img/principal/Hospedaje.webp'
-import imgPiscina          from '@/assets/img/piscina.webp'
-import imgTransporte       from '@/assets/img/principal/transporte.webp'
-import imgGastronomia      from '@/assets/img/principal/gastronomia.webp'
-import imgAgenciaTuristica from '@/assets/img/principal/agencia_turistica.webp'
-
-// ── Lugares imperdibles ─────────────────────────
-import imgPlanta1   from '@/assets/img/principal/planta.webp'
-import imgPlanta2   from '@/assets/img/principal/cascada_la_planta.webp'
-import imgDormilon1 from '@/assets/img/principal/rio_dormilon.webp'
-import imgDormilon2 from '@/assets/img/principal/rio_dormilon2.webp'
-import imgSamana1   from '@/assets/img/principal/rio_samana.webp'
-import imgSamana2   from '@/assets/img/principal/rio_samana2.webp'
-import imgSamana3   from '@/assets/img/principal/samana3.webp'
-
-// ── Eventos ─────────────────────────────────────
-import imgMadera   from '@/assets/img/fiestas_de_la_madera.webp'
-import imgRetorno  from '@/assets/img/fiesta_del_retorno.webp'
-import imgSemana   from '@/assets/img/semana_santa.webp'
-import imgVirgen   from '@/assets/img/virgen_del_carmen.webp'
-
-import { onMounted, nextTick } from 'vue' // <-- Asegúrate de importar nextTick: Garantiza que el <div id="galeria-1"> realmente exista en el navegador antes de que Bootstrap intente manipularlo.
+import { ref, onMounted, nextTick } from 'vue'
 import { Carousel } from 'bootstrap'
+import api from '@/api/axios'
+import { PUBLICO } from '@/api/endpoints'
 
-// ... tus variables e importaciones de imágenes ...
+// ── Imágenes estáticas (historia y categorías no tienen endpoint) ──
+import imgFundacion       from '@/assets/img/home/fundacion.webp'
+import imgCultura         from '@/assets/img/home/cultura.webp'
+import imgEconomia        from '@/assets/img/home/economia.webp'
+import imgHospedaje       from '@/assets/img/principal/Hospedaje.webp'
+import imgPiscina         from '@/assets/img/piscina.webp'
+import imgTransporte      from '@/assets/img/principal/transporte.webp'
+import imgGastronomia     from '@/assets/img/principal/gastronomia.webp'
+import imgAgencia         from '@/assets/img/principal/agencia_turistica.webp'
+import imgPlanta1         from '@/assets/img/principal/planta.webp'
+import imgPlanta2         from '@/assets/img/principal/cascada_la_planta.webp'
+import imgDormilon1       from '@/assets/img/principal/rio_dormilon.webp'
+import imgDormilon2       from '@/assets/img/principal/rio_dormilon2.webp'
+import imgSamana1         from '@/assets/img/principal/rio_samana.webp'
+import imgSamana2         from '@/assets/img/principal/rio_samana2.webp'
+import imgSamana3         from '@/assets/img/principal/samana3.webp'
+
+// ── Estado API ───────────────────────────────────
+const eventos = ref([])
+
+async function cargarEventos() {
+  try {
+    const { data } = await api.get(PUBLICO.EVENTOS)
+    const payload = data.data
+    const lista = payload?.data ?? (Array.isArray(payload) ? payload : [])
+    eventos.value = lista.slice(0, 4)
+  } catch { /* muestra sección vacía si falla */ }
+}
 
 onMounted(async () => {
-  // nextTick asegura que el v-for ya terminó de renderizar el HTML
-  await nextTick();
+  await cargarEventos()
+  await nextTick()
+  lugaresImperdibles.forEach((lugar) => {
+    const el = document.getElementById('galeria-' + lugar.id)
+    if (el) new Carousel(el, { interval: 4500, ride: 'carousel', pause: false })
+  })
+})
 
-  // Verificamos si lugaresImperdibles es un ref (usa .value) o un arreglo normal
-  const lugares = lugaresImperdibles.value || lugaresImperdibles;
-
-  if (lugares && lugares.length > 0) {
-    lugares.forEach(lugar => {
-      const idCarrusel = 'galeria-' + lugar.id;
-      const elemento = document.getElementById(idCarrusel);
-
-      if (elemento) {
-        new Carousel(elemento, {
-          interval: 4500,
-          ride: 'carousel',
-          pause: false
-        });
-      }
-    });
-  }
-});
-
-// ================================================
-// DATOS ESTÁTICOS
-// Estructura MVC: estos datos vendrán del backend
-// Laravel via API cuando esté disponible.
-// Endpoint esperado: GET /api/home
-// ================================================
-
-//const slidesCarousel = [
- // { src: imgSlide1, alt: 'Cascada San Luis' },
- // { src: imgSlide2, alt: 'San Luis paisaje' },
-  //{ src: imgSlide3, alt: 'Parque San Luis' },
-//]
-
+// ── Datos estáticos ──────────────────────────────
 const cardsHistoria = [
-  {
-    titulo: 'Fundación',
-    subtitulo: '1875',
-    descripcion: 'Fundado por el padre Clemente Giraldo, su nombre se dio en honor a San Luis Gonzaga patrono del pueblo.',
-    imagen: imgFundacion
-  },
-  {
-    titulo: 'Cultura y tradición',
-    subtitulo: null,
-    descripcion: 'San Luis conserva vivas sus raíces campesinas y religiosas, con fiestas populares, música típica y gran sentido comunitario.',
-    imagen: imgCultura
-  },
-  {
-    titulo: 'Economía',
-    subtitulo: null,
-    descripcion: 'La economía local se basa en la agricultura, la ganadería y la producción de madera, con crecimiento en el ecoturismo y productos artesanales.',
-    imagen: imgEconomia
-  },
+  { titulo: 'Fundación', subtitulo: '1875', descripcion: 'Fundado por el padre Clemente Giraldo, su nombre se dio en honor a San Luis Gonzaga patrono del pueblo.', imagen: imgFundacion },
+  { titulo: 'Cultura y tradición', subtitulo: null, descripcion: 'San Luis conserva vivas sus raíces campesinas y religiosas, con fiestas populares, música típica y gran sentido comunitario.', imagen: imgCultura },
+  { titulo: 'Economía', subtitulo: null, descripcion: 'La economía local se basa en la agricultura, la ganadería y la producción de madera, con crecimiento en el ecoturismo y productos artesanales.', imagen: imgEconomia },
 ]
 
 const slidesCategorias = [
   [
-    { nombre: 'Alojamiento',  ruta: '/alojamientos',        imagen: imgHospedaje,        claseResponsive: '' },
-    { nombre: 'Recreación',   ruta: '/recreacion',          imagen: imgPiscina,          claseResponsive: 'd-none d-md-block' },
-    { nombre: 'Transporte',   ruta: '/transportes',         imagen: imgTransporte,       claseResponsive: 'd-none d-lg-block' },
+    { nombre: 'Alojamiento',         ruta: '/alojamientos',        imagen: imgHospedaje,  claseResponsive: '' },
+    { nombre: 'Recreación',          ruta: '/recreacion',          imagen: imgPiscina,    claseResponsive: 'd-none d-md-block' },
+    { nombre: 'Transporte',          ruta: '/transportes',         imagen: imgTransporte, claseResponsive: 'd-none d-lg-block' },
   ],
   [
-    { nombre: 'Gastronomía',          ruta: '/gastronomia',         imagen: imgGastronomia,      claseResponsive: '' },
-    { nombre: 'Agencias Turísticas',  ruta: '/agencias-turisticas', imagen: imgAgenciaTuristica, claseResponsive: 'd-none d-md-block' },
+    { nombre: 'Gastronomía',         ruta: '/gastronomia',         imagen: imgGastronomia, claseResponsive: '' },
+    { nombre: 'Agencias Turísticas', ruta: '/agencias-turisticas', imagen: imgAgencia,     claseResponsive: 'd-none d-md-block' },
   ],
 ]
 
 const lugaresImperdibles = [
-  {
-    id: 'sitio1',
-    nombre: 'Cascada La Planta',
-    zona: 'La Planta',
-    descripcion: 'Naturaleza pura y aguas cristalinas.',
-    claseResponsive: '',
-    imagenes: [ imgPlanta1, imgPlanta2 ]
-  },
-  {
-    id: 'sitio2',
-    nombre: 'Charcos del Dormilón',
-    zona: 'El Dormilón',
-    descripcion: 'El mejor lugar para un baño relajante.',
-    claseResponsive: 'd-none d-md-block',
-    imagenes: [ imgDormilon1, imgDormilon2 ]
-  },
-  {
-    id: 'sitio3',
-    nombre: 'Río el Samaná',
-    zona: 'Samaná',
-    descripcion: 'Naturaleza pura y aguas cristalinas.',
-    claseResponsive: '',
-    imagenes: [ imgSamana1, imgSamana2, imgSamana3 ]
-  },
-  {
-    id: 'sitio4',
-    nombre: 'Charcos del Dormilón',
-    zona: 'El Dormilón',
-    descripcion: 'El mejor lugar para un baño relajante.',
-    claseResponsive: 'd-none d-md-block',
-    imagenes: [ imgDormilon1, imgDormilon2 ]
-  },
+  { id: 'sitio1', nombre: 'Cascada La Planta',    zona: 'La Planta',  descripcion: 'Naturaleza pura y aguas cristalinas.',       claseResponsive: '',              imagenes: [imgPlanta1,   imgPlanta2] },
+  { id: 'sitio2', nombre: 'Charcos del Dormilón', zona: 'El Dormilón', descripcion: 'El mejor lugar para un baño relajante.',    claseResponsive: 'd-none d-md-block', imagenes: [imgDormilon1, imgDormilon2] },
+  { id: 'sitio3', nombre: 'Río el Samaná',        zona: 'Samaná',     descripcion: 'El único río libre de Antioquia.',           claseResponsive: '',              imagenes: [imgSamana1,   imgSamana2, imgSamana3] },
+  { id: 'sitio4', nombre: 'Charcos del Dormilón', zona: 'El Dormilón', descripcion: 'El mejor lugar para un baño relajante.',    claseResponsive: 'd-none d-md-block', imagenes: [imgDormilon1, imgDormilon2] },
 ]
-
-const eventos = [
-  {
-    nombre: 'Fiestas de la madera',
-    descripcion: 'Celebración cultural que resalta la tradición maderera del municipio.',
-    imagen: imgMadera
-  },
-  {
-    nombre: 'Fiestas del retorno',
-    descripcion: 'Evento para reencontrar a las familias sanluisanas ausentes.',
-    imagen: imgRetorno
-  },
-  {
-    nombre: 'Semana Santa',
-    descripcion: 'Que tu única preocupación sea disfrutar del camino.',
-    imagen: imgSemana
-  },
-  {
-    nombre: 'Fiesta Virgen del Carmen',
-    descripcion: 'Homenaje a la labor agrícola y a la vida rural.',
-    imagen: imgVirgen
-  },
-]
-
 </script>
 
 
