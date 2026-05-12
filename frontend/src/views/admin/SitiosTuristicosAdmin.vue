@@ -415,6 +415,11 @@ function abrirModalAgregar() {
 }
 
 async function guardarSitio() {
+  const faltantes = archivosNuevo.value.map((f, i) => !f ? `Imagen ${i + 1}` : null).filter(Boolean)
+  if (faltantes.length) {
+    mostrarAlerta('danger', '¡Imágenes requeridas!', `Faltan: ${faltantes.join(', ')}.`)
+    return
+  }
   guardando.value = true
   try {
     const fd = new FormData()
@@ -423,7 +428,7 @@ async function guardarSitio() {
     fd.append('estado', formNuevo.value.estado ? 1 : 0)
     fd.append('lugar_id', 1)
     archivosNuevo.value.forEach((file, i) => { if (file) fd.append(`url_imagen_${i + 1}`, file) })
-    await api.post(ADMIN.SITIOS, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    await api.post(ADMIN.SITIOS, fd)
     Modal.getInstance(document.getElementById('modalAgregarSitio')).hide()
     mostrarAlerta('success', '¡Publicado!', 'Sitio registrado.')
     await cargarSitios()
@@ -449,7 +454,7 @@ async function guardarEdicion() {
     fd.append('lugar_id', formEditar.value.lugar?.id ?? 1)
     fd.append('_method', 'PUT')
     archivosEditar.value.forEach((file, i) => { if (file) fd.append(`url_imagen_${i + 1}`, file) })
-    await api.post(ADMIN.SITIO(formEditar.value.id), fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    await api.post(ADMIN.SITIO(formEditar.value.id), fd)
     Modal.getInstance(document.getElementById('modalEditarSitio')).hide()
     mostrarAlerta('success', '¡Actualizado!', 'Sitio editado.')
     await cargarSitios()

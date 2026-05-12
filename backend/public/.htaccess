@@ -1,3 +1,8 @@
+# Increase PHP upload limits so large images (up to 10 MB each) can be sent.
+# XAMPP defaults to 2 M per file which breaks the 5 MB limit advertised in the UI.
+php_value upload_max_filesize 10M
+php_value post_max_size 35M
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

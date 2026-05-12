@@ -16,8 +16,8 @@ class TipoEntidadSeeder extends Seeder
         $tipos = [
             'Gastronomía',
             'Recreación',
-            'Alojamiento',
-            'Transporte',
+            'Alojamientos',
+            'Transportes',
             'Agencias Turísticas',
         ];
 

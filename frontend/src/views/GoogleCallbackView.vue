@@ -23,12 +23,18 @@ const route     = useRoute()
 const authStore = useAuthStore()
 const error     = ref(null)
 
+const MENSAJES_ERROR = {
+  access_denied:      'Cancelaste el inicio de sesión con Google.',
+  missing_code:       'El enlace de Google llegó incompleto. Intenta de nuevo.',
+  google_auth_failed: 'Google no pudo completar la autenticación. Intenta de nuevo.',
+}
+
 onMounted(async () => {
   const token = route.query.token
   const err   = route.query.error
 
   if (err) {
-    error.value = 'Google no pudo completar la autenticación. Intenta de nuevo.'
+    error.value = MENSAJES_ERROR[err] ?? 'Ocurrió un error al iniciar sesión con Google. Intenta de nuevo.'
     return
   }
 
@@ -39,7 +45,6 @@ onMounted(async () => {
 
   try {
     await authStore.loginWithToken(token)
-    // Pequeña pausa para que el store reactive actualice isAdmin
     await new Promise(r => setTimeout(r, 50))
     authStore.isAdmin ? router.replace('/admin') : router.replace('/home')
   } catch (e) {

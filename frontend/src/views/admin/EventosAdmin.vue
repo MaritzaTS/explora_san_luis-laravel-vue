@@ -310,7 +310,7 @@ async function guardarEvento() {
     fd.append('lugar_id',     1)
     if (posterNuevoFile.value) fd.append('poster', posterNuevoFile.value)
 
-    await api.post(ADMIN.EVENTOS, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    await api.post(ADMIN.EVENTOS, fd)
     Modal.getInstance(document.getElementById('modalEventoAgregar')).hide()
     mostrarAlerta('success', '¡Guardado!', 'Evento creado.')
     await cargarEventos()
@@ -344,7 +344,7 @@ async function guardarEdicion() {
     fd.append('_method',      'PUT')
     if (posterEditarFile.value) fd.append('poster', posterEditarFile.value)
 
-    await api.post(ADMIN.EVENTO(formEditar.value.id), fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    await api.post(ADMIN.EVENTO(formEditar.value.id), fd)
     Modal.getInstance(document.getElementById('modalEventoEditar')).hide()
     mostrarAlerta('success', '¡Actualizado!', 'Evento editado.')
     await cargarEventos()

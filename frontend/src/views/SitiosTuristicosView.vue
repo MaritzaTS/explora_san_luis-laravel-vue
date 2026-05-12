@@ -130,6 +130,76 @@ import api from '@/api/axios'
 import { PUBLICO } from '@/api/endpoints'
 import PaginacionNav from '@/components/ui/PaginacionNav.vue'
 
+import imgCascada1   from '@/assets/img/principal/cascada.webp'
+import imgCascada2   from '@/assets/img/principal/cascada2.webp'
+import imgCascada3   from '@/assets/img/principal/cascada3.webp'
+import imgPlanta1    from '@/assets/img/principal/cascada_la_planta.webp'
+import imgPlanta2    from '@/assets/img/principal/planta.webp'
+import imgPlanta3    from '@/assets/img/principal/hero.webp'
+import imgCerro1     from '@/assets/img/principal/cerro_castellon.webp'
+import imgCerro2     from '@/assets/img/principal/San_Luis.webp'
+import imgCerro3     from '@/assets/img/principal/San_Luis2.webp'
+import imgRio1       from '@/assets/img/principal/rio_dormilon.webp'
+import imgRio2       from '@/assets/img/principal/rio_dormilon2.webp'
+import imgRio3       from '@/assets/img/principal/negro.webp'
+import imgSamana1    from '@/assets/img/principal/rio_samana.webp'
+import imgSamana2    from '@/assets/img/principal/rio_samana2.webp'
+import imgSamana3    from '@/assets/img/principal/samana3.webp'
+import imgParque1    from '@/assets/img/principal/parque.webp'
+import imgParque2    from '@/assets/img/principal/San_Luis3.webp'
+import imgParque3    from '@/assets/img/principal/San_Luis.webp'
+
+const SITIOS_DEMO = [
+  {
+    id: 1,
+    nombre: 'Cascada La Chorrera',
+    descripcion: 'Una impresionante cascada rodeada de vegetación exuberante, ideal para senderismo y fotografía de naturaleza. Sus aguas cristalinas caen desde 40 metros de altura formando una piscina natural perfecta para refrescarse.',
+    imagenes: [imgCascada1, imgCascada2, imgCascada3],
+    lugar: 'San Luis',
+    estado: true,
+  },
+  {
+    id: 2,
+    nombre: 'Cascada La Planta',
+    descripcion: 'Accesible por un sendero de 20 minutos entre guaduales y helechos gigantes. Perfecta para un baño natural en familia. Sus aguas descienden suavemente formando pozas de diferentes profundidades.',
+    imagenes: [imgPlanta1, imgPlanta2, imgPlanta3],
+    lugar: 'San Luis',
+    estado: true,
+  },
+  {
+    id: 3,
+    nombre: 'Cerro Castellón',
+    descripcion: 'Desde este mirador natural se aprecia una vista panorámica de todo el municipio y sus alrededores. El ascenso toma unos 45 minutos por senderos bien marcados entre bosque nativo y cultivos de café.',
+    imagenes: [imgCerro1, imgCerro2, imgCerro3],
+    lugar: 'San Luis',
+    estado: true,
+  },
+  {
+    id: 4,
+    nombre: 'Río Dormilón',
+    descripcion: 'Afluente cristalino ideal para el baño y la contemplación. Sus pozos naturales de agua verde son un secreto bien guardado de los habitantes de San Luis, accesible solo por trocha.',
+    imagenes: [imgRio1, imgRio2, imgRio3],
+    lugar: 'San Luis',
+    estado: true,
+  },
+  {
+    id: 5,
+    nombre: 'Río Samaná Sur',
+    descripcion: 'Uno de los pocos ríos libres de represas en Colombia. El recorrido en balsa por su cañón es la experiencia de aventura más buscada del oriente antioqueño, con paisajes espectaculares.',
+    imagenes: [imgSamana1, imgSamana2, imgSamana3],
+    lugar: 'San Luis',
+    estado: true,
+  },
+  {
+    id: 6,
+    nombre: 'Parque Principal',
+    descripcion: 'Corazón del municipio rodeado de la iglesia colonial y casas de arquitectura tradicional antioqueña. Punto de encuentro de locales y visitantes, con kioscos de comida típica los fines de semana.',
+    imagenes: [imgParque1, imgParque2, imgParque3],
+    lugar: 'San Luis',
+    estado: true,
+  },
+]
+
 const sitios       = ref([])
 const cargando     = ref(false)
 const pagina       = ref(1)
@@ -147,9 +217,12 @@ async function cargar() {
     } else {
       sitios.value = Array.isArray(payload) ? payload : []
     }
+  } catch {
+    // API no disponible → mostrar datos de demo
   } finally {
     cargando.value = false
   }
+  if (!sitios.value.length) sitios.value = SITIOS_DEMO
 }
 
 function irAnterior() { if (pagina.value > 1) { pagina.value--; cargar() } }
