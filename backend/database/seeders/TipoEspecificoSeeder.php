@@ -27,14 +27,14 @@ class TipoEspecificoSeeder extends Seeder
                 'Piscina',
                 'Finca Recreativa',
             ],
-            'alojamiento' => [
+            'alojamientos' => [
                 'Hotel',
                 'Hostal',
                 'Glamping',
                 'Finca Hotel',
                 'Casa Amoblada',
             ],
-            'transporte' => [
+            'transportes' => [
                 'Público',
                 'Privado',
             ],

@@ -210,6 +210,17 @@ import imgPiscina         from '@/assets/img/piscina.webp'
 import imgTransporte      from '@/assets/img/principal/transporte.webp'
 import imgGastronomia     from '@/assets/img/principal/gastronomia.webp'
 import imgAgencia         from '@/assets/img/principal/agencia_turistica.webp'
+import imgCascada1        from '@/assets/img/principal/cascada.webp'
+import imgCascada2        from '@/assets/img/principal/cascada2.webp'
+import imgCascada3        from '@/assets/img/principal/cascada3.webp'
+import imgPlanta1         from '@/assets/img/principal/cascada_la_planta.webp'
+import imgPlanta2         from '@/assets/img/principal/planta.webp'
+import imgCerro1          from '@/assets/img/principal/cerro_castellon.webp'
+import imgCerro2          from '@/assets/img/principal/San_Luis.webp'
+import imgCerro3          from '@/assets/img/principal/San_Luis2.webp'
+import imgSamana1         from '@/assets/img/principal/rio_samana.webp'
+import imgSamana2         from '@/assets/img/principal/rio_samana2.webp'
+import imgSamana3         from '@/assets/img/principal/samana3.webp'
 
 const imgFallbackPorSlug = {
   'alojamientos':        imgHospedaje,
@@ -240,18 +251,50 @@ async function cargarEventos() {
   } catch { /* muestra sección vacía si falla */ }
 }
 
+const SITIOS_DEMO = [
+  {
+    id: 1,
+    nombre: 'Cascada La Chorrera',
+    descripcion: 'Cascada de 40 m rodeada de bosque nativo. Ideal para senderismo y fotografía.',
+    imagenes: [imgCascada1, imgCascada2, imgCascada3],
+    lugar: 'San Luis', estado: true,
+  },
+  {
+    id: 2,
+    nombre: 'Cascada La Planta',
+    descripcion: 'Pozas naturales accesibles por sendero de 20 min entre guaduales y helechos gigantes.',
+    imagenes: [imgPlanta1, imgPlanta2, imgCascada1],
+    lugar: 'San Luis', estado: true,
+  },
+  {
+    id: 3,
+    nombre: 'Cerro Castellón',
+    descripcion: 'Vista panorámica del municipio. Sendero de 45 min entre bosque nativo y cafetales.',
+    imagenes: [imgCerro1, imgCerro2, imgCerro3],
+    lugar: 'San Luis', estado: true,
+  },
+  {
+    id: 4,
+    nombre: 'Río Samaná Sur',
+    descripcion: 'Uno de los últimos ríos libres de represas en Colombia. Recorrido en balsa por el cañón.',
+    imagenes: [imgSamana1, imgSamana2, imgSamana3],
+    lugar: 'San Luis', estado: true,
+  },
+]
+
 async function cargarSitiosDestacados() {
   try {
     const { data } = await api.get(PUBLICO.SITIOS, { params: { page: 1 } })
     const payload = data.data
     let lista = []
-    if (payload?.data)    lista = payload.data
+    if (payload?.data)        lista = payload.data
     else if (payload?.sitios) lista = payload.sitios
     else if (Array.isArray(payload)) lista = payload
     sitiosDestacados.value = lista.filter(s => s.estado !== false)
-    sitiosDestacados.value.forEach(s => { imageIndices.value[s.id] = 0 })
-    iniciarCiclo()
   } catch {}
+  if (!sitiosDestacados.value.length) sitiosDestacados.value = SITIOS_DEMO
+  sitiosDestacados.value.forEach(s => { imageIndices.value[s.id] = 0 })
+  iniciarCiclo()
 }
 
 function imagenActual(sitio) {

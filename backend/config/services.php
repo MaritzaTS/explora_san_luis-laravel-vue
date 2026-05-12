@@ -36,9 +36,15 @@ return [
     ],
 
     'google' => [
-    'client_id'     => env('GOOGLE_CLIENT_ID'),
-    'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-    'redirect'      => env('GOOGLE_REDIRECT_URL'),
-],
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect'      => env('GOOGLE_REDIRECT_URL'),
+        // En entornos locales (XAMPP/Windows) el cURL de PHP no siempre
+        // tiene configurado el bundle de CAs para verificar SSL con Google.
+        // GOOGLE_SSL_VERIFY=false en .env solo para desarrollo local.
+        'guzzle' => [
+            'verify' => env('GOOGLE_SSL_VERIFY', true),
+        ],
+    ],
 
 ];

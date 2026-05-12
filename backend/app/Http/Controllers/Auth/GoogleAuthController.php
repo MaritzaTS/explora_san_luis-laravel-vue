@@ -3,59 +3,66 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\UsuarioResource;
 use App\Integrations\Google\GoogleAuthService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
-/**
- * Controlador para gestionar el flujo de autenticación OAuth2 con Google.
- * Proporciona los endpoints para redirección y procesamiento del retorno (callback).
- */
 class GoogleAuthController extends Controller
 {
-    // Trait personalizado para estandarizar las respuestas JSON de la API
     use ApiResponse;
 
-    /**
-     * Inyección de dependencias del servicio de Google.
-     * * @param GoogleAuthService $googleAuthService Lógica de integración con Google.
-     */
     public function __construct(
         private readonly GoogleAuthService $googleAuthService,
     ) {}
 
     /**
-     * Endpoint: GET /api/auth/google/redirect
-     * Obtiene la URL oficial de Google para que el frontend redirija al usuario.
-     * * @return JsonResponse URL de autorización envuelta en una respuesta de éxito.
+     * GET /api/auth/google/redirect
+     * Devuelve la URL de autorización de Google.
      */
     public function redirect(): JsonResponse
     {
-        // Solicita al servicio la URL generada por Socialite
         $url = $this->googleAuthService->getRedirectUrl();
 
-        return $this->success(
-            ['url' => $url],
-            'URL de autenticación con Google.'
-        );
+        return $this->success(['url' => $url], 'URL de autenticación con Google.');
     }
 
     /**
-     * Endpoint: GET /api/auth/google/callback
-     * Procesa la información del usuario devuelta por Google tras la autorización.
-     * Redirige al frontend con el token y datos del usuario como query params.
+     * GET /api/auth/google/callback
+     * Procesa el retorno de Google y redirige al frontend con el token.
      */
-    public function callback()
+    public function callback(Request $request)
     {
+        $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+
+        // Google puede devolver su propio error (ej: acceso denegado por el usuario)
+        if ($request->has('error')) {
+            $googleError = $request->get('error');
+            Log::warning('Google OAuth: Google devolvió un error', ['error' => $googleError]);
+
+            $tipo = $googleError === 'access_denied' ? 'access_denied' : 'google_auth_failed';
+            return redirect("{$frontendUrl}/auth/google/callback?error={$tipo}");
+        }
+
+        // El code es obligatorio para completar el flujo OAuth
+        if (!$request->has('code')) {
+            Log::error('Google OAuth: falta el parámetro code en el callback');
+            return redirect("{$frontendUrl}/auth/google/callback?error=missing_code");
+        }
+
         try {
-            $resultado = $this->googleAuthService->handleCallback();
-            $token = $resultado['token'];
-            $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+            $resultado   = $this->googleAuthService->handleCallback();
+            $token       = $resultado['token'];
 
             return redirect("{$frontendUrl}/auth/google/callback?token={$token}");
         } catch (\Exception $e) {
-            $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+            Log::error('Google OAuth: falló handleCallback', [
+                'exception' => get_class($e),
+                'message'   => $e->getMessage(),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+            ]);
 
             return redirect("{$frontendUrl}/auth/google/callback?error=google_auth_failed");
         }
