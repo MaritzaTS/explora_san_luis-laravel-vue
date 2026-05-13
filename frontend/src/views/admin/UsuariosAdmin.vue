@@ -1,53 +1,41 @@
 <template>
   <div>
 
-    <!-- ALERTA -->
-    <div v-if="alerta.visible"
-      :class="`alert alert-${alerta.tipo} alert-dismissible fade show border-0 shadow-sm rounded-4`"
-      role="alert">
-      <strong>{{ alerta.titulo }}</strong> {{ alerta.mensaje }}
-      <button type="button" class="btn-close" @click="alerta.visible = false"></button>
-    </div>
-
     <!-- TARJETAS ESTADÍSTICAS -->
-    <div class="row g-4 mb-4">
-      <div class="col-md-3">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-dark border-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-muted small text-uppercase mb-0">Total Usuarios</h6>
-            <i class="bi bi-people-fill fs-4 text-dark"></i>
-          </div>
-          <h1 class="display-5 fw-bold mb-0 text-dark">{{ totalUsuarios }}</h1>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-success border-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-success small text-uppercase mb-0">Activos</h6>
-            <i class="bi bi-check-circle-fill fs-4 text-success"></i>
-          </div>
-          <h1 class="display-5 fw-bold mb-0 text-success">{{ activos }}</h1>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-danger border-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-danger small text-uppercase mb-0">Inactivos</h6>
-            <i class="bi bi-x-circle-fill fs-4 text-danger"></i>
-          </div>
-          <h1 class="display-5 fw-bold mb-0 text-danger">{{ inactivos }}</h1>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-primary border-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-primary small text-uppercase mb-0">Verificados</h6>
-            <i class="bi bi-patch-check-fill fs-4 text-primary"></i>
-          </div>
-          <h1 class="display-5 fw-bold mb-0 text-primary">{{ verificados }}</h1>
-        </div>
-      </div>
-    </div>
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <AdminStatCard
+      label="Total Usuarios"
+      :valor="totalUsuarios"
+      icono="bi bi-people-fill"
+      variante="default"
+    />
+  </div>
+  <div class="col-md-3">
+    <AdminStatCard
+      label="Activos"
+      :valor="activos"
+      icono="bi bi-check-circle-fill"
+      variante="success"
+    />
+  </div>
+  <div class="col-md-3">
+    <AdminStatCard
+      label="Inactivos"
+      :valor="inactivos"
+      icono="bi bi-x-circle-fill"
+      variante="danger"
+    />
+  </div>
+  <div class="col-md-3">
+    <AdminStatCard
+      label="Verificados"
+      :valor="verificados"
+      icono="bi bi-patch-check-fill"
+      variante="primary"
+    />
+  </div>
+</div>
 
     <!-- TABLA DE USUARIOS -->
     <div class="card border-1 shadow-sm rounded-4 bg-white border-dark-subtle">
@@ -257,13 +245,19 @@ import { ref, computed, onMounted } from 'vue'
 import { Modal } from 'bootstrap'
 import api from '@/api/axios'
 import { ADMIN } from '@/api/endpoints'
+import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
+import AdminStatCard from '@/components/admin/AdminStatCard.vue'
+
+const toast = useToast()
+const { confirmar, alertaError } = useConfirm()
 
 const usuarios  = ref([])
 const cargando  = ref(true)
 const busqueda  = ref('')
 const filtroRol = ref('')
 const detalle   = ref(null)
-const alerta    = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
+
 
 const totalUsuarios = computed(() => usuarios.value.length)
 const activos       = computed(() => usuarios.value.filter(u => u.estado).length)
@@ -292,12 +286,19 @@ async function cargarUsuarios() {
 
 async function toggleEstado(user) {
   const accion = user.estado ? 'desactivar' : 'activar'
-  if (!confirm(`¿Deseas ${accion} la cuenta de "${user.nombre}"?`)) return
+  const ok = await confirmar({
+    titulo: `¿${capitalizar(accion)} usuario?`,
+    texto: `La cuenta de "${user.nombre}" será ${user.estado ? 'desactivada' : 'activada'}.`,
+    textoBoton: `Sí, ${accion}`,
+  })
+  if (!ok) return
   try {
     await api.patch(ADMIN.USUARIO_ESTADO(user.id), { estado: !user.estado })
     user.estado = !user.estado
-    mostrarAlerta('success', '¡Listo!', `Usuario ${user.estado ? 'activado' : 'desactivado'}.`)
-  } catch { mostrarAlerta('danger', '¡Error!', 'No se pudo cambiar el estado.') }
+    toast.exito(`Usuario ${user.estado ? 'activado' : 'desactivado'}.`)
+  } catch {
+    alertaError('No se pudo cambiar el estado del usuario.')
+  }
 }
 
 function verDetalle(user) {
@@ -316,8 +317,5 @@ function formatFecha(fecha) {
 
 function obtenerNombreRol(user) { return capitalizar(user.rol?.nombre ?? 'Sin rol') }
 
-function mostrarAlerta(tipo, titulo, mensaje) {
-  alerta.value = { visible: true, tipo, titulo, mensaje }
-  setTimeout(() => alerta.value.visible = false, 4000)
-}
+
 </script>

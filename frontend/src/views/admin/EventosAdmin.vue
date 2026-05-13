@@ -2,43 +2,32 @@
   <div>
 
     <!-- TARJETAS ESTADÍSTICAS -->
-    <div class="row g-4 mb-4">
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-dark border-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-muted small text-uppercase mb-0">Total Eventos</h6>
-            <i class="bi bi-calendar-event-fill fs-4 text-dark"></i>
-          </div>
-          <h1 class="display-5 fw-bold mb-0 text-dark">{{ totalEventos }}</h1>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-success border-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-success small text-uppercase mb-0">Activos</h6>
-            <i class="bi bi-check-circle-fill fs-4 text-success"></i>
-          </div>
-          <h1 class="display-5 fw-bold mb-0 text-success">{{ activos }}</h1>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-secondary border-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-secondary small text-uppercase mb-0">Inactivos</h6>
-            <i class="bi bi-x-circle-fill fs-4 text-secondary"></i>
-          </div>
-          <h1 class="display-5 fw-bold mb-0 text-secondary">{{ inactivos }}</h1>
-        </div>
-      </div>
-    </div>
-
-    <!-- ALERTA -->
-    <div v-if="alerta.visible"
-      :class="`alert alert-${alerta.tipo} alert-dismissible fade show border-0 shadow-sm rounded-4`"
-      role="alert">
-      <strong>{{ alerta.titulo }}</strong> {{ alerta.mensaje }}
-      <button type="button" class="btn-close" @click="alerta.visible = false"></button>
-    </div>
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <AdminStatCard
+      label="Total Eventos"
+      :valor="totalEventos"
+      icono="bi bi-calendar-event-fill"
+      variante="default"
+    />
+  </div>
+  <div class="col-md-4">
+    <AdminStatCard
+      label="Activos"
+      :valor="activos"
+      icono="bi bi-check-circle-fill"
+      variante="success"
+    />
+  </div>
+  <div class="col-md-4">
+    <AdminStatCard
+      label="Inactivos"
+      :valor="inactivos"
+      icono="bi bi-x-circle-fill"
+      variante="danger"
+    />
+  </div>
+</div>
 
     <!-- TABLA DE EVENTOS -->
     <div class="card border-1 shadow-sm rounded-4 bg-white border-dark-subtle">
@@ -256,6 +245,12 @@ import { Modal } from 'bootstrap'
 import api from '@/api/axios'
 import { ADMIN } from '@/api/endpoints'
 import ImagenInput from '@/components/ui/ImagenInput.vue'
+import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
+import AdminStatCard from '@/components/admin/AdminStatCard.vue'
+
+const toast = useToast()
+const { alertaError } = useConfirm()
 
 const eventos        = ref([])
 const cargando       = ref(true)
@@ -264,7 +259,7 @@ const formEditar     = ref(null)
 const posterNuevoFile  = ref(null)
 const posterEditarFile = ref(null)
 const resetKeyNuevo  = ref(0)
-const alerta         = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
+
 
 const formNuevo = ref({ nombre: '', fecha_inicio: '', fecha_fin: '', descripcion: '', estado: true })
 
@@ -312,12 +307,12 @@ async function guardarEvento() {
 
     await api.post(ADMIN.EVENTOS, fd)
     Modal.getInstance(document.getElementById('modalEventoAgregar')).hide()
-    mostrarAlerta('success', '¡Guardado!', 'Evento creado.')
+    toast.exito('Evento creado correctamente.')
     await cargarEventos()
   } catch (err) {
     const errors = err.response?.data?.errors
-    const msg = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo guardar.')
-    mostrarAlerta('danger', '¡Error!', msg)
+    const msg = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo guardar el evento.')
+    alertaError(msg)
   } finally { guardando.value = false }
 }
 
@@ -346,17 +341,14 @@ async function guardarEdicion() {
 
     await api.post(ADMIN.EVENTO(formEditar.value.id), fd)
     Modal.getInstance(document.getElementById('modalEventoEditar')).hide()
-    mostrarAlerta('success', '¡Actualizado!', 'Evento editado.')
+    toast.exito('Evento actualizado correctamente.')
     await cargarEventos()
   } catch (err) {
     const errors = err.response?.data?.errors
-    const msg = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo actualizar.')
-    mostrarAlerta('danger', '¡Error!', msg)
+    const msg = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo actualizar el evento.')
+    alertaError(msg)
   } finally { guardando.value = false }
 }
 
-function mostrarAlerta(tipo, titulo, mensaje) {
-  alerta.value = { visible: true, tipo, titulo, mensaje }
-  setTimeout(() => alerta.value.visible = false, 4000)
-}
+
 </script>

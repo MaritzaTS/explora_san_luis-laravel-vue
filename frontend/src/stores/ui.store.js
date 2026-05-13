@@ -2,11 +2,15 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useUiStore = defineStore('ui', () => {
-  const sidebarAbierto = ref(false)
-  const modalActivo    = ref(null)   // nombre del modal abierto o null
-  const toasts         = ref([])     // [{ id, tipo, mensaje }]
+  const sidebarColapsado = ref(localStorage.getItem('sidebar-colapsado') === 'true')
+  const modalActivo    = ref(null)
+  const toasts         = ref([])
 
-  function toggleSidebar() { sidebarAbierto.value = !sidebarAbierto.value }
+  function toggleSidebar() {
+    sidebarColapsado.value = !sidebarColapsado.value
+    localStorage.setItem('sidebar-colapsado', sidebarColapsado.value)
+  }
+
   function abrirModal(nombre) { modalActivo.value = nombre }
   function cerrarModal() { modalActivo.value = null }
 
@@ -21,7 +25,7 @@ export const useUiStore = defineStore('ui', () => {
   }
 
   return {
-    sidebarAbierto, modalActivo, toasts,
+    sidebarColapsado, modalActivo, toasts,
     toggleSidebar, abrirModal, cerrarModal, mostrarToast, eliminarToast,
   }
 })

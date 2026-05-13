@@ -1,14 +1,6 @@
 <template>
   <div>
 
-    <!-- ALERTA -->
-    <div v-if="alerta.visible"
-      :class="`alert alert-${alerta.tipo} alert-dismissible fade show border-0 shadow-sm rounded-4`"
-      role="alert">
-      <strong>{{ alerta.titulo }}</strong> {{ alerta.mensaje }}
-      <button type="button" class="btn-close" @click="alerta.visible = false"></button>
-    </div>
-
     <div class="row g-4">
 
       <!-- ── COLUMNA IZQUIERDA: AVATAR Y RESUMEN ── -->
@@ -172,6 +164,9 @@ import { ref, onMounted } from 'vue'
 import api from '@/api/axios'
 import { AUTH } from '@/api/endpoints'
 import { useAuthStore } from '@/stores/auth.store'
+import { useToast } from '@/composables/useToast'
+
+const toast = useToast()
 
 const authStore = useAuthStore()
 const perfil   = ref({})
@@ -179,7 +174,7 @@ const formDatos = ref({ nombre: '', email: '' })
 const formPassword = ref({ actual: '', nueva: '', confirmar: '' })
 const editandoDatos     = ref(false)
 const cambiandoPassword = ref(false)
-const alerta = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
+
 
 onMounted(cargarPerfil)
 
@@ -202,7 +197,7 @@ function cancelarEdicion() {
 }
 
 async function guardarDatos() {
-  mostrarAlerta('warning', 'No disponible', 'La edición de perfil no está habilitada aún.')
+  toast.warning('La edición de perfil no está habilitada aún.')
   editandoDatos.value = false
 }
 
@@ -212,7 +207,7 @@ function cancelarPassword() {
 }
 
 async function cambiarPassword() {
-  mostrarAlerta('warning', 'No disponible', 'El cambio de contraseña no está habilitado aún.')
+  toast.warning('El cambio de contraseña no está habilitado aún.')
   cancelarPassword()
 }
 
@@ -223,8 +218,5 @@ function formatFecha(fecha) {
   return `${d.getDate().toString().padStart(2,'0')} ${meses[d.getMonth()]} ${d.getFullYear()}`
 }
 
-function mostrarAlerta(tipo, titulo, mensaje) {
-  alerta.value = { visible: true, tipo, titulo, mensaje }
-  setTimeout(() => alerta.value.visible = false, 4000)
-}
+
 </script>

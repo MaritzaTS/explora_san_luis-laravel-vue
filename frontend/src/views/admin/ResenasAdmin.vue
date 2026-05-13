@@ -1,44 +1,33 @@
 <template>
   <div>
 
-    <!-- ALERTA -->
-    <div v-if="alerta.visible"
-      :class="`alert alert-${alerta.tipo} alert-dismissible fade show border-0 shadow-sm rounded-4 mb-4`"
-      role="alert">
-      <strong>{{ alerta.titulo }}</strong> {{ alerta.mensaje }}
-      <button type="button" class="btn-close" @click="alerta.visible = false"></button>
-    </div>
-
     <!-- TARJETAS ESTADÍSTICAS -->
-    <div class="row g-4 mb-4">
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-dark border-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-muted small text-uppercase mb-0">Total Reseñas</h6>
-            <i class="bi bi-chat-left-heart-fill fs-4 text-dark"></i>
-          </div>
-          <h1 class="display-5 fw-bold mb-0 text-dark">{{ totalResenas }}</h1>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-success border-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-success small text-uppercase mb-0">Aprobadas</h6>
-            <i class="bi bi-check-circle-fill fs-4 text-success"></i>
-          </div>
-          <h1 class="display-5 fw-bold mb-0 text-success">{{ aprobadas }}</h1>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-warning border-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-warning small text-uppercase mb-0">Pendientes</h6>
-            <i class="bi bi-hourglass-split fs-4 text-warning"></i>
-          </div>
-          <h1 class="display-5 fw-bold mb-0 text-warning">{{ pendientes }}</h1>
-        </div>
-      </div>
-    </div>
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <AdminStatCard
+      label="Total Reseñas"
+      :valor="totalResenas"
+      icono="bi bi-chat-left-heart-fill"
+      variante="default"
+    />
+  </div>
+  <div class="col-md-4">
+    <AdminStatCard
+      label="Aprobadas"
+      :valor="aprobadas"
+      icono="bi bi-check-circle-fill"
+      variante="success"
+    />
+  </div>
+  <div class="col-md-4">
+    <AdminStatCard
+      label="Pendientes"
+      :valor="pendientes"
+      icono="bi bi-hourglass-split"
+      variante="warning"
+    />
+  </div>
+</div>
 
     <!-- TABLA -->
     <div class="card border-1 shadow-sm rounded-4 bg-white border-dark-subtle">
@@ -142,13 +131,19 @@
 import { ref, computed, onMounted } from 'vue'
 import api from '@/api/axios'
 import { ADMIN } from '@/api/endpoints'
+import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
+import AdminStatCard from '@/components/admin/AdminStatCard.vue'
+
+const toast = useToast()
+const { confirmar, alertaError } = useConfirm()
 
 const resenas    = ref([])
 const totalApi   = ref(0)
 const cargando   = ref(true)
 const errorCarga = ref(false)
 const busqueda   = ref('')
-const alerta     = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
+
 
 const totalResenas = computed(() => totalApi.value || resenas.value.length)
 const aprobadas    = computed(() => resenas.value.filter(r => r.estado).length)
@@ -183,13 +178,18 @@ async function cargarResenas() {
 
 async function toggleEstado(resena) {
   const accion = resena.estado ? 'rechazar' : 'aprobar'
-  if (!confirm(`¿Deseas ${accion} esta reseña?`)) return
+  const ok = await confirmar({
+    titulo: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} reseña?`,
+    texto: `La reseña de "${resena.usuario?.nombre ?? 'este usuario'}" será ${resena.estado ? 'rechazada' : 'aprobada y visible en el sitio'}.`,
+    textoBoton: `Sí, ${accion}`,
+  })
+  if (!ok) return
   try {
     await api.patch(ADMIN.RESENA_ESTADO(resena.id), { estado: !resena.estado })
     resena.estado = !resena.estado
-    mostrarAlerta('success', '¡Listo!', `Reseña ${resena.estado ? 'aprobada' : 'rechazada'}.`)
+    toast.exito(`Reseña ${resena.estado ? 'aprobada' : 'rechazada'}.`)
   } catch {
-    mostrarAlerta('danger', '¡Error!', 'No se pudo cambiar el estado.')
+    alertaError('No se pudo cambiar el estado de la reseña.')
   }
 }
 
@@ -200,8 +200,5 @@ function formatFecha(fecha) {
   return `${d.getDate().toString().padStart(2,'0')} ${meses[d.getMonth()]} ${d.getFullYear()}`
 }
 
-function mostrarAlerta(tipo, titulo, mensaje) {
-  alerta.value = { visible: true, tipo, titulo, mensaje }
-  setTimeout(() => alerta.value.visible = false, 4000)
-}
+
 </script>
