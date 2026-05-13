@@ -21,7 +21,7 @@
         :key="slide.alt" 
         class="carousel-item" 
         :class="{ active: index === 0 }">
-        <img :src="slide.src" class="d-block w-100 carousel-img" :alt="slide.alt">
+        <img :src="slide.src" class="d-block w-200 carousel-img" :alt="slide.alt">
       </div>
     </div>
 
@@ -72,7 +72,7 @@ onMounted(() => {
 <style scoped>
 .carousel-img {
   width: 100%;
-  height: 300px;
+  height: 1040px;
   object-fit: cover;
 }
 

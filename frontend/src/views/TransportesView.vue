@@ -116,6 +116,77 @@ onMounted(async () => { await init() })
 </script>
 
 <style scoped>
+
+/* ── 6. ANIMACIONES DE ENTRADA (hero — se ejecutan al cargar) ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes markerAppear {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 0.85; transform: translateY(0); }
+}
+
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(255,255,255,0.3); }
+  50%       { box-shadow: 0 0 0 7px rgba(255,255,255,0.1); }
+}
+
+/* Hero image zoom lento */
+.hero-img {
+  animation: heroZoom 18s ease-in-out infinite alternate;
+}
+@keyframes heroZoom {
+  from { transform: scale(1); }
+  to   { transform: scale(1.06); }
+}
+
+.anim-hero-title {
+  animation: fadeUp 0.9s ease both;
+  animation-delay: 0.2s;
+}
+.anim-hero-subtitle {
+  animation: fadeUp 0.9s ease both;
+  animation-delay: 0.55s;
+}
+.anim-hero-btn {
+  animation: fadeUp 0.9s ease both;
+  animation-delay: 0.85s;
+}
+
+.anim-marker {
+  opacity: 0;
+  animation: markerAppear 0.7s ease forwards;
+}
+
+.pulse {
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+/* ── 8. RESPONSIVE ── */
+@media (max-width: 768px) {
+  .hero {
+    height: 100svh;
+  }
+
+  .label { font-size: 12px; }
+  .line  { height: 20px; }
+  .dot   { width: 6px; height: 6px; }
+
+  .cascadas { top: 60%; left: 10%; }
+  .rio      { top: 40%; left: 50%; }
+  .prodigio { top: 25%; right: 10%; }
+
+  .info-banner-brand { padding: 2rem 1.2rem; }
+  .lugares-section   { margin-top: -40px; }
+  .resenas-scroll    { grid-template-columns: 1fr !important; }
+}
 .transport-card {
   transition: transform 0.3s ease;
   border-radius: 1.5rem;

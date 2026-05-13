@@ -1,0 +1,113 @@
+/* ==========================================================================
+   1. VARIABLES DE MARCA (ADN VISUAL)
+   ========================================================================== */
+:root {
+  /* Colores Principales */
+  --verde-bosque:  #4F7352;
+  --verde-lima:    #A8CF45;
+  --verde-claro:   #EAF3DE;
+  --azul-link:     #2469A6;
+  --negro-suave:   #1a1a1a;
+  --blanco:        #ffffff;
+
+  /* Sombras y Bordes */
+  --sombra-suave:  0 8px 30px rgba(0, 0, 0, 0.08);
+  --sombra-fuerte: 0 15px 35px rgba(0, 0, 0, 0.15);
+  --radius-lg:     1.5rem;
+  --radius-md:     1rem;
+
+  /* Tipografías */
+  --font-display:  'Playfair Display', serif;
+  --font-body:     'DM Sans', sans-serif;
+}
+
+/* ==========================================================================
+   2. ANIMACIONES GLOBALES (VIDA DEL SITIO)
+   ========================================================================== */
+
+/* Aparecer y subir suavemente */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Aparecer desde la nada */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Efecto de pulso para iconos o puntos */
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(255,255,255,0.3); }
+  50%      { box-shadow: 0 0 0 7px rgba(255,255,255,0.1); }
+}
+
+/* Clases de utilidad para animar cualquier elemento */
+.reveal-up { animation: fadeUp 0.8s ease both; }
+.reveal-in { animation: fadeIn 1s ease both; }
+.pulse     { animation: dotPulse 2s ease-in-out infinite; }
+
+/* Delays (Retrasos) para efectos en cascada */
+.delay-1 { animation-delay: 0.2s; }
+.delay-2 { animation-delay: 0.4s; }
+.delay-3 { animation-delay: 0.6s; }
+.delay-4 { animation-delay: 0.8s; }
+
+/* ==========================================================================
+   3. COMPONENTES GLOBALES (MODALES Y CARDS)
+   ========================================================================== */
+
+/* Estilo para Modales Custom (Clima, Mapa, etc.) */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px); /* Efecto vidrio esmerilado */
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-custom {
+  background: var(--blanco);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--sombra-fuerte);
+  width: 100%;
+  max-width: 500px;
+  overflow: hidden;
+  animation: modalIn 0.3s ease;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Base para cualquier tarjeta del sitio */
+.card-base {
+  background: var(--blanco);
+  border: 1px solid #f0f0f0;
+  border-radius: var(--radius-md);
+  transition: all 0.3s ease;
+}
+
+.card-base:hover {
+  box-shadow: var(--sombra-suave);
+  transform: translateY(-5px);
+}
+
+/* ==========================================================================
+   4. AJUSTES DE TEXTO RESPONSIVOS
+   ========================================================================== */
+body {
+  font-family: var(--font-body);
+  color: var(--negro-suave);
+  background-color: #fcfcfc;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+}
