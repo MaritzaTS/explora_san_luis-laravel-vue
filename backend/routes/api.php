@@ -48,6 +48,7 @@ Route::get('/sitios-turisticos', [SitioTuristicoController::class, 'index']);
 Route::get('/eventos', [EventoController::class, 'index']);
 Route::get('/resenas', [ResenaController::class, 'index']);
 Route::post('/resenas', [ResenaController::class, 'store'])->middleware('auth:api');
+Route::post('/comercios/registrar', [EntidadPublicaController::class, 'registrarComercio']);
 
 
 // ====================================================
@@ -71,6 +72,7 @@ Route::prefix('admin')->middleware(['auth:api', 'is_admin'])->group(function () 
     Route::get('/eventos', [AdminEventoController::class, 'index']);
     Route::post('/eventos', [AdminEventoController::class, 'store']);
     Route::put('/eventos/{id}', [AdminEventoController::class, 'update']);
+    Route::patch('/eventos/{id}/estado', [AdminEventoController::class, 'cambiarEstado']);
 
     // Reseñas
     Route::get('/resenas', [AdminResenaController::class, 'index']);

@@ -10,6 +10,7 @@ use App\Http\Resources\EventoResource;
 use App\Services\EventoService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use App\Http\Requests\Admin\CambiarEstadoRequest;
 
 /**
  * Controlador para la gestión administrativa de Eventos.
@@ -92,6 +93,23 @@ class EventoController extends Controller
         return $this->success(
             new EventoResource($evento),
             'Evento actualizado exitosamente.'
+        );
+    }
+
+    /**
+     * PATCH /api/admin/eventos/{id}/estado
+     */
+    public function cambiarEstado(int $id, CambiarEstadoRequest $request): JsonResponse
+    {
+        $estado = $request->boolean('estado');
+
+        $evento = $this->eventoService->cambiarEstado($id, $estado);
+
+        $mensaje = $estado ? 'Evento activado.' : 'Evento desactivado.';
+
+        return $this->success(
+            new EventoResource($evento),
+            $mensaje
         );
     }
 }

@@ -106,4 +106,15 @@ class EventoService
 
         return $this->eventoRepository->update($evento, $data);
     }
+
+    public function cambiarEstado(int $id, bool $estado): Evento
+    {
+        $evento = $this->eventoRepository->findById($id);
+
+        if (!$evento) {
+            throw EventoException::noEncontrado($id);
+        }
+
+        return $this->eventoRepository->cambiarEstado($evento, $estado);
+    }
 }
