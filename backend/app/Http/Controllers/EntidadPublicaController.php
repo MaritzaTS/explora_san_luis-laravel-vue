@@ -8,6 +8,9 @@ use App\Models\TipoEntidad;
 use App\Repositories\Contracts\EntidadRepositoryInterface;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use App\DTOs\EntidadDTO;
+use App\Http\Requests\Shared\StoreComercioPublicoRequest;
+use App\Services\EntidadService;
 
 /**
  * Controlador para la exposición pública de entidades.
@@ -24,6 +27,7 @@ class EntidadPublicaController extends Controller
      */
     public function __construct(
         private readonly EntidadRepositoryInterface $entidadRepository,
+        private readonly EntidadService $entidadService,
     ) {}
 
     /**
@@ -58,6 +62,22 @@ class EntidadPublicaController extends Controller
                 'por_pagina'    => $entidades->perPage(),
             ],
             "Entidades de {$tipoEntidad->nombre}."
+        );
+    }
+
+    /**
+     * POST /api/comercios/registrar
+     */
+    public function registrarComercio(StoreComercioPublicoRequest $request): JsonResponse
+    {
+        $dto = EntidadDTO::fromRequest($request);
+        $logo = $request->file('logo');
+
+        $entidad = $this->entidadService->registroPublico($dto, $logo);
+
+        return $this->created(
+            new EntidadResource($entidad),
+            'Comercio registrado exitosamente. Será revisado por el administrador antes de ser publicado.'
         );
     }
 }

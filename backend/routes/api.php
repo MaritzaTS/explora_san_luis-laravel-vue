@@ -48,6 +48,7 @@ Route::get('/sitios-turisticos', [SitioTuristicoController::class, 'index']);
 Route::get('/eventos', [EventoController::class, 'index']);
 Route::get('/resenas', [ResenaController::class, 'index']);
 Route::post('/resenas', [ResenaController::class, 'store'])->middleware('auth:api');
+Route::post('/comercios/registrar', [EntidadPublicaController::class, 'registrarComercio']);
 
 
 // ====================================================
