@@ -46,4 +46,6 @@ interface EventoRepositoryInterface
      * @return Evento El modelo con los cambios aplicados y persistidos.
      */
     public function update(Evento $evento, array $data): Evento;
+
+    public function cambiarEstado(Evento $evento, bool $estado): Evento;
 }
