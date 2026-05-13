@@ -71,6 +71,7 @@ Route::prefix('admin')->middleware(['auth:api', 'is_admin'])->group(function () 
     Route::get('/eventos', [AdminEventoController::class, 'index']);
     Route::post('/eventos', [AdminEventoController::class, 'store']);
     Route::put('/eventos/{id}', [AdminEventoController::class, 'update']);
+    Route::patch('/eventos/{id}/estado', [AdminEventoController::class, 'cambiarEstado']);
 
     // Reseñas
     Route::get('/resenas', [AdminResenaController::class, 'index']);
