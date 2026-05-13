@@ -110,17 +110,16 @@
   =========================================== -->
   <section class="container mb-5 px-4 px-lg-5" v-reveal>
     <div class="d-flex justify-content-between align-items-end mb-4">
+      
       <div>
         <h2 class="fw-bold mb-1">Lugares imperdibles</h2>
         <p class="text-secondary fs-5 mb-0">Los destinos que no puedes dejar de visitar</p>
       </div>
+
       <div class="d-flex gap-2">
-        <button class="scroll-nav-btn" @click="scrollLugares(-1)" aria-label="Anterior">
-          <i class="bi bi-chevron-left"></i>
-        </button>
-        <button class="scroll-nav-btn" @click="scrollLugares(1)" aria-label="Siguiente">
-          <i class="bi bi-chevron-right"></i>
-        </button>
+       <router-link to="/sitios-turisticos" class="btn btn-outline-success btn-sm fw-bold">
+        Ver todos <i class="bi bi-arrow-right ms-1"></i>
+      </router-link>
       </div>
     </div>
 
@@ -146,7 +145,7 @@
           <!-- Gradiente y contenido superpuesto -->
           <div class="lugar-card-overlay">
             <span class="badge bg-success bg-opacity-90 rounded-pill px-3 py-1 mb-2 d-inline-block">
-              <i class="bi bi-geo-alt-fill me-1"></i>{{ sitio.lugar ?? 'San Luis' }}
+              
             </span>
             <h5 class="fw-bold text-white mb-1 lh-sm">{{ sitio.nombre }}</h5>
             <p class="text-white opacity-75 small mb-0 lugar-desc-clamp">{{ sitio.descripcion }}</p>
@@ -379,7 +378,7 @@ const cardsHistoria = [
 
 /* ── CATEGORÍAS ── */
 .categoria-card {
-  min-width: 250px;
+  min-width: 400px;
   transition: transform 0.3s ease;
   cursor: pointer;
 }
@@ -387,7 +386,7 @@ const cardsHistoria = [
   transform: translateY(-4px);
 }
 .categoria-card-img {
-  height: 150px;
+  height: 300px;
   object-fit: cover;
 }
 
@@ -400,7 +399,7 @@ const cardsHistoria = [
   display: flex; align-items: center; justify-content: center;
   font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background 0.1s, border-color 0.1s;
 }
 .scroll-nav-btn:hover { background: #198754; border-color: #198754; color: #fff; }
 
@@ -419,13 +418,13 @@ const cardsHistoria = [
 .lugares-scroll::-webkit-scrollbar-thumb { background: #a5d6a7; border-radius: 99px; }
 
 .lugar-card {
-  width: 300px;
-  min-width: 300px;
+  width: 250px;
+  min-width: 280px;
   scroll-snap-align: start;
   border-radius: 1.25rem;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0,0,0,0.10);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 .lugar-card:hover {
   transform: translateY(-6px);
@@ -439,7 +438,7 @@ const cardsHistoria = [
   inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease;
+  transition: transform 0.1s ease;
 }
 .lugar-card:hover .lugar-card-img { transform: scale(1.05); }
 
@@ -459,19 +458,30 @@ const cardsHistoria = [
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
+/*trancicion de la imagen de de lugares imperdibles*/
 .fade-img-enter-active,
 .fade-img-leave-active {
-  transition: opacity 0.9s ease;
+  transition: opacity 0.8s ease-in-out;
   position: absolute;
   inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 .fade-img-enter-from,
 .fade-img-leave-to { opacity: 0; }
 
+/* Evita que la imagen que entra "empuje" el contenido hacia abajo */
+.image-container {
+  position: relative;
+  height: 220px; /* Asegura que coincida con el alto de tu imagen */
+  overflow: hidden;
+}
+
 /* ── EVENTOS ── */
 .evento-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.6s ease, box-shadow 0.6s ease;
   cursor: pointer;
 }
 .evento-card:hover {

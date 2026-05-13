@@ -55,9 +55,15 @@
           </router-link>
           
           <div class="d-flex justify-content-md-center gap-3 mt-2">
-            <i class="bi bi-whatsapp fs-5 text-secondary"></i>
-            <i class="bi bi-instagram fs-5 text-secondary"></i>
-            <i class="bi bi-facebook fs-5 text-secondary"></i>
+            <a href="#" class="social-icon whatsapp">
+              <i class="bi bi-whatsapp"></i>
+            </a>
+            <a href="#" class="social-icon instagram">
+             <i class="bi bi-instagram"></i>
+            </a>
+            <a href="#" class="social-icon facebook">
+             <i class="bi bi-facebook"></i>
+            </a>
           </div>
         </div>
 
@@ -93,6 +99,26 @@
     color: #a3e635; /* El verde lima/claro que usas en el botón */
     text-decoration: underline; /* Opcional: subraya para reforzar que es un link */
 }
+
+.social-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #fff;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  text-decoration: none;
+}
+.social-icon:hover {
+  transform: translateY(-3px);
+  opacity: 0.88;
+}
+.whatsapp  { background: #25D366; }
+.instagram { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285AEB 90%); }
+.facebook  { background: #1877F2; }
 
 </style>
 

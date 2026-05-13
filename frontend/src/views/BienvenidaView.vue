@@ -81,31 +81,40 @@
   <!-- ==========================================
        SECCIÓN 4: BANNER INFO
   =========================================== -->
-  <section class="container mb-5" v-reveal>
-    <div class="info-banner-brand p-4 p-md-5">
-      <div class="row g-4 text-center align-items-center">
+  <!-- ==========================================
+     SECCIÓN 4: BANNER INFO
+=========================================== -->
+<section class="container mb-5" v-reveal>
+  <div class="info-banner-brand p-4 p-md-5">
+    <div class="row g-4 text-center align-items-center">
 
-        <div class="col-md-4" v-reveal="0">
-          <i class="bi bi-cloud-sun brand-icon mb-3"></i>
-          <h4 class="brand-subtitle mb-3">Clima</h4>
-          <p class="mb-1 small" v-for="item in clima" :key="item">{{ item }}</p>
-        </div>
-
-        <div class="col-md-4" v-reveal="150">
-          <i class="bi bi-lightbulb brand-icon mb-3"></i>
-          <h4 class="brand-subtitle">Consejos</h4>
-          <p class="mb-1 small" v-for="consejo in consejos" :key="consejo">{{ consejo }}</p>
-        </div>
-
-        <div class="col-md-4" v-reveal="300">
-          <i class="bi bi-geo-alt brand-icon mb-3"></i>
-          <h4 class="brand-subtitle">Ubicación</h4>
-          <p class="mb-1 small" v-for="dato in ubicacion" :key="dato">{{ dato }}</p>
-        </div>
-
+      <div class="col-md-4" v-reveal="0">
+        <i class="bi bi-cloud-sun brand-icon mb-3"></i>
+        <h4 class="brand-subtitle mb-3">Clima</h4>
+        <p class="mb-1 small" v-for="item in clima" :key="item">{{ item }}</p>
+        <button class="btn-banner-action mt-3" @click="abrirClima">
+          <i class="bi bi-thermometer-sun me-2"></i>Ver clima actual
+        </button>
       </div>
+
+      <div class="col-md-4" v-reveal="150">
+        <i class="bi bi-lightbulb brand-icon mb-3"></i>
+        <h4 class="brand-subtitle">Consejos</h4>
+        <p class="mb-1 small" v-for="consejo in consejos" :key="consejo">{{ consejo }}</p>
+      </div>
+
+      <div class="col-md-4" v-reveal="300">
+        <i class="bi bi-geo-alt brand-icon mb-3"></i>
+        <h4 class="brand-subtitle">Ubicación</h4>
+        <p class="mb-1 small" v-for="dato in ubicacion" :key="dato">{{ dato }}</p>
+        <button class="btn-banner-action mt-3" @click="abrirMapa">
+          <i class="bi bi-map me-2"></i>Ver en el mapa
+        </button>
+      </div>
+
     </div>
-  </section>
+  </div>
+</section>
 
   <!-- ==========================================
        SECCIÓN 5: RESEÑAS DE VISITANTES
@@ -113,8 +122,8 @@
   <section class="resenas-bg py-5 mb-0" v-reveal>
     <div class="container">
       <div class="text-center mb-5">
-        <h2 class="fw-bold mb-1">Lo que dicen nuestros visitantes</h2>
-        <p class="text-secondary fs-5">Experiencias reales de quienes exploraron San Luis</p>
+         <h2 class="resenas-titulo">Lo que dicen nuestros visitantes</h2>
+         <p class="resenas-subtitulo">Experiencias auténticas de quienes han vivido la magia de San Luis</p>
       </div>
 
       <div v-if="cargandoResenas" class="text-center py-4">
@@ -129,22 +138,27 @@
       <div v-else class="resenas-scroll mb-5">
         <div
           v-for="(resena, idx) in resenas"
-          :key="resena.id"
-          class="resena-card"
-          v-reveal="idx * 80">
-          <div class="resena-comillas">
-            <i class="bi bi-quote"></i>
+           :key="resena.id"
+            class="resena-card"
+             v-reveal="idx * 80">
+
+             <p class="resena-texto">"{{ resena.comentario }}"</p>
+
+        <div class="resena-autor">
+          <div v-if="resena.usuario?.foto" class="resena-foto">
+          <img :src="resena.usuario.foto" :alt="resena.usuario.nombre" />
           </div>
-          <p class="resena-texto">{{ resena.comentario }}</p>
-          <div class="resena-autor">
-            <div class="resena-avatar">{{ iniciales(resena.usuario?.nombre) }}</div>
-            <div>
-              <div class="fw-bold small">{{ resena.usuario?.nombre ?? 'Anónimo' }}</div>
-              <div class="text-muted" style="font-size:0.75rem;">{{ formatFecha(resena.created_at) }}</div>
-            </div>
+          <div v-else class="resena-avatar">
+         {{ iniciales(resena.usuario?.nombre) }}
+         </div>
+         <div>
+           <div class="fw-bold small resena-nombre">{{ resena.usuario?.nombre ?? 'Anónimo' }}</div>
+           <div class="resena-fecha">{{ formatFecha(resena.created_at) }}</div>
           </div>
         </div>
-      </div>
+
+  </div>
+</div>
 
       <!-- FORMULARIO DE RESEÑA -->
       <div class="resena-form-wrapper mx-auto">
@@ -213,6 +227,135 @@
 
       </div>
     </div>
+
+    <!-- MODAL CLIMA -->
+<teleport to="body">
+  <div v-if="mostrarClima" class="modal-overlay" @click.self="mostrarClima = false">
+    <div class="modal-custom">
+
+      <!-- Header -->
+      <div class="modal-custom-header">
+        <div>
+          <span class="modal-custom-tag">San Luis, Antioquia</span>
+          <h5 class="modal-custom-title">Clima en tiempo real</h5>
+        </div>
+        <button class="btn-cerrar-modal" @click="mostrarClima = false">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Cargando -->
+      <div v-if="cargandoClima" class="modal-custom-body text-center py-5">
+        <div class="spinner-border text-success"></div>
+        <p class="mt-3 text-muted small">Obteniendo datos del clima...</p>
+      </div>
+
+      <!-- Error -->
+      <div v-else-if="errorClima" class="modal-custom-body text-center py-4">
+        <i class="bi bi-wifi-off fs-1 text-muted d-block mb-2"></i>
+        <p class="text-muted small">{{ errorClima }}</p>
+      </div>
+
+      <!-- Datos -->
+      <div v-else-if="climaData" class="modal-custom-body">
+
+        <!-- Temperatura principal -->
+        <div class="clima-main">
+          <i :class="['bi', climaData.icono, 'clima-main-icon']"></i>
+          <div>
+            <span class="clima-temp">{{ climaData.temperatura }}°C</span>
+            <span class="clima-condicion">{{ climaData.condicion }}</span>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="clima-stats">
+          <div class="clima-stat">
+            <i class="bi bi-droplet-fill text-primary"></i>
+            <span class="clima-stat-val">{{ climaData.humedad }}%</span>
+            <span class="clima-stat-label">Humedad</span>
+          </div>
+          <div class="clima-stat">
+            <i class="bi bi-wind text-info"></i>
+            <span class="clima-stat-val">{{ climaData.viento }} km/h</span>
+            <span class="clima-stat-label">Viento</span>
+          </div>
+          <div class="clima-stat">
+            <i class="bi bi-geo-alt-fill text-success"></i>
+            <span class="clima-stat-val">624 m</span>
+            <span class="clima-stat-label">Altitud</span>
+          </div>
+        </div>
+
+        <!-- Próximas horas -->
+        <div class="clima-horas">
+          <p class="clima-horas-title">Próximas horas</p>
+          <div class="clima-horas-scroll">
+            <div v-for="h in climaData.horas" :key="h.hora" class="clima-hora-item">
+              <span class="hora-tiempo">{{ h.hora }}</span>
+              <i class="bi bi-thermometer-half text-danger"></i>
+              <span class="hora-temp">{{ h.temp }}°</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="clima-fuente">Fuente: Open-Meteo · Actualizado ahora</p>
+      </div>
+
+    </div>
+  </div>
+</teleport>
+<!-- MODAL UBICACIÓN -->
+<teleport to="body">
+  <div v-if="mostrarMapa" class="modal-overlay" @click.self="mostrarMapa = false">
+    <div class="modal-custom modal-custom--mapa">
+
+      <!-- Header -->
+      <div class="modal-custom-header">
+        <div>
+          <span class="modal-custom-tag">Oriente Antioqueño</span>
+          <h5 class="modal-custom-title">Ubicación de San Luis</h5>
+        </div>
+        <button class="btn-cerrar-modal" @click="mostrarMapa = false">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Mapa -->
+      <div class="modal-custom-body p-0">
+        <iframe
+          class="mapa-iframe"
+          loading="lazy"
+          allowfullscreen
+          referrerpolicy="no-referrer-when-downgrade"
+          src="https://www.google.com/maps/embed?pb=!1m28!1m12!1m3!1d253818.1751848577!2d-75.34065649999999!3d6.115291750000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m13!3e0!4m5!1s0x8e4428dfc80fad05%3A0x421374a24f009006!2sMedell%C3%ADn%2C%20Antioquia!3m2!1d6.244203!2d-75.581211!4m5!1s0x8e4693a0b5a3e14d%3A0x9c3d9a5b6d5e0a0!2sSan%20Luis%2C%20Antioquia!3m2!1d6.0425!2d-74.992222!5e0!3m2!1ses!2sco!4v1700000000000!5m2!1ses!2sco"
+        ></iframe>
+
+        <!-- Info debajo del mapa -->
+        <div class="mapa-info">
+          <div class="mapa-dato">
+            <i class="bi bi-signpost-2 text-success"></i>
+            <span>A 124 km de Medellín por la Autopista Medellín–Bogotá</span>
+          </div>
+          <div class="mapa-dato">
+            <i class="bi bi-clock text-success"></i>
+            <span>Aproximadamente 2h 30min en carro</span>
+          </div>
+          
+            href="https://maps.google.com/?q=San+Luis,+Antioquia,+Colombia"
+            target="_blank"
+            class="btn btn-success btn-sm rounded-pill px-4 mt-2"
+          >
+            <i class="bi bi-box-arrow-up-right me-2"></i>Abrir en Google Maps
+          
+        </div>
+      </div>
+
+    </div>
+  </div>
+</teleport>
+
+
   </section>
 </template>
 
@@ -222,19 +365,36 @@ import { ref, onMounted } from 'vue'
 import api from '@/api/axios'
 import { PUBLICO } from '@/api/endpoints'
 import { useAuthStore } from '@/stores/auth.store'
+import { useClima } from '@/composables/useClima'
 
 import imgHero      from '@/assets/img/principal/hero.webp'
 import imgPlanta    from '@/assets/img/principal/planta.webp'
 import imgCastellon from '@/assets/img/principal/cerro_castellon.webp'
 import imgSamana    from '@/assets/img/principal/rio_samana.webp'
 
-const authStore        = useAuthStore()
-const resenas          = ref([])
-const cargandoResenas  = ref(true)
-const nuevoComentario  = ref('')
-const enviandoResena   = ref(false)
-const resenaEnviada    = ref(false)
-const errorResena      = ref('')
+const authStore       = useAuthStore()
+const resenas         = ref([])
+const cargandoResenas = ref(true)
+const nuevoComentario = ref('')
+const enviandoResena  = ref(false)
+const resenaEnviada   = ref(false)
+const errorResena     = ref('')
+
+// Modales
+const mostrarClima = ref(false)
+const mostrarMapa  = ref(false)
+
+// Clima
+const { clima: climaData, cargando: cargandoClima, error: errorClima, cargarClima } = useClima()
+
+async function abrirClima() {
+  mostrarClima.value = true
+  await cargarClima()
+}
+
+function abrirMapa() {
+  mostrarMapa.value = true
+}
 
 async function enviarResena() {
   const texto = nuevoComentario.value.trim()
@@ -281,42 +441,14 @@ async function cargarResenas() {
 onMounted(cargarResenas)
 
 const lugaresDestacados = [
-  {
-    nombre: 'Cascada la planta',
-    descripcion: 'Considerado el charco natural más grande del Oriente antioqueño.',
-    imagen: imgPlanta
-  },
-  {
-    nombre: 'Cerro el Castellón',
-    descripcion: 'Un lugar lleno de historia y paisajes que enamoran.',
-    imagen: imgCastellon
-  },
-  {
-    nombre: 'Rio Samaná',
-    descripcion: 'El único río libre de Antioquia.',
-    imagen: imgSamana
-  }
+  { nombre: 'Cascada la planta',  descripcion: 'Considerado el charco natural más grande del Oriente antioqueño.', imagen: imgPlanta },
+  { nombre: 'Cerro el Castellón', descripcion: 'Un lugar lleno de historia y paisajes que enamoran.',               imagen: imgCastellon },
+  { nombre: 'Rio Samaná',         descripcion: 'El único río libre de Antioquia.',                                  imagen: imgSamana }
 ]
 
-const clima = [
-  'Temperatura entre 23°C y 36°C',
-  'Rara vez baja de 21°C',
-  'o sube más de 38°C'
-]
-
-const consejos = [
-  'Ropa cómoda y repelente',
-  'Calzado antideslizante',
-  'Hidratación constante'
-]
-
-const ubicacion = [
-  'A 124 Km de Medellín',
-  'Autopista Medellín - Bogotá',
-  'Corazón del Oriente'
-]
-
-
+const clima    = ['Temperatura entre 23°C y 36°C', 'Rara vez baja de 21°C', 'o sube más de 38°C']
+const consejos = ['Ropa cómoda y repelente', 'Calzado antideslizante', 'Hidratación constante']
+const ubicacion = ['A 124 Km de Medellín', 'Autopista Medellín - Bogotá', 'Corazón del Oriente']
 </script>
 
 
@@ -594,7 +726,20 @@ const ubicacion = [
 
 /* ── 5. RESEÑAS ── */
 .resenas-bg {
-  background: linear-gradient(135deg, #f0faf4 0%, #e8f5e9 100%);
+  background: #fff;
+}
+
+.resenas-titulo {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 0.4rem;
+}
+
+.resenas-subtitulo {
+  font-size: 1rem;
+  color: #888;
+  letter-spacing: 1px;
 }
 
 .resenas-scroll {
@@ -605,30 +750,24 @@ const ubicacion = [
 
 .resena-card {
   background: #fff;
-  border-radius: 1.25rem;
-  padding: 1.75rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  border: 1px solid #ebebeb;
+  border-radius: 1rem;
+  padding: 1.8rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  justify-content: space-between;
+  gap: 1.2rem;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 .resena-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.12);
-}
-
-.resena-comillas {
-  font-size: 2.5rem;
-  line-height: 1;
-  color: #198754;
-  opacity: 0.35;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.09);
+  transform: translateY(-4px);
 }
 
 .resena-texto {
   font-size: 0.92rem;
-  color: #444;
-  line-height: 1.65;
+  color: #333;
+  line-height: 1.7;
   flex: 1;
   margin: 0;
   display: -webkit-box;
@@ -642,41 +781,45 @@ const ubicacion = [
   align-items: center;
   gap: 0.75rem;
   border-top: 1px solid #f0f0f0;
-  padding-top: 0.75rem;
+  padding-top: 1rem;
 }
 
-.resena-form-wrapper {
-  max-width: 620px;
-  background: #fff;
-  border-radius: 1.25rem;
-  padding: 2rem;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+.resena-foto {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
 }
-
-.resena-textarea {
-  border: 1.5px solid #dee2e6;
-  border-radius: 0.75rem;
-  resize: none;
-  font-size: 0.92rem;
-  transition: border-color 0.2s;
-}
-.resena-textarea:focus {
-  border-color: #198754;
-  box-shadow: 0 0 0 0.2rem rgba(25,135,84,0.15);
+.resena-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .resena-avatar {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: #198754;
   color: #fff;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.resena-nombre {
+  color: #1a1a1a;
+  font-size: 0.9rem;
+}
+
+.resena-fecha {
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-top: 0.1rem;
 }
 
 /* ── 6. ANIMACIONES DE ENTRADA (hero — se ejecutan al cargar) ── */
@@ -749,4 +892,227 @@ const ubicacion = [
   .lugares-section   { margin-top: -40px; }
   .resenas-scroll    { grid-template-columns: 1fr !important; }
 }
+
+/* ── MODALES ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(3px);
+}
+
+.modal-custom {
+  background: #fff;
+  border-radius: 1.5rem;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: modalIn 0.3s ease;
+}
+
+.modal-custom--mapa {
+  max-width: 650px;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-custom-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-custom-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #198754;
+}
+
+.modal-custom-title {
+  font-weight: 700;
+  margin: 0.2rem 0 0;
+  color: #1a1a1a;
+}
+
+.btn-cerrar-modal {
+  background: #f5f5f5;
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #555;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.btn-cerrar-modal:hover { background: #e0e0e0; }
+
+.modal-custom-body {
+  padding: 1.5rem;
+}
+
+/* Clima */
+.clima-main {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.clima-main-icon {
+  font-size: 3.5rem;
+  color: #f5a623;
+}
+
+.clima-temp {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1;
+  display: block;
+}
+
+.clima-condicion {
+  font-size: 1rem;
+  color: #666;
+  margin-top: 0.2rem;
+  display: block;
+}
+
+.clima-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.clima-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.clima-stat i { font-size: 1.3rem; }
+
+.clima-stat-val {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+}
+
+.clima-stat-label {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.clima-horas-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #444;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.clima-horas-scroll {
+  display: flex;
+  gap: 0.8rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.clima-hora-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 52px;
+  background: #f8f9fa;
+  border-radius: 0.75rem;
+  padding: 0.6rem 0.4rem;
+}
+
+.hora-tiempo {
+  font-size: 0.7rem;
+  color: #888;
+  font-weight: 600;
+}
+
+.hora-temp {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.clima-fuente {
+  font-size: 0.7rem;
+  color: #bbb;
+  text-align: right;
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+/* Mapa */
+.mapa-iframe {
+  width: 100%;
+  height: 340px;
+  border: none;
+  display: block;
+}
+
+.mapa-info {
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.mapa-dato {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+  color: #444;
+}
+
+/* Botón banner */
+.btn-banner-action {
+  background: rgba(255,255,255,0.15);
+  border: 1.5px solid rgba(255,255,255,0.6);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.4rem 1.2rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+.btn-banner-action:hover {
+  background: rgba(255,255,255,0.28);
+  border-color: #fff;
+}
+
 </style>

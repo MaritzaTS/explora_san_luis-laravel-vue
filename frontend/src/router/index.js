@@ -20,6 +20,7 @@ const router = createRouter({
         { path: 'sitios-turisticos',   name: 'sitios-turisticos',   component: () => import('@/views/SitiosTuristicosView.vue') },
         { path: 'eventos',             name: 'eventos',             component: () => import('@/views/EventosView.vue') },
         { path: 'historia',            name: 'historia',            component: () => import('@/views/HistoriaView.vue') },
+        { path: '/registro',           name: 'registro-comercio',   component: () => import('@/views/RegistroComercioView.vue') },
       ]
     },
 
