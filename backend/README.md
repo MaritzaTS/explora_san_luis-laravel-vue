@@ -55,6 +55,17 @@ Google OAuth
 envGOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GOOGLE_REDIRECT_URL=http://localhost:8000/api/auth/google/callback
+
+### SSL en desarrollo local (XAMPP)
+#En producción debe permanecer en true o eliminarse la variable.
+
+En algunos entornos Windows/XAMPP, PHP no tiene configurado correctamente
+el bundle de certificados SSL, lo que provoca errores de cURL con Google OAuth.
+
+Para evitarlo en desarrollo local:
+
+```env
+GOOGLE_SSL_VERIFY=false
 Mail (SMTP)
 envMAIL_MAILER=smtp
 MAIL_HOST=sandbox.smtp.mailtrap.io
@@ -237,7 +248,7 @@ Los seeders crean los datos mínimos para que el sistema funcione:
 
 2 roles: admin, usuario
 1 lugar: San Luis, Antioquia
-5 tipos de entidad: Gastronomía, Recreación, Alojamiento, Transporte, Agencias Turísticas
+5 tipos de entidad: Gastronomía, Recreación, Alojamientos, Transportes, Agencias Turísticas
 13 subtipos: distribuidos entre los tipos (restaurante, hostal, glamping, etc.)
 1 usuario admin: admin@admin.com / 123456
 
@@ -328,3 +339,39 @@ Paginación admin: 15 registros por página.
 Sitios turísticos: Requieren exactamente 3 imágenes al crear. En update son opcionales.
 Admin protegido: El usuario con id=1 no puede ser desactivado.
 SoftDeletes: Entidades, sitios, eventos, usuarios y reseñas usan borrado lógico (deleted_at). El campo estado (activo/inactivo) es independiente y controlado por el admin.
+
+
+Las reseñas públicas se muestran dinámicamente en la vista Bienvenida.
+
+Características:
+
+- Solo usuarios autenticados pueden comentar
+- Las reseñas nuevas requieren moderación
+- Los usuarios no autenticados ven un CTA para iniciar sesión
+- El sistema usa carga dinámica desde API
+- Las reseñas usan SoftDeletes
+
+## Datos demo frontend
+
+Si la API de sitios turísticos falla o no retorna resultados,
+el frontend muestra automáticamente sitios demo locales
+con imágenes incluidas en `src/assets`.
+
+Esto evita pantallas vacías durante desarrollo o pruebas.
+
+## Uploads multipart/form-data
+
+Las peticiones con FormData NO deben establecer manualmente:
+
+```js
+Content-Type: multipart/form-data
+
+Axios genera automáticamente el boundary.
+Si se establece manualmente, PHP no podrá procesar $_FILES.
+
+
+En desarrollo local con XAMPP se aumentó:
+
+```apache
+upload_max_filesize = 10M
+post_max_size = 35M
