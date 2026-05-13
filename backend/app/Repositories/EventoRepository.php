@@ -65,4 +65,10 @@ class EventoRepository implements EventoRepositoryInterface
         // para que el objeto devuelto refleje la nueva relación.
         return $evento->fresh('lugar');
     }
+
+    public function cambiarEstado(Evento $evento, bool $estado): Evento
+    {
+        $evento->update(['estado' => $estado]);
+        return $evento->fresh('lugar');
+    }
 }
