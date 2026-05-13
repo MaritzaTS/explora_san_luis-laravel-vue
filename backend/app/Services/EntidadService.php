@@ -172,4 +172,34 @@ class EntidadService
             throw EntidadException::subtiposInvalidos();
         }
     }
+
+    /**
+     * Registro público de comercio. Se crea con estado=false (pendiente de aprobación).
+     */
+    public function registroPublico(EntidadDTO $dto, ?UploadedFile $logo = null): Entidad
+    {
+        $this->validarSubtipos($dto->tipo_entidad_id, $dto->subtipos_ids);
+
+        $entidad = $this->entidadRepository->create([
+            'tipo_entidad_id'  => $dto->tipo_entidad_id,
+            'lugar_id'         => $dto->lugar_id,
+            'nombre_comercial' => $dto->nombre_comercial,
+            'razon_social'     => $dto->razon_social,
+            'rut'              => $dto->rut,
+            'descripcion'      => $dto->descripcion,
+            'telefono'         => $dto->telefono,
+            'direccion'        => $dto->direccion,
+            'hora_atencion'    => $dto->hora_atencion,
+            'sitio_web'        => $dto->sitio_web,
+            'estado'           => false, // pendiente de aprobación
+        ]);
+
+        $this->entidadRepository->sincronizarSubtipos($entidad, $dto->subtipos_ids);
+
+        if ($logo) {
+            $this->subirLogo($entidad, $logo);
+        }
+
+        return $entidad->fresh(['tipoEntidad', 'imagenes', 'tiposEspecificos', 'lugar']);
+    }
 }
