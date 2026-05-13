@@ -32,6 +32,14 @@
     <button class="carousel-control-next" type="button" data-bs-target="#carouselExplora" data-bs-slide="next">
       <span class="carousel-control-next-icon"></span>
     </button>
+    <!-- Indicador de scroll -->
+    <div class="scroll-indicator">
+       <span class="scroll-texto">Desliza para explorar</span>
+       <div class="scroll-flecha">
+         <i class="bi bi-chevron-down"></i>
+      </div>
+    </div>
+    
   </div>
   <!-- Contenedor con margen superior para separarlo del HeroBanner -->
   <div class="container mt-4 mb-2">
@@ -100,5 +108,58 @@ onMounted(() => {
 
 .bi-arrow-left-circle-fill {
   font-size: 1.2rem;
+}
+
+/* ── Indicador de scroll ── */
+.scroll-indicator {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  z-index: 10;
+  animation: fadeInUp 1s ease 1s both;
+}
+
+.scroll-texto {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.scroll-flecha {
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  animation: bounce 1.6s ease-in-out infinite;
+}
+
+.scroll-flecha i {
+  font-size: 1rem;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(6px); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .scroll-indicator { display: none; }
 }
 </style>

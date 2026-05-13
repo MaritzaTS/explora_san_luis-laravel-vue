@@ -280,7 +280,9 @@ async function enviar() {
     if (form.logo)        formData.append('logo',        form.logo)
     form.subtipos_ids.forEach(id => formData.append('subtipos_ids[]', id))
 
-    await api.post(COMERCIO.REGISTRAR, formData)
+    await api.post(COMERCIO.REGISTRAR, formData, {
+  headers: { 'Content-Type': 'multipart/form-data' }
+})
     enviado.value = true
   } catch (e) {
     const data = e.response?.data
