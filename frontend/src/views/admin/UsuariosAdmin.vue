@@ -154,6 +154,13 @@
               </tr>
             </tbody>
           </table>
+
+          <AdminPaginacion
+  :pagina-actual="paginaActual"
+  :total-paginas="totalPaginas"
+  :total="totalRegistros"
+  @cambiar="cargarUsuarios"
+/>
         </div>
 
       </div>
@@ -248,6 +255,7 @@ import { ADMIN } from '@/api/endpoints'
 import { useToast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import AdminStatCard from '@/components/admin/AdminStatCard.vue'
+import AdminPaginacion from '@/components/admin/AdminPaginacion.vue'
 
 const toast = useToast()
 const { confirmar, alertaError } = useConfirm()
@@ -257,6 +265,9 @@ const cargando  = ref(true)
 const busqueda  = ref('')
 const filtroRol = ref('')
 const detalle   = ref(null)
+const paginaActual   = ref(1)
+const totalPaginas   = ref(1)
+const totalRegistros = ref(0)
 
 
 const totalUsuarios = computed(() => usuarios.value.length)
@@ -275,12 +286,15 @@ const usuariosFiltrados = computed(() =>
 
 onMounted(cargarUsuarios)
 
-async function cargarUsuarios() {
+async function cargarUsuarios(pagina = 1) {
   cargando.value = true
   try {
-    const { data } = await api.get(ADMIN.USUARIOS)
+    const { data } = await api.get(ADMIN.USUARIOS, { params: { page: pagina } })
     const payload = data.data
-    usuarios.value = payload?.usuarios ?? (Array.isArray(payload) ? payload : [])
+    usuarios.value       = payload?.usuarios ?? (Array.isArray(payload) ? payload : [])
+    paginaActual.value   = payload?.pagina_actual ?? 1
+    totalPaginas.value   = payload?.total_paginas ?? 1
+    totalRegistros.value = payload?.total ?? usuarios.value.length
   } finally { cargando.value = false }
 }
 

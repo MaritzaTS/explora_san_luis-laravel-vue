@@ -356,7 +356,11 @@ async function guardarEvento() {
     fd.append('lugar_id',     1)
     if (posterNuevoFile.value) fd.append('poster', posterNuevoFile.value)
 
-    await api.post(ADMIN.EVENTOS, fd)
+    await api.post(ADMIN.EVENTOS, fd, {
+  headers: {
+    'Content-Type': 'multipart/form-data'
+  }
+})
     Modal.getInstance(document.getElementById('modalEventoAgregar')).hide()
     toast.exito('Evento creado correctamente.')
     await cargarEventos()

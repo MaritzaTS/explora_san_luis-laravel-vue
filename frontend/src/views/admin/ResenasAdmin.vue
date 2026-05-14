@@ -121,6 +121,13 @@
           </table>
         </div>
 
+        <AdminPaginacion
+  :pagina-actual="paginaActual"
+  :total-paginas="totalPaginas"
+  :total="totalRegistros"
+  @cambiar="cargarResenas"
+/>
+
       </div>
     </div>
 
@@ -134,6 +141,7 @@ import { ADMIN } from '@/api/endpoints'
 import { useToast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import AdminStatCard from '@/components/admin/AdminStatCard.vue'
+import AdminPaginacion from '@/components/admin/AdminPaginacion.vue'
 
 const toast = useToast()
 const { confirmar, alertaError } = useConfirm()
@@ -143,6 +151,9 @@ const totalApi   = ref(0)
 const cargando   = ref(true)
 const errorCarga = ref(false)
 const busqueda   = ref('')
+const paginaActual   = ref(1)
+const totalPaginas   = ref(1)
+const totalRegistros = ref(0)
 
 
 const totalResenas = computed(() => totalApi.value || resenas.value.length)
@@ -160,20 +171,16 @@ const resenasFiltradas = computed(() => {
 
 onMounted(cargarResenas)
 
-async function cargarResenas() {
-  cargando.value   = true
-  errorCarga.value = false
+async function cargarResenas(pagina = 1) {
+  cargando.value = true
   try {
-    const { data } = await api.get(ADMIN.RESENAS)
-    const payload   = data.data
-    const raw       = payload?.resenas
-    resenas.value   = Array.isArray(raw) ? raw : (raw?.data ?? [])
-    totalApi.value  = payload?.total ?? resenas.value.length
-  } catch {
-    errorCarga.value = true
-  } finally {
-    cargando.value = false
-  }
+    const { data } = await api.get(ADMIN.RESENAS, { params: { page: pagina } })
+    const payload = data.data
+    resenas.value        = payload?.resenas ?? (Array.isArray(payload) ? payload : [])
+    paginaActual.value   = payload?.pagina_actual ?? 1
+    totalPaginas.value   = payload?.total_paginas ?? 1
+    totalRegistros.value = payload?.total ?? resenas.value.length
+  } finally { cargando.value = false }
 }
 
 async function toggleEstado(resena) {
