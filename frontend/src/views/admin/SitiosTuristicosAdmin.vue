@@ -127,6 +127,12 @@
 
             </div>
           </div>
+          <AdminPaginacion
+  :pagina-actual="paginaActual"
+  :total-paginas="totalPaginas"
+  :total="totalRegistros"
+  @cambiar="cargarSitios"
+/>
         </div>
 
       </div>
@@ -343,6 +349,7 @@ import ImagenInput from '@/components/ui/ImagenInput.vue'
 import { useToast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import AdminStatCard from '@/components/admin/AdminStatCard.vue'
+import AdminPaginacion from '@/components/admin/AdminPaginacion.vue'
 
 const toast = useToast()
 const { confirmar, alertaError } = useConfirm()
@@ -354,6 +361,9 @@ const busqueda     = ref('')
 const filtroEstado = ref('')
 const detalle      = ref(null)
 const formEditar   = ref(null)
+const paginaActual   = ref(1)
+const totalPaginas   = ref(1)
+const totalRegistros = ref(0)
 
 
 const previews       = ref([null, null, null])
@@ -364,10 +374,9 @@ const resetKeyNuevo  = ref(0)
 
 const formNuevo = ref({ nombre: '', descripcion: '', estado: true })
 
-const totalGeneral   = computed(() => sitios.value.length)
+const totalGeneral   = computed(() => totalRegistros.value)
 const totalActivos   = computed(() => sitios.value.filter(s => s.estado).length)
 const totalInactivos = computed(() => sitios.value.filter(s => !s.estado).length)
-
 const sitiosFiltrados = computed(() =>
   sitios.value.filter(s => {
     const okNombre = !busqueda.value || s.nombre.toLowerCase().includes(busqueda.value.toLowerCase())
@@ -377,13 +386,15 @@ const sitiosFiltrados = computed(() =>
 )
 
 onMounted(cargarSitios)
-
-async function cargarSitios() {
+async function cargarSitios(pagina = 1) {
   cargando.value = true
   try {
-    const { data } = await api.get(ADMIN.SITIOS)
+    const { data } = await api.get(ADMIN.SITIOS, { params: { page: pagina } })
     const payload = data.data
-    sitios.value = payload?.sitios ?? (Array.isArray(payload) ? payload : [])
+    sitios.value         = payload?.sitios ?? (Array.isArray(payload) ? payload : [])
+    paginaActual.value   = payload?.pagina_actual ?? 1
+    totalPaginas.value   = payload?.total_paginas ?? 1
+    totalRegistros.value = payload?.total ?? sitios.value.length
   } finally { cargando.value = false }
 }
 

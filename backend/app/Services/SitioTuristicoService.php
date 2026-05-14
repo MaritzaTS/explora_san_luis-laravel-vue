@@ -34,7 +34,7 @@ class SitioTuristicoService
      * @param int $porPagina Cantidad de registros por página.
      * @return LengthAwarePaginator
      */
-    public function listarTodos(int $porPagina = 15): LengthAwarePaginator
+    public function listarTodos(int $porPagina = 5): LengthAwarePaginator
     {
         return $this->sitioRepository->listarTodos($porPagina);
     }
