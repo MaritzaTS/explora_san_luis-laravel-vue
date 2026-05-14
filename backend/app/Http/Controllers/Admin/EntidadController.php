@@ -40,7 +40,9 @@ class EntidadController extends Controller
      */
     public function index(): JsonResponse
     {
-        $entidades = $this->entidadService->listarTodas();
+        $tipoEntidadId = request()->input('tipo_entidad_id') ? (int) request()->input('tipo_entidad_id') : null;
+
+        $entidades = $this->entidadService->listarTodas($tipoEntidadId);
 
         return $this->success(
             [
