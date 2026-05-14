@@ -35,9 +35,7 @@
                 <div class="overlay-gradient"></div>
 
                 <!-- Badge ubicación -->
-                <span class="position-absolute bottom-0 start-0 m-3 badge bg-success py-2 px-3 rounded-pill shadow-sm">
-                  <i class="bi bi-geo-alt-fill me-1"></i>{{ sitio.lugar ?? 'San Luis' }}
-                </span>
+               
 
                 <!-- Indicadores de galería -->
                 <div v-if="sitio.imagenes?.filter(Boolean).length > 1"
@@ -155,7 +153,6 @@ const SITIOS_DEMO = [
     nombre: 'Cascada La Chorrera',
     descripcion: 'Una impresionante cascada rodeada de vegetación exuberante, ideal para senderismo y fotografía de naturaleza. Sus aguas cristalinas caen desde 40 metros de altura formando una piscina natural perfecta para refrescarse.',
     imagenes: [imgCascada1, imgCascada2, imgCascada3],
-    lugar: 'San Luis',
     estado: true,
   },
   {
@@ -163,7 +160,6 @@ const SITIOS_DEMO = [
     nombre: 'Cascada La Planta',
     descripcion: 'Accesible por un sendero de 20 minutos entre guaduales y helechos gigantes. Perfecta para un baño natural en familia. Sus aguas descienden suavemente formando pozas de diferentes profundidades.',
     imagenes: [imgPlanta1, imgPlanta2, imgPlanta3],
-    lugar: 'San Luis',
     estado: true,
   },
   {
@@ -171,7 +167,6 @@ const SITIOS_DEMO = [
     nombre: 'Cerro Castellón',
     descripcion: 'Desde este mirador natural se aprecia una vista panorámica de todo el municipio y sus alrededores. El ascenso toma unos 45 minutos por senderos bien marcados entre bosque nativo y cultivos de café.',
     imagenes: [imgCerro1, imgCerro2, imgCerro3],
-    lugar: 'San Luis',
     estado: true,
   },
   {
@@ -179,7 +174,6 @@ const SITIOS_DEMO = [
     nombre: 'Río Dormilón',
     descripcion: 'Afluente cristalino ideal para el baño y la contemplación. Sus pozos naturales de agua verde son un secreto bien guardado de los habitantes de San Luis, accesible solo por trocha.',
     imagenes: [imgRio1, imgRio2, imgRio3],
-    lugar: 'San Luis',
     estado: true,
   },
   {
@@ -187,7 +181,6 @@ const SITIOS_DEMO = [
     nombre: 'Río Samaná Sur',
     descripcion: 'Uno de los pocos ríos libres de represas en Colombia. El recorrido en balsa por su cañón es la experiencia de aventura más buscada del oriente antioqueño, con paisajes espectaculares.',
     imagenes: [imgSamana1, imgSamana2, imgSamana3],
-    lugar: 'San Luis',
     estado: true,
   },
   {
@@ -195,7 +188,6 @@ const SITIOS_DEMO = [
     nombre: 'Parque Principal',
     descripcion: 'Corazón del municipio rodeado de la iglesia colonial y casas de arquitectura tradicional antioqueña. Punto de encuentro de locales y visitantes, con kioscos de comida típica los fines de semana.',
     imagenes: [imgParque1, imgParque2, imgParque3],
-    lugar: 'San Luis',
     estado: true,
   },
 ]
@@ -264,13 +256,6 @@ onMounted(cargar)
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
-/* Puntitos de galería */
-.galeria-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.5);
-  display: inline-block;
-}
 .galeria-dot--active { background: #fff; }
+
 </style>

@@ -39,3 +39,7 @@ export const ADMIN = {
 
   TIPO_IMAGEN:      (id) => `/admin/tipos/${id}/imagen`,
 }
+
+export const COMERCIO = {
+  REGISTRAR: '/comercios/registrar',
+}
