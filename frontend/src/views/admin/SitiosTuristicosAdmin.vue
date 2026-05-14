@@ -441,7 +441,11 @@ async function guardarSitio() {
     fd.append('estado', formNuevo.value.estado ? 1 : 0)
     fd.append('lugar_id', 1)
     archivosNuevo.value.forEach((file, i) => { if (file) fd.append(`url_imagen_${i + 1}`, file) })
-    await api.post(ADMIN.SITIOS, fd)
+    await api.post(ADMIN.SITIOS, fd,{
+      headers:{
+        'Content-Type': 'multipart/form-data'
+      }
+    })
     Modal.getInstance(document.getElementById('modalAgregarSitio')).hide()
     toast.exito('Sitio turístico registrado correctamente.')
     await cargarSitios()
