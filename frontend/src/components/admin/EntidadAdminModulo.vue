@@ -726,6 +726,7 @@ async function guardarEdicion() {
     fd.append('estado', formEditar.value.estado ? 1 : 0)
     fd.append('lugar_id', formEditar.value.lugar_id ?? 1)
     fd.append('_method', 'PUT')
+    if (tipoData.value) fd.append('tipo_entidad_id', tipoData.value.id)
     ;(formEditar.value.subtipos_ids ?? []).forEach(id => fd.append('subtipos_ids[]', id))
     if (logoEditarFile.value) fd.append('logo', logoEditarFile.value)
     await api.post(ADMIN.ENTIDAD(formEditar.value.id), fd, { headers: { 'Content-Type': 'multipart/form-data' } })

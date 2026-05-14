@@ -29,6 +29,7 @@ class EntidadResource extends JsonResource
             'hora_atencion'     => $this->hora_atencion,
             'sitio_web'         => $this->sitio_web,
             'estado'            => $this->estado,
+            'rut'               => $this->rut,
 
             // Primera imagen como URL directa (legacy)
             'imagen'            => $this->imagenes->first()

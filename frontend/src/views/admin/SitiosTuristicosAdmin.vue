@@ -482,7 +482,9 @@ async function guardarEdicion() {
     fd.append('lugar_id', formEditar.value.lugar?.id ?? 1)
     fd.append('_method', 'PUT')
     archivosEditar.value.forEach((file, i) => { if (file) fd.append(`url_imagen_${i + 1}`, file) })
-    await api.post(ADMIN.SITIO(formEditar.value.id), fd)
+    await api.post(ADMIN.SITIO(formEditar.value.id), fd, {
+  headers: { 'Content-Type': 'multipart/form-data' }
+})
     Modal.getInstance(document.getElementById('modalEditarSitio')).hide()
     toast.exito('Sitio turístico actualizado correctamente.')
     await cargarSitios()

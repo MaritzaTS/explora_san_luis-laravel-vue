@@ -40,7 +40,7 @@ class UpdateEntidadRequest extends FormRequest
             // Datos de identificación y contacto
             'nombre_comercial' => ['required', 'string', 'max:150'],
             'razon_social'     => ['required', 'string', 'max:150'],
-            'rut'              => ['required', 'string', 'max:50'],
+            'rut' => ['nullable', 'string', 'max:50'],
             'descripcion'      => ['nullable', 'string'],
             'telefono'         => ['required', 'string', 'max:30'],
             'direccion'        => ['required', 'string', 'max:255'],
