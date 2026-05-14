@@ -1,156 +1,15 @@
 <template>
   <div style="font-family: 'Inter', sans-serif; background-color: #f8f9fa; min-height: 100vh; display: flex;">
 
-    <!-- SIDEBAR -->
-    <div class="col-auto px-0 bg-white border-end vh-100 position-fixed"
-         style="width: 260px; z-index: 1040; display: flex; flex-direction: column;">
+    <AdminSidebar />
 
-      <div class="px-3 pt-4 pb-3 border-bottom">
-        <span class="fw-bold fs-6 text-dark">Panel Administrativo</span>
-      </div>
+    <div class="admin-content" :style="{ marginLeft: sidebarColapsado ? '72px' : '260px' }">
+      <AdminNavbar
+        :titulo="pageTitle"
+        :user-name="userName"
+        @logout="logout"
+      />
 
-      <nav class="px-3 pt-3 flex-grow-1 d-flex flex-column">
-        <ul class="nav nav-pills flex-column w-100 mb-0">
-
-          <li class="nav-item w-100 mb-1">
-            <RouterLink to="/admin"
-              class="nav-link px-3 py-2 rounded-3 text-dark d-flex align-items-center gap-2"
-              active-class="active bg-dark text-white"
-              exact>
-              <i class="bi bi-grid-fill"></i> Panel Principal
-            </RouterLink>
-          </li>
-
-          <li class="w-100 mt-3 mb-1">
-            <p class="text-muted fw-bold mb-1 px-2 text-uppercase" style="font-size: 0.68rem;">Módulos</p>
-          </li>
-
-          <li class="nav-item w-100 mb-1">
-            <RouterLink to="/admin/gastronomia"
-              class="nav-link px-3 py-2 rounded-3 text-dark d-flex align-items-center gap-2"
-              active-class="active bg-dark text-white">
-              <i class="bi bi-egg-fried"></i> Gastronomía
-            </RouterLink>
-          </li>
-
-          <li class="nav-item w-100 mb-1">
-            <RouterLink to="/admin/recreacion"
-              class="nav-link px-3 py-2 rounded-3 text-dark d-flex align-items-center gap-2"
-              active-class="active bg-dark text-white">
-              <i class="bi bi-tree"></i> Recreación
-            </RouterLink>
-          </li>
-
-          <li class="nav-item w-100 mb-1">
-            <RouterLink to="/admin/alojamientos"
-              class="nav-link px-3 py-2 rounded-3 text-dark d-flex align-items-center gap-2"
-              active-class="active bg-dark text-white">
-              <i class="bi bi-houses"></i> Alojamientos
-            </RouterLink>
-          </li>
-
-          <li class="nav-item w-100 mb-1">
-            <RouterLink to="/admin/transportes"
-              class="nav-link px-3 py-2 rounded-3 text-dark d-flex align-items-center gap-2"
-              active-class="active bg-dark text-white">
-              <i class="bi bi-bus-front"></i> Transporte
-            </RouterLink>
-          </li>
-
-          <li class="nav-item w-100 mb-1">
-            <RouterLink to="/admin/agencias"
-              class="nav-link px-3 py-2 rounded-3 text-dark d-flex align-items-center gap-2"
-              active-class="active bg-dark text-white">
-              <i class="bi bi-map"></i> Agencias Turísticas
-            </RouterLink>
-          </li>
-
-          <li class="nav-item w-100 mb-1">
-            <RouterLink to="/admin/sitios"
-              class="nav-link px-3 py-2 rounded-3 text-dark d-flex align-items-center gap-2"
-              active-class="active bg-dark text-white">
-              <i class="bi bi-geo-alt"></i> Sitios Turísticos
-            </RouterLink>
-          </li>
-
-          <li class="nav-item w-100 mb-1">
-            <RouterLink to="/admin/eventos"
-              class="nav-link px-3 py-2 rounded-3 text-dark d-flex align-items-center gap-2"
-              active-class="active bg-dark text-white">
-              <i class="bi bi-calendar-event"></i> Eventos
-            </RouterLink>
-          </li>
-
-          <li class="nav-item w-100 mb-1">
-            <RouterLink to="/admin/resenas"
-              class="nav-link px-3 py-2 rounded-3 text-dark d-flex align-items-center gap-2"
-              active-class="active bg-dark text-white">
-              <i class="bi bi-chat-left-heart"></i> Reseñas
-            </RouterLink>
-          </li>
-
-        </ul>
-
-        <!-- Usuarios al fondo -->
-        <ul class="nav nav-pills flex-column w-100 mt-auto border-top pt-2">
-          <li class="nav-item w-100">
-            <RouterLink to="/admin/usuarios"
-              class="nav-link px-3 py-2 rounded-3 text-dark d-flex align-items-center gap-2"
-              active-class="active bg-dark text-white">
-              <i class="bi bi-person-circle"></i> Usuarios
-            </RouterLink>
-          </li>
-        </ul>
-      </nav>
-    </div>
-
-    <!-- CONTENIDO PRINCIPAL -->
-    <div style="margin-left: 260px; flex: 1; display: flex; flex-direction: column; min-height: 100vh;">
-
-      <!-- NAVBAR SUPERIOR -->
-      <header class="navbar navbar-light bg-white border-bottom px-4 py-3 sticky-top" style="z-index: 1030;">
-        <div class="container-fluid px-0">
-          <h2 class="fw-bold mb-0 fs-5">{{ pageTitle }}</h2>
-
-          <ul class="navbar-nav ms-auto align-items-center flex-row gap-3">
-            <li class="nav-item text-end d-none d-md-block">
-              <span class="d-block fw-bold small">Administrador</span>
-              <span class="text-muted small">{{ userName }}</span>
-            </li>
-            <li class="nav-item position-relative">
-              <button class="btn p-0 border-0 bg-light rounded-circle d-flex align-items-center justify-content-center"
-                type="button"
-                @click="menuAbierto = !menuAbierto"
-                style="width: 42px; height: 42px;">
-                <i class="bi bi-person-fill fs-4"></i>
-              </button>
-              <!-- Overlay para cerrar al hacer click fuera -->
-              <div v-if="menuAbierto" class="position-fixed top-0 start-0 w-100 h-100" style="z-index: 1040;" @click="menuAbierto = false"></div>
-              <!-- Menú -->
-              <ul v-if="menuAbierto" class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 show position-absolute" style="z-index: 1050; right: 0; top: 100%;">
-                <li>
-                  <RouterLink class="dropdown-item" to="/admin/perfil" @click="menuAbierto = false">
-                    <i class="bi bi-person me-2"></i> Mi Perfil
-                  </RouterLink>
-                </li>
-                <li>
-                  <RouterLink class="dropdown-item" to="/" @click="menuAbierto = false">
-                    <i class="bi bi-house me-2"></i> Ver Sitio Web
-                  </RouterLink>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                  <button class="dropdown-item text-danger" @click="logout">
-                    <i class="bi bi-box-arrow-right me-2"></i> Cerrar sesión
-                  </button>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </header>
-
-      <!-- VISTAS HIJAS -->
       <main class="p-4">
         <RouterView />
       </main>
@@ -160,16 +19,19 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-
-const menuAbierto = ref(false)
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
+import AdminSidebar from '@/components/admin/AdminSidebar.vue'
+import AdminNavbar from '@/components/admin/AdminNavbar.vue'
 
 const route     = useRoute()
 const router    = useRouter()
 const authStore = useAuthStore()
+const uiStore   = useUiStore()
 
+const sidebarColapsado = computed(() => uiStore.sidebarColapsado)
 const userName = computed(() => authStore.usuario?.nombre ?? 'Administrador')
 
 const pageTitle = computed(() => {
@@ -194,3 +56,13 @@ async function logout() {
   router.push('/')
 }
 </script>
+
+<style scoped>
+.admin-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+</style>

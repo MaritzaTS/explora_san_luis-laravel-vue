@@ -34,7 +34,7 @@ class EventoService
      * @param int $porPagina Cantidad de elementos por página.
      * @return LengthAwarePaginator
      */
-    public function listarTodos(int $porPagina = 15): LengthAwarePaginator
+    public function listarTodos(int $porPagina = 5): LengthAwarePaginator
     {
         return $this->eventoRepository->listarTodos($porPagina);
     }

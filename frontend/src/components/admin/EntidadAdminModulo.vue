@@ -50,35 +50,33 @@
       </div>
     </div>
 
-    <!-- ALERTA -->
-    <div v-if="alerta.visible"
-      :class="`alert alert-${alerta.tipo} alert-dismissible fade show`"
-      role="alert">
-      <strong>{{ alerta.titulo }}</strong> {{ alerta.mensaje }}
-      <button type="button" class="btn-close" @click="alerta.visible = false"></button>
-    </div>
-
     <!-- TARJETAS DE ESTADÍSTICAS -->
-    <div class="row g-4 mb-4">
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
-          <h5 class="fw-bold mb-3 text-muted">Total {{ capitalizar(tipoData?.nombre ?? slug) }}</h5>
-          <h1 class="display-4 fw-bold mb-0 text-dark">{{ totalEntidades }}</h1>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
-          <h5 class="fw-bold mb-3 text-success">Activas</h5>
-          <h1 class="display-4 fw-bold mb-0 text-success">{{ activas }}</h1>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
-          <h5 class="fw-bold mb-3 text-danger">Inactivas</h5>
-          <h1 class="display-4 fw-bold mb-0 text-danger">{{ inactivas }}</h1>
-        </div>
-      </div>
-    </div>
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <AdminStatCard
+      :label="'Total ' + capitalizar(tipoData?.nombre ?? slug)"
+      :valor="totalEntidades"
+      icono="bi bi-shop-window"
+      variante="default"
+    />
+  </div>
+  <div class="col-md-4">
+    <AdminStatCard
+      label="Activas"
+      :valor="activas"
+      icono="bi bi-check-circle-fill"
+      variante="success"
+    />
+  </div>
+  <div class="col-md-4">
+    <AdminStatCard
+      label="Inactivas"
+      :valor="inactivas"
+      icono="bi bi-x-circle-fill"
+      variante="danger"
+    />
+  </div>
+</div>
 
     <!-- TABLA / LISTA DE ENTIDADES -->
     <div class="card border-1 shadow-sm rounded-4 bg-white border-dark-subtle">
@@ -195,8 +193,17 @@
                 </button>
               </div>
 
+
             </div>
           </div>
+
+          <!-- PAGINACIÓN -->
+<AdminPaginacion
+  :pagina-actual="paginaActual"
+  :total-paginas="totalPaginas"
+  :total="totalRegistros"
+  @cambiar="cargarEntidades"
+/>
         </div>
 
       </div>
@@ -515,6 +522,13 @@ import { Modal } from 'bootstrap'
 import api from '@/api/axios'
 import { ADMIN, PUBLICO } from '@/api/endpoints'
 import ImagenInput from '@/components/ui/ImagenInput.vue'
+import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
+import AdminStatCard from '@/components/admin/AdminStatCard.vue'
+import AdminPaginacion from '@/components/admin/AdminPaginacion.vue'
+
+const toast = useToast()
+const { confirmar, alertaError } = useConfirm()
 
 const props = defineProps({ slug: String })
 
@@ -536,7 +550,10 @@ const inputLogoNuevaComp = ref(null)
 const inputLogoEditarComp= ref(null)
 const inputPortada       = ref(null)
 const errorPortada       = ref(null)
-const alerta = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
+const paginaActual  = ref(1)
+const totalPaginas  = ref(1)
+const totalRegistros = ref(0)
+
 
 const formNueva = ref({
   nombre_comercial: '', razon_social: '', rut: '', telefono: '',
@@ -547,16 +564,16 @@ const formNueva = ref({
 const subtipos = computed(() => tipoData.value?.tipos_especificos ?? [])
 
 // Base: solo entidades de este tipo (para stats y lista)
-const entidadesDelTipo = computed(() =>
-  entidades.value.filter(e => !props.slug || e.tipo_entidad?.slug === props.slug)
-)
+// const entidadesDelTipo = computed(() =>
+//   entidades.value.filter(e => !props.slug || e.tipo_entidad?.slug === props.slug)
+// )
 
-const totalEntidades = computed(() => entidadesDelTipo.value.length)
-const activas        = computed(() => entidadesDelTipo.value.filter(e => e.estado).length)
-const inactivas      = computed(() => entidadesDelTipo.value.filter(e => !e.estado).length)
+const totalEntidades = computed(() => totalRegistros.value)
+const activas        = computed(() => entidades.value.filter(e => e.estado).length)
+const inactivas      = computed(() => entidades.value.filter(e => !e.estado).length)
 
 const entidadesFiltradas = computed(() => {
-  return entidadesDelTipo.value.filter(e => {
+  return entidades.value.filter(e => {
     const nombre = e.nombre_comercial?.toLowerCase() ?? ''
     const okBusqueda = !busqueda.value || nombre.includes(busqueda.value.toLowerCase())
     const okEstado   = filtroEstado.value === '' || String(e.estado ? '1' : '0') === filtroEstado.value
@@ -580,13 +597,17 @@ async function cargarTipo() {
   }
 }
 
-async function cargarEntidades() {
+async function cargarEntidades(pagina = 1) {
   cargando.value = true
   try {
-    const params = tipoData.value ? { tipo_entidad_id: tipoData.value.id } : {}
+    const params = { page: pagina }
+    if (tipoData.value) params.tipo_entidad_id = tipoData.value.id
     const { data } = await api.get(ADMIN.ENTIDADES, { params })
     const payload = data.data
-    entidades.value = payload?.entidades ?? (Array.isArray(payload) ? payload : [])
+    entidades.value    = payload?.entidades ?? (Array.isArray(payload) ? payload : [])
+    paginaActual.value = payload?.pagina_actual ?? 1
+    totalPaginas.value = payload?.total_paginas ?? 1
+    totalRegistros.value = payload?.total ?? entidades.value.length
   } finally {
     cargando.value = false
   }
@@ -619,7 +640,7 @@ async function confirmarPortada() {
   fd.append('imagen', portadaFile.value)
   await api.post(ADMIN.TIPO_IMAGEN(tipoData.value.id), fd, { headers: { 'Content-Type': 'multipart/form-data' } })
   portadaFile.value = null
-  mostrarAlerta('success', '¡Listo!', 'Imagen de portada actualizada.')
+  toast.exito('Imagen de portada actualizada.')
 }
 
 function cancelarPortada() {
@@ -629,10 +650,19 @@ function cancelarPortada() {
 
 async function toggleEstado(entidad) {
   const accion = entidad.estado ? 'desactivar' : 'activar'
-  if (!confirm(`¿Deseas ${accion} "${entidad.nombre_comercial}"?`)) return
-  await api.patch(ADMIN.ENTIDAD_ESTADO(entidad.id), { estado: !entidad.estado })
-  entidad.estado = !entidad.estado
-  mostrarAlerta('success', '¡Actualizado!', `Establecimiento ${entidad.estado ? 'activado' : 'desactivado'}.`)
+  const ok = await confirmar({
+    titulo: `¿${capitalizar(accion)} establecimiento?`,
+    texto: `"${entidad.nombre_comercial}" será ${entidad.estado ? 'ocultado del sitio público' : 'visible en el sitio público'}.`,
+    textoBoton: `Sí, ${accion}`,
+  })
+  if (!ok) return
+  try {
+    await api.patch(ADMIN.ENTIDAD_ESTADO(entidad.id), { estado: !entidad.estado })
+    entidad.estado = !entidad.estado
+    toast.exito(`Establecimiento ${entidad.estado ? 'activado' : 'desactivado'}.`)
+  } catch {
+    alertaError('No se pudo cambiar el estado del establecimiento.')
+  }
 }
 
 function verDetalle(e) {
@@ -664,10 +694,11 @@ async function guardarNueva() {
     if (logoNuevaFile.value) fd.append('logo', logoNuevaFile.value)
     await api.post(ADMIN.ENTIDADES, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
     Modal.getInstance(document.getElementById('modalAgregar')).hide()
-    mostrarAlerta('success', '¡Guardado!', 'Establecimiento agregado.')
+    toast.exito('Establecimiento agregado correctamente.')
     await cargarEntidades()
   } catch (err) {
-    mostrarAlerta('danger', '¡Error!', err.response?.data?.message ?? 'No se pudo guardar.')
+    const msg = err.response?.data?.message ?? 'No se pudo guardar el establecimiento.'
+    alertaError(msg)
   } finally {
     guardando.value = false
   }
@@ -699,10 +730,11 @@ async function guardarEdicion() {
     if (logoEditarFile.value) fd.append('logo', logoEditarFile.value)
     await api.post(ADMIN.ENTIDAD(formEditar.value.id), fd, { headers: { 'Content-Type': 'multipart/form-data' } })
     Modal.getInstance(document.getElementById('modalEditar')).hide()
-    mostrarAlerta('success', '¡Actualizado!', 'Establecimiento editado.')
+    toast.exito('Establecimiento actualizado correctamente.')
     await cargarEntidades()
   } catch (err) {
-    mostrarAlerta('danger', '¡Error!', err.response?.data?.message ?? 'No se pudo actualizar.')
+    const msg = err.response?.data?.message ?? 'No se pudo actualizar el establecimiento.'
+    alertaError(msg)
   } finally {
     guardando.value = false
   }
@@ -717,8 +749,4 @@ function formatNombre(txt) {
   return String(txt).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 }
 
-function mostrarAlerta(tipo, titulo, mensaje) {
-  alerta.value = { visible: true, tipo, titulo, mensaje }
-  setTimeout(() => alerta.value.visible = false, 4000)
-}
 </script>

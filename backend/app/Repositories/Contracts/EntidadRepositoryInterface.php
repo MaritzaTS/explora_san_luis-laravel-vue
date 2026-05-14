@@ -23,7 +23,7 @@ interface EntidadRepositoryInterface
      */
     public function filtrarPorTipo(int $tipoEntidadId, array $subtiposIds = [], int $porPagina = 6): LengthAwarePaginator;
 
-    public function listarTodas(int $porPagina = 15): LengthAwarePaginator;
+    public function listarTodas(int $porPagina = 15, ?int $tipoEntidadId = null): LengthAwarePaginator;
 
     public function findById(int $id): ?Entidad;
 

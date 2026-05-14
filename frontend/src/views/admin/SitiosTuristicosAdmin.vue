@@ -2,34 +2,32 @@
   <div>
 
     <!-- TARJETAS ESTADÍSTICAS -->
-    <div class="row g-4 mb-4">
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
-          <h5 class="fw-bold mb-3 text-muted small">Total Sitios</h5>
-          <h1 class="display-4 fw-bold mb-0 text-dark">{{ totalGeneral }}</h1>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
-          <h5 class="fw-bold mb-3 text-muted small">Activos</h5>
-          <h1 class="display-4 fw-bold mb-0 text-success">{{ totalActivos }}</h1>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
-          <h5 class="fw-bold mb-3 text-muted small">Inactivos</h5>
-          <h1 class="display-4 fw-bold mb-0 text-danger">{{ totalInactivos }}</h1>
-        </div>
-      </div>
-    </div>
-
-    <!-- ALERTA -->
-    <div v-if="alerta.visible"
-      :class="`alert alert-${alerta.tipo} alert-dismissible fade show shadow-sm`"
-      role="alert">
-      <strong>{{ alerta.titulo }}</strong> {{ alerta.mensaje }}
-      <button type="button" class="btn-close" @click="alerta.visible = false"></button>
-    </div>
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <AdminStatCard
+      label="Total Sitios"
+      :valor="totalGeneral"
+      icono="bi bi-geo-alt-fill"
+      variante="default"
+    />
+  </div>
+  <div class="col-md-4">
+    <AdminStatCard
+      label="Activos"
+      :valor="totalActivos"
+      icono="bi bi-check-circle-fill"
+      variante="success"
+    />
+  </div>
+  <div class="col-md-4">
+    <AdminStatCard
+      label="Inactivos"
+      :valor="totalInactivos"
+      icono="bi bi-x-circle-fill"
+      variante="danger"
+    />
+  </div>
+</div>
 
     <!-- LISTA DE SITIOS -->
     <div class="card border-1 shadow-sm rounded-4 bg-white border-dark-subtle">
@@ -342,6 +340,12 @@ import { Modal } from 'bootstrap'
 import api from '@/api/axios'
 import { ADMIN } from '@/api/endpoints'
 import ImagenInput from '@/components/ui/ImagenInput.vue'
+import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
+import AdminStatCard from '@/components/admin/AdminStatCard.vue'
+
+const toast = useToast()
+const { confirmar, alertaError } = useConfirm()
 
 const sitios       = ref([])
 const cargando     = ref(true)
@@ -350,7 +354,7 @@ const busqueda     = ref('')
 const filtroEstado = ref('')
 const detalle      = ref(null)
 const formEditar   = ref(null)
-const alerta       = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
+
 
 const previews       = ref([null, null, null])
 const previewsEditar = ref([null, null, null])
@@ -395,10 +399,19 @@ function onImagenEditar(file, index) {
 
 async function toggleEstado(item) {
   const accion = item.estado ? 'desactivar' : 'activar'
-  if (!confirm(`¿Deseas ${accion} "${item.nombre}"?`)) return
-  await api.patch(ADMIN.SITIO_ESTADO(item.id), { estado: !item.estado })
-  item.estado = !item.estado
-  mostrarAlerta('success', '¡Actualizado!', `Sitio ${item.estado ? 'activado' : 'desactivado'}.`)
+  const ok = await confirmar({
+    titulo: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} sitio turístico?`,
+    texto: `"${item.nombre}" será ${item.estado ? 'ocultado del sitio público' : 'visible en el sitio público'}.`,
+    textoBoton: `Sí, ${accion}`,
+  })
+  if (!ok) return
+  try {
+    await api.patch(ADMIN.SITIO_ESTADO(item.id), { estado: !item.estado })
+    item.estado = !item.estado
+    toast.exito(`Sitio ${item.estado ? 'activado' : 'desactivado'}.`)
+  } catch {
+    alertaError('No se pudo cambiar el estado del sitio.')
+  }
 }
 
 function verDetalle(item) {
@@ -417,7 +430,7 @@ function abrirModalAgregar() {
 async function guardarSitio() {
   const faltantes = archivosNuevo.value.map((f, i) => !f ? `Imagen ${i + 1}` : null).filter(Boolean)
   if (faltantes.length) {
-    mostrarAlerta('danger', '¡Imágenes requeridas!', `Faltan: ${faltantes.join(', ')}.`)
+    alertaError(`Faltan: ${faltantes.join(', ')}.`, '¡Imágenes requeridas!')
     return
   }
   guardando.value = true
@@ -428,14 +441,18 @@ async function guardarSitio() {
     fd.append('estado', formNuevo.value.estado ? 1 : 0)
     fd.append('lugar_id', 1)
     archivosNuevo.value.forEach((file, i) => { if (file) fd.append(`url_imagen_${i + 1}`, file) })
-    await api.post(ADMIN.SITIOS, fd)
+    await api.post(ADMIN.SITIOS, fd,{
+      headers:{
+        'Content-Type': 'multipart/form-data'
+      }
+    })
     Modal.getInstance(document.getElementById('modalAgregarSitio')).hide()
-    mostrarAlerta('success', '¡Publicado!', 'Sitio registrado.')
+    toast.exito('Sitio turístico registrado correctamente.')
     await cargarSitios()
   } catch (err) {
     const errors = err.response?.data?.errors
-    const detalle = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo guardar.')
-    mostrarAlerta('danger', '¡Error de validación!', detalle)
+    const msg = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo guardar.')
+    alertaError(msg)
   } finally { guardando.value = false }
 }
 
@@ -456,17 +473,13 @@ async function guardarEdicion() {
     archivosEditar.value.forEach((file, i) => { if (file) fd.append(`url_imagen_${i + 1}`, file) })
     await api.post(ADMIN.SITIO(formEditar.value.id), fd)
     Modal.getInstance(document.getElementById('modalEditarSitio')).hide()
-    mostrarAlerta('success', '¡Actualizado!', 'Sitio editado.')
+    toast.exito('Sitio turístico actualizado correctamente.')
     await cargarSitios()
   } catch (err) {
     const errors = err.response?.data?.errors
-    const detalle = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo actualizar.')
-    mostrarAlerta('danger', '¡Error de validación!', detalle)
+    const msg = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo actualizar.')
+    alertaError(msg)
   } finally { guardando.value = false }
 }
 
-function mostrarAlerta(tipo, titulo, mensaje) {
-  alerta.value = { visible: true, tipo, titulo, mensaje }
-  setTimeout(() => alerta.value.visible = false, 4000)
-}
 </script>

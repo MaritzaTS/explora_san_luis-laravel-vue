@@ -30,7 +30,7 @@ class UsuarioService
      * @param int $porPagina Cantidad de registros por página.
      * @return LengthAwarePaginator
      */
-    public function listarTodos(int $porPagina = 15): LengthAwarePaginator
+    public function listarTodos(int $porPagina = 10): LengthAwarePaginator
     {
         return $this->usuarioRepository->listarTodos($porPagina);
     }

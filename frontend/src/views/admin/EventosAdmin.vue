@@ -2,56 +2,47 @@
   <div>
 
     <!-- TARJETAS ESTADÍSTICAS -->
-    <div class="row g-4 mb-4">
+    <div class="row g-3 mb-4">
       <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-dark border-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-muted small text-uppercase mb-0">Total Eventos</h6>
-            <i class="bi bi-calendar-event-fill fs-4 text-dark"></i>
-          </div>
-          <h1 class="display-5 fw-bold mb-0 text-dark">{{ totalEventos }}</h1>
-        </div>
+        <AdminStatCard label="Total Eventos" :valor="totalEventos"
+          icono="bi bi-calendar-event-fill" variante="default" />
       </div>
       <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-success border-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-success small text-uppercase mb-0">Activos</h6>
-            <i class="bi bi-check-circle-fill fs-4 text-success"></i>
-          </div>
-          <h1 class="display-5 fw-bold mb-0 text-success">{{ activos }}</h1>
-        </div>
+        <AdminStatCard label="Activos" :valor="activos"
+          icono="bi bi-check-circle-fill" variante="success" />
       </div>
       <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white border-start border-secondary border-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-secondary small text-uppercase mb-0">Inactivos</h6>
-            <i class="bi bi-x-circle-fill fs-4 text-secondary"></i>
-          </div>
-          <h1 class="display-5 fw-bold mb-0 text-secondary">{{ inactivos }}</h1>
-        </div>
+        <AdminStatCard label="Inactivos" :valor="inactivos"
+          icono="bi bi-x-circle-fill" variante="danger" />
       </div>
-    </div>
-
-    <!-- ALERTA -->
-    <div v-if="alerta.visible"
-      :class="`alert alert-${alerta.tipo} alert-dismissible fade show border-0 shadow-sm rounded-4`"
-      role="alert">
-      <strong>{{ alerta.titulo }}</strong> {{ alerta.mensaje }}
-      <button type="button" class="btn-close" @click="alerta.visible = false"></button>
     </div>
 
     <!-- TABLA DE EVENTOS -->
     <div class="card border-1 shadow-sm rounded-4 bg-white border-dark-subtle">
       <div class="card-body p-4">
 
-        <!-- ENCABEZADO -->
+        <!-- ENCABEZADO + FILTROS -->
         <div class="row g-3 mb-4 align-items-center">
-          <div class="col-md-6">
-            <h4 class="fw-bold mb-0">Gestión de Eventos y Festividades</h4>
-            <p class="text-muted small mb-0">Administra los eventos registrados en el sistema</p>
+          <div class="col-md-4">
+            <div class="input-group border border-secondary-subtle rounded-3 bg-white">
+              <span class="input-group-text bg-transparent border-0">
+                <i class="bi bi-search"></i>
+              </span>
+              <input type="text" v-model="busqueda"
+                class="form-control border-0 shadow-none py-2"
+                placeholder="Buscar evento..." />
+            </div>
+          </div>
+          <div class="col-md-2">
+            <select v-model="filtroEstado"
+              class="form-select border border-secondary-subtle rounded-3 py-2 shadow-none fw-semibold">
+              <option value="">Todos</option>
+              <option value="1">Activos</option>
+              <option value="0">Inactivos</option>
+            </select>
           </div>
           <div class="col-md-6 text-end">
-            <button class="btn btn-dark border-0 rounded-3 py-2 px-4 fw-bold shadow-none"
+            <button class="btn btn-outline-dark border border-secondary-subtle rounded-3 py-2 px-4 fw-bold shadow-none"
               @click="abrirModalAgregar">
               <i class="bi bi-calendar-plus me-1"></i> Crear Evento
             </button>
@@ -65,7 +56,7 @@
             <p>Cargando eventos...</p>
           </div>
 
-          <table v-else class="table table-hover align-middle">
+          <table v-else class="table table-hover align-middle mb-0">
             <thead class="table-light">
               <tr>
                 <th class="ps-4 py-3 text-muted small fw-semibold text-uppercase">Evento</th>
@@ -76,17 +67,16 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="eventos.length === 0">
+              <tr v-if="eventosFiltrados.length === 0">
                 <td colspan="5" class="text-center text-muted py-5">
                   <i class="bi bi-calendar-x fs-1 d-block mb-3"></i>
                   No hay eventos registrados.
                 </td>
               </tr>
-              <tr v-for="ev in eventos" :key="ev.id">
+              <tr v-for="ev in eventosFiltrados" :key="ev.id">
                 <td class="ps-4">
                   <div class="d-flex align-items-center gap-3">
-                    <img v-if="ev.url_poster"
-                      :src="ev.url_poster"
+                    <img v-if="ev.url_poster" :src="ev.url_poster"
                       class="rounded-3 border shadow-sm flex-shrink-0"
                       style="width:54px;height:54px;object-fit:cover;" />
                     <div v-else
@@ -115,15 +105,32 @@
                   </span>
                 </td>
                 <td class="text-end pe-4">
-                  <button class="btn btn-sm btn-light border shadow-none"
-                    @click="abrirModalEditar(ev)">
-                    <i class="bi bi-pencil"></i>
-                  </button>
+                  <div class="d-flex gap-2 justify-content-end">
+                    <button
+                      :class="ev.estado
+                        ? 'btn btn-sm btn-outline-danger border rounded-3 shadow-none fw-semibold'
+                        : 'btn btn-sm btn-outline-success border rounded-3 shadow-none fw-semibold'"
+                      @click="toggleEstado(ev)">
+                      <i :class="ev.estado ? 'bi bi-eye-slash' : 'bi bi-eye'" class="me-1"></i>
+                      {{ ev.estado ? 'Desactivar' : 'Activar' }}
+                    </button>
+                    <button class="btn btn-sm btn-light border shadow-none fw-semibold"
+                      @click="abrirModalEditar(ev)">
+                      <i class="bi bi-pencil me-1"></i> Editar
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
+
+        <AdminPaginacion
+  :pagina-actual="paginaActual"
+  :total-paginas="totalPaginas"
+  :total="totalRegistros"
+  @cambiar="cargarEventos"
+/>
 
       </div>
     </div>
@@ -176,7 +183,7 @@
                 <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cerrar</button>
                 <button type="submit" class="btn btn-dark px-4" :disabled="guardando">
                   <span v-if="guardando" class="spinner-border spinner-border-sm me-2" role="status"></span>
-                  Guardar Evento
+                  <i v-else class="bi bi-save me-1"></i> Guardar Evento
                 </button>
               </div>
             </form>
@@ -256,15 +263,26 @@ import { Modal } from 'bootstrap'
 import api from '@/api/axios'
 import { ADMIN } from '@/api/endpoints'
 import ImagenInput from '@/components/ui/ImagenInput.vue'
+import AdminStatCard from '@/components/admin/AdminStatCard.vue'
+import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
+import AdminPaginacion from '@/components/admin/AdminPaginacion.vue'
 
-const eventos        = ref([])
-const cargando       = ref(true)
-const guardando      = ref(false)
-const formEditar     = ref(null)
+const toast = useToast()
+const { confirmar, alertaError } = useConfirm()
+
+const eventos          = ref([])
+const cargando         = ref(true)
+const guardando        = ref(false)
+const formEditar       = ref(null)
 const posterNuevoFile  = ref(null)
 const posterEditarFile = ref(null)
-const resetKeyNuevo  = ref(0)
-const alerta         = ref({ visible: false, tipo: 'success', titulo: '', mensaje: '' })
+const resetKeyNuevo    = ref(0)
+const busqueda         = ref('')
+const filtroEstado     = ref('')
+const paginaActual   = ref(1)
+const totalPaginas   = ref(1)
+const totalRegistros = ref(0)
 
 const formNuevo = ref({ nombre: '', fecha_inicio: '', fecha_fin: '', descripcion: '', estado: true })
 
@@ -272,23 +290,51 @@ const totalEventos = computed(() => eventos.value.length)
 const activos      = computed(() => eventos.value.filter(e => e.estado).length)
 const inactivos    = computed(() => eventos.value.filter(e => !e.estado).length)
 
+const eventosFiltrados = computed(() => {
+  return eventos.value.filter(ev => {
+    const nombre = ev.nombre?.toLowerCase() ?? ''
+    const okBusqueda = !busqueda.value || nombre.includes(busqueda.value.toLowerCase())
+    const okEstado   = filtroEstado.value === '' || String(ev.estado ? '1' : '0') === filtroEstado.value
+    return okBusqueda && okEstado
+  })
+})
+
 onMounted(cargarEventos)
 
-async function cargarEventos() {
+async function cargarEventos(pagina = 1) {
   cargando.value = true
   try {
-    const { data } = await api.get(ADMIN.EVENTOS)
+    const { data } = await api.get(ADMIN.EVENTOS, { params: { page: pagina } })
     const payload = data.data
-    eventos.value = payload?.eventos ?? (Array.isArray(payload) ? payload : [])
+    eventos.value        = payload?.eventos ?? (Array.isArray(payload) ? payload : [])
+    paginaActual.value   = payload?.pagina_actual ?? 1
+    totalPaginas.value   = payload?.total_paginas ?? 1
+    totalRegistros.value = payload?.total ?? eventos.value.length
   } finally { cargando.value = false }
 }
 
 function formatFechaInput(fecha) {
   if (!fecha) return ''
-  // fecha viene como "dd/mm/yyyy" del backend, necesitamos "yyyy-mm-dd" para el input date
   const partes = fecha.split('/')
   if (partes.length === 3) return `${partes[2]}-${partes[1]}-${partes[0]}`
   return fecha
+}
+
+async function toggleEstado(ev) {
+  const accion = ev.estado ? 'desactivar' : 'activar'
+  const ok = await confirmar({
+    titulo: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} evento?`,
+    texto: `"${ev.nombre}" será ${ev.estado ? 'ocultado del sitio público' : 'visible en el sitio público'}.`,
+    textoBoton: `Sí, ${accion}`,
+  })
+  if (!ok) return
+  try {
+    await api.patch(ADMIN.EVENTO_ESTADO(ev.id), { estado: !ev.estado })
+    ev.estado = !ev.estado
+    toast.exito(`Evento ${ev.estado ? 'activado' : 'desactivado'}.`)
+  } catch {
+    alertaError('No se pudo cambiar el estado del evento.')
+  }
 }
 
 function abrirModalAgregar() {
@@ -310,14 +356,18 @@ async function guardarEvento() {
     fd.append('lugar_id',     1)
     if (posterNuevoFile.value) fd.append('poster', posterNuevoFile.value)
 
-    await api.post(ADMIN.EVENTOS, fd)
+    await api.post(ADMIN.EVENTOS, fd, {
+  headers: {
+    'Content-Type': 'multipart/form-data'
+  }
+})
     Modal.getInstance(document.getElementById('modalEventoAgregar')).hide()
-    mostrarAlerta('success', '¡Guardado!', 'Evento creado.')
+    toast.exito('Evento creado correctamente.')
     await cargarEventos()
   } catch (err) {
     const errors = err.response?.data?.errors
-    const msg = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo guardar.')
-    mostrarAlerta('danger', '¡Error!', msg)
+    const msg = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo guardar el evento.')
+    alertaError(msg)
   } finally { guardando.value = false }
 }
 
@@ -346,17 +396,12 @@ async function guardarEdicion() {
 
     await api.post(ADMIN.EVENTO(formEditar.value.id), fd)
     Modal.getInstance(document.getElementById('modalEventoEditar')).hide()
-    mostrarAlerta('success', '¡Actualizado!', 'Evento editado.')
+    toast.exito('Evento actualizado correctamente.')
     await cargarEventos()
   } catch (err) {
     const errors = err.response?.data?.errors
-    const msg = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo actualizar.')
-    mostrarAlerta('danger', '¡Error!', msg)
+    const msg = errors ? Object.values(errors).flat().join(' · ') : (err.response?.data?.message ?? 'No se pudo actualizar el evento.')
+    alertaError(msg)
   } finally { guardando.value = false }
-}
-
-function mostrarAlerta(tipo, titulo, mensaje) {
-  alerta.value = { visible: true, tipo, titulo, mensaje }
-  setTimeout(() => alerta.value.visible = false, 4000)
 }
 </script>

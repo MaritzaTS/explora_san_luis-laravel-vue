@@ -34,9 +34,9 @@ class EntidadService
      * @param int $porPagina Cantidad de registros por página (default 15).
      * @return LengthAwarePaginator
      */
-    public function listarTodas(int $porPagina = 15): LengthAwarePaginator
+    public function listarTodas(?int $tipoEntidadId = null, int $porPagina = 5): LengthAwarePaginator
     {
-        return $this->entidadRepository->listarTodas($porPagina);
+        return $this->entidadRepository->listarTodas($porPagina, $tipoEntidadId);
     }
 
     /**
