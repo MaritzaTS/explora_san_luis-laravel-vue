@@ -39,45 +39,28 @@
         </div>
       </div>
 
+      
       <!-- CONTENEDOR DE ENTIDADES -->
-      <div class="row g-4" id="contenedor-entidades" style="min-height: 500px;">
-        <!-- Estado de carga -->
-        <div v-if="cargando" class="col-12 text-center py-5 text-muted">
-          <div class="spinner-border text-success" role="status"></div>
-          <p class="mt-3">Cargando delicias locales...</p>
-        </div>
+  <div class="row g-4" id="contenedor-entidades" style="min-height: 500px;">
+  <div v-if="cargando" class="col-12 text-center py-5 text-muted">
+    <div class="spinner-border text-success" role="status"></div>
+    <p class="mt-3">Cargando delicias locales...</p>
+  </div>
 
-        <!-- Cards de Gastronomía -->
-        <template v-else>
-          <div class="col-md-6 col-lg-4" v-for="(entidad, idx) in entidadesFiltradas" :key="entidad.id" v-reveal="idx * 80">
-            <div class="card h-100 border-0 shadow-sm hover-card">
-              <img :src="imagen(entidad)"
-                   class="card-img-top object-fit-cover"
-                   style="height: 200px;"
-                   :alt="entidad.nombre_comercial">
-              <div class="card-body">
-                <h5 class="fw-bold mb-1">{{ entidad.nombre_comercial }}</h5>
-                <p class="text-muted small mb-2">
-                  <i class="bi bi-clock me-1"></i>{{ entidad.hora_atencion }}
-                </p>
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                  <span class="badge bg-secondary-subtle text-dark fw-normal">{{ formatNombre(subtipo(entidad)) }}</span>
-                  <a :href="'tel:' + entidad.telefono" class="btn btn-outline-success btn-sm rounded-circle">
-                    <i class="bi bi-telephone"></i>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
+  <template v-else>
+  <div class="col-md-6 col-lg-4"
+    v-for="(entidad, idx) in entidadesFiltradas"
+    :key="entidad.id"
+    v-reveal="idx * 80">
+    <EntidadCard :entidad="entidad" />
+  </div>
 
-          <!-- Mensaje si no hay resultados -->
-          <div v-if="entidadesFiltradas.length === 0" class="col-12 text-center py-5 text-muted">
-            <i class="bi bi-search fs-1"></i>
-            <p class="mt-3">No hay establecimientos que coincidan con tu selección.</p>
-          </div>
-        </template>
-      </div>
-
+  <div v-if="entidadesFiltradas.length === 0" class="col-12 text-center py-5 text-muted">
+    <i class="bi bi-search fs-1"></i>
+    <p class="mt-3">No hay establecimientos que coincidan con tu selección.</p>
+  </div>
+</template>
+    </div>
       <!-- PAGINACIÓN -->
       <PaginacionNav :pagina="paginaActual" :total-paginas="totalPaginas" @anterior="irAnterior" @siguiente="irSiguiente" />
     </section>
@@ -88,6 +71,7 @@
 import { onMounted, computed } from 'vue'
 import { useEntidades } from '@/composables/useEntidades'
 import PaginacionNav from '@/components/ui/PaginacionNav.vue'
+import EntidadCard from '@/components/shared/EntidadCard.vue'
 
 const { entidades, subtipos, filtros, cargando, pagina, totalPaginas, init, irAnterior, irSiguiente } = useEntidades('gastronomia')
 
@@ -103,31 +87,18 @@ const formatNombre = (txt) => txt.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.t
 </script>
 
 <style scoped>
-.tag-title {
-  z-index: 1;
-  margin-top: -1px;
-}
+/* ── Filtros ── */
+.tag-title { z-index: 1; margin-top: -1px; }
+.check-custom { width: 22px; height: 22px; cursor: pointer; }
+.cursor-pointer { cursor: pointer; }
 
-.check-custom {
-  width: 22px;
-  height: 22px;
-  cursor: pointer;
-}
-
-.hover-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
+/* ── Cards ── */
 
 .hover-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.1) !important;
 }
-
-.object-fit-cover {
-  object-fit: cover;
-}
-
-.cursor-pointer {
-  cursor: pointer;
+.hover-card:hover .card-logo {
+  transform: scale(1.05);
 }
 </style>
