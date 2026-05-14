@@ -38,43 +38,28 @@
       </div>
 
       <!-- CONTENEDOR DE ENTIDADES -->
-      <div class="row g-4" style="min-height: 400px;">
-        <!-- Estado de carga -->
-        <div v-if="cargando" class="col-12 text-center py-5 text-muted">
-          <div class="spinner-border text-success" role="status"></div>
-          <p class="mt-3">Cargando agencias...</p>
-        </div>
+<div class="row g-4" style="min-height: 400px;">
 
-        <!-- Lista de Agencias -->
-        <div v-else-if="agenciasFiltradas.length > 0"
-             class="col-md-6 col-lg-4"
-             v-for="(agencia, idx) in agenciasFiltradas"
-             :key="agencia.id"
-             v-reveal="idx * 80">
-          <div class="card h-100 border-0 shadow-sm hover-card">
-            <img :src="imagen(agencia)" class="card-img-top object-fit-cover" style="height: 200px;" :alt="agencia.nombre_comercial">
-            <div class="card-body">
-              <h5 class="fw-bold">{{ agencia.nombre_comercial }}</h5>
-              <p class="text-muted small mb-2"><i class="bi bi-tag-fill me-1"></i>{{ formatNombre(subtipo(agencia)) }}</p>
-              <p class="small text-secondary">{{ agencia.descripcion }}</p>
-              <div class="d-flex gap-2 mt-3">
-                <a v-if="agencia.telefono" :href="'tel:' + agencia.telefono" class="btn btn-success btn-sm w-100">
-                  <i class="bi bi-telephone-fill me-1"></i>Contactar
-                </a>
-                <a v-if="agencia.sitio_web" :href="agencia.sitio_web" target="_blank" class="btn btn-outline-success btn-sm w-100">
-                  <i class="bi bi-globe me-1"></i>Sitio web
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
+  <div v-if="cargando" class="col-12 text-center py-5 text-muted">
+    <div class="spinner-border text-success" role="status"></div>
+    <p class="mt-3">Cargando agencias...</p>
+  </div>
 
-        <!-- Sin resultados -->
-        <div v-else class="col-12 text-center py-5 text-muted">
-          <i class="bi bi-info-circle fs-1"></i>
-          <p class="mt-3">No se encontraron agencias con los filtros seleccionados.</p>
-        </div>
-      </div>
+  <template v-else>
+    <div class="col-md-6 col-lg-4"
+      v-for="(agencia, idx) in agenciasFiltradas"
+      :key="agencia.id"
+      v-reveal="idx * 80">
+      <EntidadCard :entidad="agencia" />
+    </div>
+
+    <div v-if="agenciasFiltradas.length === 0" class="col-12 text-center py-5 text-muted">
+      <i class="bi bi-info-circle fs-1"></i>
+      <p class="mt-3">No se encontraron agencias con los filtros seleccionados.</p>
+    </div>
+  </template>
+
+  </div>
 
       <!-- PAGINACIÓN -->
       <PaginacionNav :pagina="paginaActual" :total-paginas="totalPaginas" @anterior="irAnterior" @siguiente="irSiguiente" />
@@ -86,6 +71,7 @@
 import { computed, onMounted } from 'vue'
 import { useEntidades } from '@/composables/useEntidades'
 import PaginacionNav from '@/components/ui/PaginacionNav.vue'
+import EntidadCard from '@/components/shared/EntidadCard.vue'
 
 const { entidades, subtipos, filtros, cargando, pagina, totalPaginas, init, irAnterior, irSiguiente } = useEntidades('agencias-turisticas')
 
@@ -93,9 +79,7 @@ const filtrosSeleccionados = filtros
 const paginaActual         = pagina
 const agenciasFiltradas    = computed(() => entidades.value)
 
-const imagen      = (e) => e.imagenes?.[0]?.url_completa ?? 'https://via.placeholder.com/400x250?text=Sin+imagen'
-const subtipo     = (e) => e.subtipos?.[0]?.nombre ?? ''
-const formatNombre = (txt) => txt.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+
 
 onMounted(init)
 </script>
