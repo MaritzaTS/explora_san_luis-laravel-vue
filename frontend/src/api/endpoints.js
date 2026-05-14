@@ -29,6 +29,7 @@ export const ADMIN = {
 
   EVENTOS:          '/admin/eventos',
   EVENTO:           (id) => `/admin/eventos/${id}`,
+  EVENTO_ESTADO:  (id) => `/admin/eventos/${id}/estado`,
 
   USUARIOS:         '/admin/usuarios',
   USUARIO_ESTADO:   (id) => `/admin/usuarios/${id}/estado`,

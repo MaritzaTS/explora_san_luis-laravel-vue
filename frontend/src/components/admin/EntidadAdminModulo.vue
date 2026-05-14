@@ -193,8 +193,17 @@
                 </button>
               </div>
 
+
             </div>
           </div>
+
+          <!-- PAGINACIÓN -->
+<AdminPaginacion
+  :pagina-actual="paginaActual"
+  :total-paginas="totalPaginas"
+  :total="totalRegistros"
+  @cambiar="cargarEntidades"
+/>
         </div>
 
       </div>
@@ -516,6 +525,7 @@ import ImagenInput from '@/components/ui/ImagenInput.vue'
 import { useToast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import AdminStatCard from '@/components/admin/AdminStatCard.vue'
+import AdminPaginacion from '@/components/admin/AdminPaginacion.vue'
 
 const toast = useToast()
 const { confirmar, alertaError } = useConfirm()
@@ -540,6 +550,9 @@ const inputLogoNuevaComp = ref(null)
 const inputLogoEditarComp= ref(null)
 const inputPortada       = ref(null)
 const errorPortada       = ref(null)
+const paginaActual  = ref(1)
+const totalPaginas  = ref(1)
+const totalRegistros = ref(0)
 
 
 const formNueva = ref({
@@ -551,16 +564,16 @@ const formNueva = ref({
 const subtipos = computed(() => tipoData.value?.tipos_especificos ?? [])
 
 // Base: solo entidades de este tipo (para stats y lista)
-const entidadesDelTipo = computed(() =>
-  entidades.value.filter(e => !props.slug || e.tipo_entidad?.slug === props.slug)
-)
+// const entidadesDelTipo = computed(() =>
+//   entidades.value.filter(e => !props.slug || e.tipo_entidad?.slug === props.slug)
+// )
 
-const totalEntidades = computed(() => entidadesDelTipo.value.length)
-const activas        = computed(() => entidadesDelTipo.value.filter(e => e.estado).length)
-const inactivas      = computed(() => entidadesDelTipo.value.filter(e => !e.estado).length)
+const totalEntidades = computed(() => totalRegistros.value)
+const activas        = computed(() => entidades.value.filter(e => e.estado).length)
+const inactivas      = computed(() => entidades.value.filter(e => !e.estado).length)
 
 const entidadesFiltradas = computed(() => {
-  return entidadesDelTipo.value.filter(e => {
+  return entidades.value.filter(e => {
     const nombre = e.nombre_comercial?.toLowerCase() ?? ''
     const okBusqueda = !busqueda.value || nombre.includes(busqueda.value.toLowerCase())
     const okEstado   = filtroEstado.value === '' || String(e.estado ? '1' : '0') === filtroEstado.value
@@ -584,13 +597,17 @@ async function cargarTipo() {
   }
 }
 
-async function cargarEntidades() {
+async function cargarEntidades(pagina = 1) {
   cargando.value = true
   try {
-    const params = tipoData.value ? { tipo_entidad_id: tipoData.value.id } : {}
+    const params = { page: pagina }
+    if (tipoData.value) params.tipo_entidad_id = tipoData.value.id
     const { data } = await api.get(ADMIN.ENTIDADES, { params })
     const payload = data.data
-    entidades.value = payload?.entidades ?? (Array.isArray(payload) ? payload : [])
+    entidades.value    = payload?.entidades ?? (Array.isArray(payload) ? payload : [])
+    paginaActual.value = payload?.pagina_actual ?? 1
+    totalPaginas.value = payload?.total_paginas ?? 1
+    totalRegistros.value = payload?.total ?? entidades.value.length
   } finally {
     cargando.value = false
   }
