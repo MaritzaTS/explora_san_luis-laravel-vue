@@ -76,9 +76,11 @@
           <p class="small lh-lg text-justify mb-4">
             Nuestra historia se celebra en cada festival. Desde las colonias que retornan en enero hasta el homenaje al campesino en junio, San Luis mantiene viva su herencia cultural.
           </p>
+          router-link 
           <div class="d-flex flex-wrap gap-2">
             <span v-for="(fest, i) in festividades" :key="i" class="badge rounded-pill border border-success text-dark p-2 px-3 fest-badge">
               <i class="bi bi-stars me-1 text-success"></i> {{ fest }}
+              
             </span>
           </div>
         </div>

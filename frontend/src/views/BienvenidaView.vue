@@ -520,26 +520,32 @@ const ubicacion = ['A 124 Km de Medellín', 'Autopista Medellín - Bogotá', 'Co
 }
 
 .btn-aventura {
-  font-family: var(--font-body);
-  font-weight: 500;
-  font-size: clamp(1rem, 2vw, 1.3rem);
-  letter-spacing: 2px;
-  padding: 1rem 2.8rem;
-  border-radius: 999px;
-  background: #4F7352;
-  color: #ffffff;
-  border: 2px solid #ffffff;
-  transition: background 0.25s, color 0.25s, border-color 0.25s, transform 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
+  font-family: var(--font-body); /* */
+  font-weight: 500; /* */
+  padding: 1rem 2.8rem; /* */
+  border-radius: 999px; /* */
+  background: #4F7352; /* El color verde bosque actual */
+  color: #ffffff; /* */
+  border: 2px solid #ffffff; /* Mantiene el borde blanco */
+  transition: all 0.3s ease; /* Suaviza el cambio */
+  text-decoration: none; /* */
+  display: inline-flex; /* */
+  align-items: center; /* */
+  gap: 10px; /* */
 }
+
 .btn-aventura:hover {
-  background: var(--verde-lima);
-  border-color: var(--verde-lima);
-  color: #1a2e0a;
-  transform: translateY(-2px);
+  /* Al pasar el mouse, el fondo se vuelve transparente */
+  background-color: transparent !important; 
+  
+  /* El texto permanece blanco para que no se pierda contra el fondo */
+  color: #ffffff !important; 
+  
+  /* El borde se mantiene o se puede resaltar un poco */
+  border-color: #ffffff; 
+  
+  /* Un ligero efecto de elevación opcional */
+  transform: translateY(-2px); /* */
 }
 
 /* ── MARCADORES ── */

@@ -17,18 +17,20 @@
           ¿Qué aventura buscas hoy?
         </div>
         
-        <div class="border border-secondary-subtle bg-white p-4 pt-5 shadow-sm rounded-4">
-          <div class="row g-3 justify-content-center">
-            <div class="col-6 col-md-2" v-for="filtro in tiposSitios" :key="String(filtro.id)">
+        <!-- FILTROS -->
+         <div class="filtros-wrapper mb-5">
+            <span class="filtros-tag">¿Qué aventura buscas hoy?</span>
+            <div class="filtros-body">
               <button
-                class="btn rounded-pill w-100 small fw-bold"
-                :class="filtroSeleccionado === filtro.id ? 'btn-success' : 'btn-outline-success'"
-                @click="seleccionarFiltro(filtro.id)">
-                <i :class="filtro.icon + ' me-1'"></i> {{ formatNombre(filtro.nombre) }}
+                 v-for="filtro in tiposSitios"
+                 :key="String(filtro.id)"
+                 class="filtro-btn"
+                 :class="{ active: filtroSeleccionado === filtro.id }"
+                 @click="seleccionarFiltro(filtro.id)">
+                 <i :class="filtro.icon + ' me-1'"></i> {{ formatNombre(filtro.nombre) }}
               </button>
-            </div>
-          </div>
-        </div>
+           </div>
+       </div>
       </div>
 
       <!-- LISTADO -->
@@ -117,5 +119,61 @@ onMounted(init)
 .filter-option input:checked + label {
   background-color: #198754;
   color: white;
+}
+
+/* ── Filtros ── */
+.filtros-wrapper {
+  position: relative;
+  border: 1.5px solid #dee2e6;
+  border-radius: 0.75rem;
+  padding: 1.2rem 1.5rem;
+  padding-top: 1.8rem;
+}
+
+.filtros-tag {
+  position: absolute;
+  top: -13px;
+  left: 1.2rem;
+  background: #fff;
+  padding: 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #444;
+  border: 1.5px solid #dee2e6;
+  border-radius: 0.4rem;
+}
+
+.filtros-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.filtro-btn {
+  background: #fff;
+  border: 1.5px solid #dee2e6;
+  border-radius: 999px;
+  padding: 0.4rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #444;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filtro-btn:hover {
+  border-color: #198754;
+  color: #198754;
+}
+.filtro-btn.active {
+  background: #198754;
+  border-color: #198754;
+  color: #fff;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .filtros-body { gap: 0.5rem; }
+  .filtro-btn   { font-size: 0.8rem; padding: 0.35rem 0.9rem; }
 }
 </style>
