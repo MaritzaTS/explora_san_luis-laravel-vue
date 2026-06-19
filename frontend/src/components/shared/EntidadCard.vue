@@ -39,31 +39,74 @@ const subtipo = computed(() => {
 
 <style scoped>
 .hover-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   border-radius: 1rem;
   overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 .hover-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.1) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1) !important;
 }
+
+/* Contenedor de la imagen */
 .card-img-wrapper {
-  background: #f8f9fa;
-  height: 200px;
+  height: 220px;
+  min-height: 220px;
+  background: linear-gradient(
+    180deg,
+    #fafafa 0%,
+    #f4f4f4 100%
+  );
   display: flex;
-  align-items: cente;
-   justify-content: center;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
   overflow: hidden;
   border-bottom: 1px solid #f0f0f0;
 }
+
+/* Imagen */
 .card-logo {
-  width: 100%;
-  height: 100%;
+  max-width: 90%;
+  max-height: 90%;
+  width: auto;
+  height: auto;
   object-fit: contain;
-  padding: 1rem;
   transition: transform 0.3s ease;
 }
+
 .hover-card:hover .card-logo {
   transform: scale(1.05);
+}
+
+/* Hace que todas las cards tengan la misma altura */
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Empuja la parte inferior hacia abajo */
+.card-body .d-flex {
+  margin-top: auto;
+}
+
+.card-img-wrapper {
+  height: 220px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f8f9fa;
+}
+
+.card-logo {
+  width: 180px;
+  height: 180px;
+  border-radius: 12px;
+  object-fit: cover;
 }
 </style>

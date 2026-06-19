@@ -15,15 +15,23 @@
     </div>
 
     <!-- Imágenes del Carrusel -->
-    <div class="carousel-inner">
-      <div 
-        v-for="(slide, index) in slidesCarousel" 
-        :key="slide.alt" 
-        class="carousel-item" 
-        :class="{ active: index === 0 }">
-        <img :src="slide.src" class="d-block w-200 carousel-img" :alt="slide.alt">
-      </div>
-    </div>
+   <div class="hero-grid">
+     <div class="hero-item">
+       <img :src="imgSlide1" alt="El Prodigio">
+   </div>
+
+   <div class="hero-item">
+     <img :src="imgSlide2" alt="Puente">
+   </div>
+
+   <div class="hero-item">
+     <img :src="imgSlide3" alt="Quebrada">
+   </div>
+
+   
+
+   
+</div>
 
     <!-- Controles -->
     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExplora" data-bs-slide="prev">
@@ -32,13 +40,7 @@
     <button class="carousel-control-next" type="button" data-bs-target="#carouselExplora" data-bs-slide="next">
       <span class="carousel-control-next-icon"></span>
     </button>
-    <!-- Indicador de scroll -->
-    <div class="scroll-indicator">
-       <span class="scroll-texto">Desliza para explorar</span>
-       <div class="scroll-flecha">
-         <i class="bi bi-chevron-down"></i>
-      </div>
-    </div>
+    
     
   </div>
   <!-- Contenedor con margen superior para separarlo del HeroBanner -->
@@ -54,9 +56,9 @@
 
 import { onMounted } from 'vue'
 import { Carousel } from 'bootstrap' // Importamos la clase Carousel de Bootstrap
-import imgSlide1 from '@/assets/img/principal/planta.webp'
-import imgSlide2 from '@/assets/img/principal/San_Luis2.webp'
-import imgSlide3 from '@/assets/img/principal/parque.webp'
+import imgSlide1 from '@/assets/img/principal/cuba1.webp'
+import imgSlide2 from '@/assets/img/principal/San_Luis3.webp'
+import imgSlide3 from '@/assets/img/principal/rio_samana.webp'
 
 const slidesCarousel = [
   { src: imgSlide1, alt: 'Cascada San Luis' },
@@ -78,88 +80,54 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.carousel-img {
+.hero-grid {
+  display: grid;
+  grid-template-columns: 35% 30% 35%;
   width: 100%;
-  height: 1040px;
+  height: 330px;
+  overflow: hidden;
+}
+
+.hero-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-item img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-@media (max-width: 768px) {
-  .carousel-img {
-    height: 200px;
-  }
-}
-
-.btn-volver {
-  background-color: transparent;
-  color: seagreen; /* Color solicitado */
-  border: 2px solid seagreen;
-  border-radius: 50px; /* Estilo redondeado (pill) */
-  transition: all 0.3s ease-in-out;
-  font-size: 0.9rem;
-}
-
-.btn-volver:hover {
-  background-color: seagreen;
-  color: white;
-  transform: translateX(-5px); /* Pequeño desplazamiento a la izquierda */
-  box-shadow: 0 4px 12px rgba(46, 139, 87, 0.3); /* Sombra suave color seagreen */
-}
-
-.bi-arrow-left-circle-fill {
-  font-size: 1.2rem;
-}
-
-/* ── Indicador de scroll ── */
-.scroll-indicator {
+/* Separación muy suave */
+.hero-item:not(:last-child)::after {
+  content: "";
   position: absolute;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
-  z-index: 10;
-  animation: fadeInUp 1s ease 1s both;
-}
-
-.scroll-texto {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.85);
-  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
-}
-
-.scroll-flecha {
-  width: 36px;
-  height: 36px;
-  border: 2px solid rgba(255, 255, 255, 0.7);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  animation: bounce 1.6s ease-in-out infinite;
-}
-
-.scroll-flecha i {
-  font-size: 1rem;
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(6px); }
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  top: 0;
+  right: 0;
+  width: 15px;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255,255,255,0),
+    rgba(255,255,255,0.15),
+    rgba(255,255,255,0)
+  );
 }
 
 @media (max-width: 768px) {
-  .scroll-indicator { display: none; }
+  .hero-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .hero-item {
+    height: 220px;
+  }
+
+  .hero-item::after {
+    display: none;
+  }
 }
 </style>
